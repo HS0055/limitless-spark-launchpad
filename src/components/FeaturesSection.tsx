@@ -48,11 +48,11 @@ const FeaturesSection = () => {
       <div className="content-container">
         <div className="section-header">
           <h2 className="section-title">
-            Why choose <span className="text-gradient">Limitless Concepts?</span>
+            Why choose <span className="text-gradient">TopOne Academy?</span>
           </h2>
           <p className="section-subtitle">
-            We've reimagined business education for creative minds who learn best through visual, 
-            practical, and engaging content that actually makes sense.
+            Our Business Fundamentals League reimagines business education through visual, 
+            practical, and engaging content that actually makes sense for today's learners.
           </p>
         </div>
 

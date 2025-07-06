@@ -2,6 +2,7 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import CompanyLogos from "@/components/CompanyLogos";
 import FeaturesSection from "@/components/FeaturesSection";
+import UpcomingLeagues from "@/components/UpcomingLeagues";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import PricingSection from "@/components/PricingSection";
 import AIChat from "@/components/AIChat";
@@ -20,6 +21,7 @@ const Index = () => {
       <div id="features">
         <FeaturesSection />
       </div>
+      <UpcomingLeagues />
       <div id="curriculum">
         <CourseCurriculum />
       </div>

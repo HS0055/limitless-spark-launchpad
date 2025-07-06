@@ -7,25 +7,33 @@ const HeroSection = () => {
     <section className="content-section pt-24">
       <div className="content-container">
         <div className="section-header">
+          <div className="inline-flex items-center bg-primary/10 rounded-full px-6 py-3 mb-6">
+            <span className="text-sm font-medium text-primary">🏆 Business Fundamentals League</span>
+          </div>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-6 leading-tight">
-            Gain business confidence with
+            Master business skills with
             <br />
-            <span className="text-gradient">quick & visual lessons</span>
+            <span className="text-gradient">TopOne Academy</span>
           </h1>
           
           <div className="max-w-4xl mx-auto space-y-4 mb-8">
             <p className="text-xl md:text-2xl text-muted-foreground">
-              Is a lack of technical business knowledge holding you back?
+              Join the Business Fundamentals League and gain confidence through visual learning
             </p>
             <p className="text-lg md:text-xl text-muted-foreground">
-              We made critical concepts simple & visual so you can{" "}
-              <span className="text-primary font-semibold">10x your business skills</span> and finally feel confident in any business conversation.
+              Transform your business skills with{" "}
+              <span className="text-primary font-semibold">bite-sized visual lessons</span> designed to make complex concepts simple and actionable.
             </p>
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground/80">
+              <span className="flex items-center gap-1">
+                🔒 <span>More leagues unlocking soon</span>
+              </span>
+            </div>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button className="btn-hero text-lg px-8 py-4">
-              🚀 Get Early-bird Access
+              🚀 Join Business League
             </Button>
             <Button variant="outline" size="lg" className="text-muted-foreground border-muted hover:border-primary hover:text-primary">
               Watch Preview

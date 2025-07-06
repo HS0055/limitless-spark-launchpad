@@ -22,7 +22,7 @@ const Header = () => {
               <BookOpen className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="text-xl font-display font-bold">
-              Limitless <span className="text-primary">Concepts</span>
+              TopOne <span className="text-primary">Academy</span>
             </span>
           </div>
 
