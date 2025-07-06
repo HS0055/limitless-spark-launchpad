@@ -423,6 +423,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_sample_course: {
+        Args: { instructor_user_id: string }
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -433,6 +437,13 @@ export type Database = {
       make_user_admin: {
         Args: { user_email: string }
         Returns: undefined
+      }
+      setup_demo_user: {
+        Args: {
+          user_email: string
+          user_role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: string
       }
     }
     Enums: {
