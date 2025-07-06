@@ -69,7 +69,7 @@ const Header = () => {
           {/* CTA Button */}
           <div className="hidden md:block">
             <Button className="btn-hero" asChild>
-              <Link to="/business-fundamentals">
+              <Link to="/dashboard">
                 Get Started
               </Link>
             </Button>
@@ -121,7 +121,7 @@ const Header = () => {
                 );
               })}
               <Button className="w-full btn-hero mt-4" asChild>
-                <Link to="/business-fundamentals">
+                <Link to="/dashboard">
                   Get Started
                 </Link>
               </Button>

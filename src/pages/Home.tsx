@@ -41,11 +41,11 @@ const Home = () => {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-              <Button className="btn-hero text-lg px-8 py-4" asChild>
-                <a href="/business-fundamentals">
-                  🏆 Start Business League
-                </a>
-              </Button>
+            <Button className="btn-hero text-lg px-8 py-4" asChild>
+              <a href="/dashboard">
+                🏆 Start Business League
+              </a>
+            </Button>
               <Button variant="outline" size="lg" className="text-muted-foreground border-muted hover:border-primary hover:text-primary">
                 Explore All Leagues
               </Button>
