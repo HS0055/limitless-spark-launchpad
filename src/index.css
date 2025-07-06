@@ -42,29 +42,32 @@
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
-    /* Typography scale */
-    --text-xs: 0.75rem;
-    --text-sm: 0.875rem;
-    --text-base: 1rem;
-    --text-lg: 1.125rem;
-    --text-xl: 1.25rem;
-    --text-2xl: 1.5rem;
-    --text-3xl: 1.875rem;
-    --text-4xl: 2.25rem;
-    --text-5xl: 3rem;
-    --text-6xl: 3.75rem;
+  /* Enhanced typography and spacing */
+  --text-xs: 0.75rem;     /* 12px */
+  --text-sm: 0.875rem;    /* 14px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.25rem;     /* 20px */
+  --text-2xl: 1.5rem;     /* 24px */
+  --text-3xl: 1.875rem;   /* 30px */
+  --text-4xl: 2.25rem;    /* 36px */
+  --text-5xl: 3rem;       /* 48px */
+  --text-6xl: 3.75rem;    /* 60px */
 
-    /* Spacing scale */
-    --space-1: 0.25rem;
-    --space-2: 0.5rem;
-    --space-3: 0.75rem;
-    --space-4: 1rem;
-    --space-6: 1.5rem;
-    --space-8: 2rem;
-    --space-12: 3rem;
-    --space-16: 4rem;
-    --space-20: 5rem;
-    --space-24: 6rem;
+  /* Enhanced spacing scale */
+  --space-1: 0.25rem;     /* 4px */
+  --space-2: 0.5rem;      /* 8px */
+  --space-3: 0.75rem;     /* 12px */
+  --space-4: 1rem;        /* 16px */
+  --space-5: 1.25rem;     /* 20px */
+  --space-6: 1.5rem;      /* 24px */
+  --space-8: 2rem;        /* 32px */
+  --space-10: 2.5rem;     /* 40px */
+  --space-12: 3rem;       /* 48px */
+  --space-16: 4rem;       /* 64px */
+  --space-20: 5rem;       /* 80px */
+  --space-24: 6rem;       /* 96px */
+  --space-32: 8rem;       /* 128px */
 
     --radius: 0.5rem;
 
@@ -105,29 +108,39 @@
   }
 
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display font-semibold tracking-tight;
+    @apply font-display font-bold tracking-tight;
+    line-height: 1.1;
   }
 
   h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl;
+    @apply text-5xl md:text-6xl lg:text-7xl;
+    letter-spacing: -0.02em;
   }
 
   h2 {
     @apply text-3xl md:text-4xl lg:text-5xl;
+    letter-spacing: -0.015em;
   }
 
   h3 {
     @apply text-2xl md:text-3xl;
+    letter-spacing: -0.01em;
   }
 
   p {
     @apply leading-relaxed;
+    line-height: 1.7;
+  }
+
+  .lead {
+    @apply text-xl md:text-2xl leading-relaxed text-muted-foreground font-medium;
+    line-height: 1.6;
   }
 }
 
 @layer components {
   .content-section {
-    @apply py-16 md:py-20 lg:py-24;
+    @apply py-20 md:py-24 lg:py-32;
   }
 
   .content-container {
@@ -135,36 +148,43 @@
   }
 
   .section-header {
-    @apply text-center mb-12 md:mb-16;
+    @apply text-center mb-16 md:mb-20 lg:mb-24;
   }
 
   .section-title {
-    @apply text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-4 md:mb-6 tracking-tight;
+    @apply text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 md:mb-8 tracking-tight;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
   }
 
   .section-subtitle {
-    @apply text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed;
+    @apply text-xl md:text-2xl text-muted-foreground max-w-4xl mx-auto leading-relaxed font-medium;
+    line-height: 1.6;
   }
 
   .card-elevated {
-    @apply bg-card border border-border rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:border-primary/20 backdrop-blur-sm;
-    background: var(--card-gradient);
+    @apply bg-card border-2 border-border rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:border-primary/30 backdrop-blur-sm;
+    background: linear-gradient(145deg, hsl(var(--card) / 0.9), hsl(var(--card) / 0.7));
   }
 
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-accent-glow hover:shadow-accent-glow-strong transition-all duration-300;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 font-semibold;
   }
 
   .btn-hero {
-    @apply bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold px-8 py-4 rounded-full shadow-accent-glow hover:shadow-accent-glow-strong transform hover:scale-105 transition-all duration-300;
+    @apply bg-gradient-to-r from-primary via-accent to-primary text-primary-foreground font-bold px-10 py-5 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300 border border-primary/20;
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
   }
 
   .text-gradient {
-    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent;
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
   }
 
   .animate-float {
-    animation: float 3s ease-in-out infinite;
+    animation: float 6s ease-in-out infinite;
   }
 
   .animate-pulse-glow {
@@ -173,11 +193,30 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+  0%, 100% { 
+    transform: translateY(0px) scale(1); 
+  }
+  50% { 
+    transform: translateY(-20px) scale(1.02); 
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: var(--accent-glow); }
-  50% { box-shadow: var(--accent-glow-strong); }
+  0%, 100% { 
+    box-shadow: var(--accent-glow);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: var(--accent-glow-strong);
+    transform: scale(1.05);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }

@@ -73,34 +73,37 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20">
           {features.map((feature, index) => (
-            <div key={index} className="card-elevated p-8 group hover:scale-105 transform transition-all duration-300">
-              <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center group-hover:from-primary/30 group-hover:to-accent/20 transition-all duration-300">
-                <feature.icon className="w-8 h-8 text-primary" />
+            <div key={index} className="group relative">
+              <div className="card-elevated p-10 h-full hover:scale-105 transform transition-all duration-500 hover:shadow-2xl border-2 hover:border-primary/30">
+                <div className="w-20 h-20 mx-auto mb-8 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-accent/10 flex items-center justify-center group-hover:from-primary/30 group-hover:to-accent/20 transition-all duration-500 shadow-lg">
+                  <feature.icon className="w-10 h-10 text-primary" />
+                </div>
+                
+                <h3 className="text-2xl font-display font-bold mb-6 text-center text-foreground group-hover:text-primary transition-colors duration-300">
+                  {feature.title}
+                </h3>
+                
+                <p className="text-muted-foreground leading-relaxed text-center mb-6 text-lg">
+                  {feature.description}
+                </p>
+                
+                <p className="text-sm text-muted-foreground/80 text-center italic leading-relaxed">
+                  {feature.detail}
+                </p>
               </div>
-              
-              <h3 className="text-xl font-display font-semibold mb-4 text-center text-foreground">
-                {feature.title}
-              </h3>
-              
-              <p className="text-muted-foreground leading-relaxed text-center mb-4">
-                {feature.description}
-              </p>
-              
-              <p className="text-sm text-muted-foreground/80 text-center italic">
-                {feature.detail}
-              </p>
             </div>
           ))}
         </div>
 
         {/* Call to Action */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center space-x-2 bg-card/50 backdrop-blur-sm border border-border rounded-full px-6 py-3 mb-6">
-            <span className="text-sm text-muted-foreground">🎯 Ready to level up?</span>
+        <div className="text-center">
+          <div className="inline-flex items-center space-x-3 bg-gradient-to-r from-card/60 to-card/40 backdrop-blur-sm border-2 border-primary/20 rounded-full px-8 py-4 mb-8 shadow-lg">
+            <span className="text-2xl">🎯</span>
+            <span className="text-lg font-semibold text-foreground">Ready to level up?</span>
           </div>
-          <Button className="btn-hero text-lg px-8 py-4">
+          <Button className="btn-hero text-xl px-12 py-6 h-auto font-bold shadow-2xl hover:shadow-accent-glow-strong transform hover:scale-105 transition-all duration-300">
             Start Your Transformation
           </Button>
         </div>
