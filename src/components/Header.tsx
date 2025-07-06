@@ -1,11 +1,13 @@
 import { Button } from "@/components/ui/button";
-import { Menu, X, BookOpen, Users, Target, DollarSign, Home } from "lucide-react";
+import { Menu, X, BookOpen, Users, Target, DollarSign, Home, Settings } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
@@ -67,12 +69,31 @@ const Header = () => {
           </div>
 
           {/* CTA Button */}
-          <div className="hidden md:block">
-            <Button className="btn-hero" asChild>
-              <Link to="/dashboard">
-                Get Started
-              </Link>
-            </Button>
+          <div className="hidden md:flex items-center space-x-4">
+            {user ? (
+              <>
+                <Link
+                  to="/settings"
+                  className={`transition-colors duration-200 flex items-center space-x-1 group ${
+                    location.pathname === '/settings' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Settings className={`w-4 h-4 transition-colors ${
+                    location.pathname === '/settings' ? 'text-primary' : 'group-hover:text-primary'
+                  }`} />
+                  <span>Settings</span>
+                </Link>
+                <Button variant="outline" onClick={signOut}>
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button className="btn-hero" asChild>
+                <Link to="/dashboard">
+                  Get Started
+                </Link>
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -125,6 +146,30 @@ const Header = () => {
                   Get Started
                 </Link>
               </Button>
+              {user && (
+                <>
+                  <Link
+                    to="/settings"
+                    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
+                      location.pathname === '/settings' ? 'bg-muted text-primary' : 'hover:bg-muted'
+                    }`}
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    <Settings className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-primary' : 'text-primary'}`} />
+                    <span>Settings</span>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="w-full mt-2" 
+                    onClick={() => {
+                      signOut();
+                      setIsMenuOpen(false);
+                    }}
+                  >
+                    Sign Out
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         )}
