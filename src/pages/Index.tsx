@@ -7,6 +7,7 @@ import AIChat from "@/components/AIChat";
 import Footer from "@/components/Footer";
 import CourseCurriculum from "@/components/CourseCurriculum";
 import InvestmentBasics from "@/components/InvestmentBasics";
+import InteractiveCompounding from "@/components/InteractiveCompounding";
 import FAQ from "@/components/FAQ";
 
 const Index = () => {
@@ -16,6 +17,7 @@ const Index = () => {
       <CompanyLogos />
       <FeaturesSection />
       <CourseCurriculum />
+      <InteractiveCompounding />
       <InvestmentBasics />
       <TestimonialsSection />
       <FAQ />
