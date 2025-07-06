@@ -4,8 +4,10 @@ import FeaturesSection from "@/components/FeaturesSection";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import PricingSection from "@/components/PricingSection";
 import AIChat from "@/components/AIChat";
-import ImageGenerator from "@/components/ImageGenerator";
 import Footer from "@/components/Footer";
+import CourseCurriculum from "@/components/CourseCurriculum";
+import InvestmentBasics from "@/components/InvestmentBasics";
+import FAQ from "@/components/FAQ";
 
 const Index = () => {
   return (
@@ -13,10 +15,12 @@ const Index = () => {
       <HeroSection />
       <CompanyLogos />
       <FeaturesSection />
+      <CourseCurriculum />
+      <InvestmentBasics />
       <TestimonialsSection />
+      <FAQ />
       <PricingSection />
       <AIChat />
-      <ImageGenerator />
       <Footer />
     </div>
   );
