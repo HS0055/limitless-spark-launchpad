@@ -1,5 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Star, Quote } from "lucide-react";
+import testimonial1 from "@/assets/testimonial-1.jpg";
+import testimonial2 from "@/assets/testimonial-2.jpg";
+import testimonial3 from "@/assets/testimonial-3.jpg";
 
 const TestimonialsSection = () => {
   const testimonials = [
@@ -9,7 +12,7 @@ const TestimonialsSection = () => {
       company: "Design Studio",
       content: "The visual approach to business concepts completely transformed how I understand finance and strategy. Now I can confidently discuss budgets and growth plans with my team.",
       rating: 5,
-      avatar: "SJ"
+      image: testimonial1
     },
     {
       name: "Marcus Rodriguez",
@@ -17,7 +20,7 @@ const TestimonialsSection = () => {
       company: "Independent",
       content: "I went from avoiding business conversations to leading them. The bite-sized lessons fit perfectly into my busy schedule, and the visual format just clicks.",
       rating: 5,
-      avatar: "MR"
+      image: testimonial2
     },
     {
       name: "Emily Chen",
@@ -25,7 +28,7 @@ const TestimonialsSection = () => {
       company: "Tech Startup",
       content: "Finally, business education that doesn't put me to sleep! The concepts are explained so clearly that I actually look forward to each lesson.",
       rating: 5,
-      avatar: "EC"
+      image: testimonial3
     }
   ];
 
@@ -56,9 +59,13 @@ const TestimonialsSection = () => {
                 "{testimonial.content}"
               </p>
               
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-primary-foreground font-semibold">
-                  {testimonial.avatar}
+               <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden">
+                  <img 
+                    src={testimonial.image} 
+                    alt={testimonial.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div>
                   <p className="font-semibold text-foreground">{testimonial.name}</p>

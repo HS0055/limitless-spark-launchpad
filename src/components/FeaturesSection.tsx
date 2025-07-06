@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, Clock, Zap, Target, Users, TrendingUp } from "lucide-react";
+import visualLearningImage from "@/assets/visual-learning.jpg";
 
 const FeaturesSection = () => {
   const features = [
@@ -45,6 +46,17 @@ const FeaturesSection = () => {
           We've reimagined business education for creative minds who learn best through visual, 
           practical, and engaging content.
         </p>
+      </div>
+
+      <div className="mb-12">
+        <div className="relative max-w-3xl mx-auto rounded-2xl overflow-hidden">
+          <img 
+            src={visualLearningImage} 
+            alt="Visual learning concepts" 
+            className="w-full h-64 object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20"></div>
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
