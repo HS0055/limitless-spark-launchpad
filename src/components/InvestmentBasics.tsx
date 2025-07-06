@@ -1,6 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, DollarSign, Shield, PieChart, BarChart3, Calculator } from "lucide-react";
+import portfolioImage from "@/assets/portfolio-diversification.jpg";
+import riskManagementImage from "@/assets/risk-management.jpg";
+import marketAnalysisImage from "@/assets/market-analysis.jpg";
+import roiCalculationImage from "@/assets/roi-calculation.jpg";
 
 const InvestmentBasics = () => {
   const concepts = [
@@ -60,23 +64,105 @@ const InvestmentBasics = () => {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-        {concepts.map((concept, index) => (
-          <Card key={index} className="bg-card border-border hover:border-primary/20 transition-all duration-300 hover:shadow-lg group text-center">
-            <CardContent className="p-6">
-              <div className="text-4xl mb-4">{concept.visual}</div>
-              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                <concept.icon className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-3 text-foreground">
-                {concept.title}
-              </h3>
-              <p className="text-muted-foreground text-sm leading-relaxed">
-                {concept.description}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div className="space-y-6">
+          {concepts.slice(0, 3).map((concept, index) => (
+            <Card key={index} className="bg-card border-border hover:border-primary/20 transition-all duration-300 hover:shadow-lg group">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                  <concept.icon className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">
+                    {concept.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {concept.description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+        
+        <div className="space-y-6">
+          {concepts.slice(3).map((concept, index) => (
+            <Card key={index + 3} className="bg-card border-border hover:border-primary/20 transition-all duration-300 hover:shadow-lg group">
+              <CardContent className="p-6 flex items-center space-x-4">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors flex-shrink-0">
+                  <concept.icon className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2 text-foreground">
+                    {concept.title}
+                  </h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    {concept.description}
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
+      {/* Visual Examples Gallery */}
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <Card className="bg-card border-border overflow-hidden hover:border-primary/20 transition-colors">
+          <div className="relative h-48">
+            <img 
+              src={portfolioImage} 
+              alt="Portfolio Diversification" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="absolute bottom-4 left-4">
+              <h4 className="text-sm font-semibold text-foreground">Portfolio Mix</h4>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="bg-card border-border overflow-hidden hover:border-primary/20 transition-colors">
+          <div className="relative h-48">
+            <img 
+              src={riskManagementImage} 
+              alt="Risk Management" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="absolute bottom-4 left-4">
+              <h4 className="text-sm font-semibold text-foreground">Risk Control</h4>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="bg-card border-border overflow-hidden hover:border-primary/20 transition-colors">
+          <div className="relative h-48">
+            <img 
+              src={marketAnalysisImage} 
+              alt="Market Analysis" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="absolute bottom-4 left-4">
+              <h4 className="text-sm font-semibold text-foreground">Market Trends</h4>
+            </div>
+          </div>
+        </Card>
+        
+        <Card className="bg-card border-border overflow-hidden hover:border-primary/20 transition-colors">
+          <div className="relative h-48">
+            <img 
+              src={roiCalculationImage} 
+              alt="ROI Calculation" 
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
+            <div className="absolute bottom-4 left-4">
+              <h4 className="text-sm font-semibold text-foreground">ROI Analysis</h4>
+            </div>
+          </div>
+        </Card>
       </div>
 
       <div className="text-center bg-card rounded-2xl p-8 border border-border">

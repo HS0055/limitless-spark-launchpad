@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, Clock, Zap, Target, Users, TrendingUp } from "lucide-react";
-import visualLearningImage from "@/assets/visual-learning.jpg";
+import visualLearningImage from "@/assets/visual-learning-concept.jpg";
 
 const FeaturesSection = () => {
   const features = [

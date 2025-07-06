@@ -4,6 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Play, Pause, RotateCcw, TrendingUp } from "lucide-react";
+import compoundDiagram from "@/assets/compound-interest-diagram.jpg";
+import growthChart from "@/assets/growth-chart-visual.jpg";
+import lemonFlow from "@/assets/lemon-business-flow.jpg";
 
 const InteractiveCompounding = () => {
   const [principal, setPrincipal] = useState(1);
@@ -57,9 +60,54 @@ const InteractiveCompounding = () => {
         <h2 className="text-3xl md:text-4xl font-bold mb-4">
           The <span className="text-primary">Lemon Stand</span> Compounding Magic
         </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+        <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
           Discover why Einstein called compound interest "the eighth wonder of the world" through our interactive lemon stand example.
         </p>
+        
+        {/* Educational Images Gallery */}
+        <div className="grid md:grid-cols-3 gap-6 mb-8">
+          <Card className="bg-card border-border overflow-hidden hover:border-primary/20 transition-colors">
+            <div className="relative h-40">
+              <img 
+                src={lemonFlow} 
+                alt="Lemon Business Flow" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+              <div className="absolute bottom-3 left-3">
+                <h4 className="text-sm font-semibold text-foreground">Buy & Sell Process</h4>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="bg-card border-border overflow-hidden hover:border-primary/20 transition-colors">
+            <div className="relative h-40">
+              <img 
+                src={compoundDiagram} 
+                alt="Compound Interest Diagram" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+              <div className="absolute bottom-3 left-3">
+                <h4 className="text-sm font-semibold text-foreground">Compounding Effect</h4>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="bg-card border-border overflow-hidden hover:border-primary/20 transition-colors">
+            <div className="relative h-40">
+              <img 
+                src={growthChart} 
+                alt="Growth Chart" 
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-background/90 to-transparent" />
+              <div className="absolute bottom-3 left-3">
+                <h4 className="text-sm font-semibold text-foreground">Exponential Growth</h4>
+              </div>
+            </div>
+          </Card>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8 mb-8">
