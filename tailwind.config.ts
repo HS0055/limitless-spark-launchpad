@@ -68,6 +68,15 @@ export default {
 				md: 'calc(var(--radius) - 2px)',
 				sm: 'calc(var(--radius) - 4px)'
 			},
+			backgroundImage: {
+				'hero-gradient': 'var(--hero-gradient)'
+			},
+			boxShadow: {
+				'accent-glow': 'var(--accent-glow)'
+			},
+			transitionTimingFunction: {
+				'smooth': 'var(--transition-smooth)'
+			},
 			keyframes: {
 				'accordion-down': {
 					from: {
