@@ -136,7 +136,7 @@ Text: "${text}"`
 
 🌍 LANGUAGE-SPECIFIC GUIDELINES:
 ${targetLanguage === 'Armenian' ? 
-  '🇦🇲 ARMENIAN: Use formal yet warm tone. Prefer contemporary Eastern Armenian vocabulary. Educational content should sound engaging and accessible. Avoid overly complex expressions - use clear, modern Armenian that resonates with today's learners.' :
+  '🇦🇲 ARMENIAN: Use formal yet warm tone. Prefer contemporary Eastern Armenian vocabulary. Educational content should sound engaging and accessible. Avoid overly complex expressions - use clear, modern Armenian that resonates with today\\'s learners.' :
   targetLanguage === 'Russian' ?
   '🇷🇺 RUSSIAN: Use contemporary business Russian. Maintain professional courtesy. Educational terminology should be clear and modern.' :
   '🇺🇸 ENGLISH: Keep original text as baseline reference.'
