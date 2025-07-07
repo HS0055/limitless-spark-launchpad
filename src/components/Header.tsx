@@ -3,24 +3,27 @@ import { Menu, X, BookOpen, Users, Target, DollarSign, Home, Settings, Trophy, T
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useLanguage } from "@/contexts/LanguageContext";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { t } = useLanguage();
 
   const mainNavItems = [
-    { name: "Home", href: "/", icon: Home },
-    { name: "Programs", href: "/league", icon: Trophy },
-    { name: "Business", href: "/business-fundamentals", icon: Target },
-    { name: "Meme Coins", href: "/meme-coins", icon: TrendingUp },
-    { name: "Visual", href: "/visual-business", icon: Image },
-    { name: "Translator", href: "/translator", icon: BookOpen },
+    { name: t('nav.home'), href: "/", icon: Home },
+    { name: t('nav.programs'), href: "/league", icon: Trophy },
+    { name: t('nav.business'), href: "/business-fundamentals", icon: Target },
+    { name: t('nav.memeCoins'), href: "/meme-coins", icon: TrendingUp },
+    { name: t('nav.visual'), href: "/visual-business", icon: Image },
+    { name: t('nav.translator'), href: "/translator", icon: BookOpen },
   ];
 
   const secondaryNavItems = [
-    { name: "Community", href: "#testimonials", icon: Users },
-    { name: "Pricing", href: "#pricing", icon: DollarSign },
+    { name: t('nav.community'), href: "#testimonials", icon: Users },
+    { name: t('nav.pricing'), href: "#pricing", icon: DollarSign },
   ];
 
   return (
@@ -105,6 +108,7 @@ const Header = () => {
 
           {/* CTA Button */}
           <div className="hidden lg:flex items-center space-x-3">
+            <LanguageSwitcher />
             {user ? (
               <>
                 <Link
@@ -118,16 +122,16 @@ const Header = () => {
                   <Settings className={`w-4 h-4 transition-colors ${
                     location.pathname === '/settings' ? 'text-primary' : 'group-hover:text-primary'
                   }`} />
-                  <span className="font-medium">Settings</span>
+                  <span className="font-medium">{t('nav.settings')}</span>
                 </Link>
                 <Button variant="outline" onClick={signOut} className="font-medium">
-                  Sign Out
+                  {t('nav.signOut')}
                 </Button>
               </>
             ) : (
               <Button className="btn-hero font-semibold px-6" asChild>
                 <Link to="/dashboard">
-                  Get Started
+                  {t('nav.getStarted')}
                 </Link>
               </Button>
             )}
@@ -206,10 +210,13 @@ const Header = () => {
 
               {/* Actions */}
               <div className="pt-4 border-t border-border space-y-3">
+                <div className="flex justify-center mb-3">
+                  <LanguageSwitcher />
+                </div>
                 {!user ? (
                   <Button className="w-full btn-hero font-semibold py-3" asChild>
                     <Link to="/dashboard">
-                      Get Started
+                      {t('nav.getStarted')}
                     </Link>
                   </Button>
                 ) : (
@@ -224,7 +231,7 @@ const Header = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <Settings className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-primary' : ''}`} />
-                      <span className="font-medium">Settings</span>
+                      <span className="font-medium">{t('nav.settings')}</span>
                     </Link>
                     <Button 
                       variant="outline" 
@@ -234,7 +241,7 @@ const Header = () => {
                         setIsMenuOpen(false);
                       }}
                     >
-                      Sign Out
+                      {t('nav.signOut')}
                     </Button>
                   </>
                 )}

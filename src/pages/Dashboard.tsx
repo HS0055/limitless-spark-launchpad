@@ -1,4 +1,5 @@
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Button } from '@/components/ui/button';
 import { Brain } from 'lucide-react';
@@ -14,6 +15,7 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   
   // Mock data for demonstration - ready content
   const mockMentalModels = [
