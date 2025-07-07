@@ -135,11 +135,12 @@ const WebsiteTranslationManager = () => {
       const baseUrl = window.location.origin;
       
       toast({
-        title: "🌐 Website Scan Started",
-        description: "Scanning all pages and translating content...",
+        title: "🤖 Vision AI Scan Started",
+        description: "Using AI vision to extract ALL visible content and translate...",
       });
 
-      const { data, error } = await supabase.functions.invoke('scan-and-translate-website', {
+      // Try Vision AI scan first
+      const { data: visionData, error: visionError } = await supabase.functions.invoke('vision-ai-website-scan', {
         body: {
           baseUrl,
           targetLanguages: languages.map(l => l.code),
@@ -147,15 +148,33 @@ const WebsiteTranslationManager = () => {
         }
       });
 
-      if (error) throw error;
+      if (visionError) {
+        console.error('Vision AI scan failed, falling back to standard scan:', visionError);
+        
+        // Fallback to standard scan
+        const { data, error } = await supabase.functions.invoke('scan-and-translate-website', {
+          body: {
+            baseUrl,
+            targetLanguages: languages.map(l => l.code),
+            pages: pages.map(p => p.path)
+          }
+        });
+
+        if (error) throw error;
+        
+        toast({
+          title: "✅ Website Translation Complete (Standard)",
+          description: `Translated ${data.summary.unique_texts_found} texts to ${data.summary.languages_translated} languages`,
+        });
+      } else {
+        toast({
+          title: "🎉 Vision AI Scan Complete!",
+          description: `AI vision extracted ${visionData.summary.unique_texts_extracted} texts and translated to ${visionData.summary.languages_translated} languages`,
+        });
+      }
 
       setProgress(100);
       
-      toast({
-        title: "✅ Website Translation Complete",
-        description: `Translated ${data.summary.unique_texts_found} texts to ${data.summary.languages_translated} languages`,
-      });
-
       // Reload stats and translations
       await loadStats();
       await loadTranslations();
@@ -207,7 +226,8 @@ const WebsiteTranslationManager = () => {
             Website Translation Manager
           </CardTitle>
           <CardDescription>
-            Automatically scan and translate your entire website content to multiple languages
+            🤖 Uses AI vision to extract ALL visible content from screenshots and translate to multiple languages.
+            Perfect for capturing buttons, images with text, and dynamic content that HTML parsing might miss.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -220,12 +240,12 @@ const WebsiteTranslationManager = () => {
               {isScanning ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Scanning & Translating...
+                  Vision AI Scanning & Translating...
                 </>
               ) : (
                 <>
                   <RefreshCcw className="w-4 h-4 mr-2" />
-                  Scan & Translate Entire Website
+                  🤖 Vision AI Scan & Translate
                 </>
               )}
             </Button>
