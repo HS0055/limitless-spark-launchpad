@@ -140,7 +140,7 @@ class TranslationEngine {
     this.debounceTimer = window.setTimeout(() => {
       console.log('🔄 Dynamic content detected, re-translating…');
       this.translateAllContent(this.currentLanguage);
-    }, 100); // Reduced from 150ms
+    }, 100);
   }
 
   async translateAll(targetLang: Language) {
@@ -279,6 +279,8 @@ class TranslationEngine {
       console.error('Failed to setup realtime sync:', error);
     }
   }
+
+  private translateCachedContent(targetLang: Language) {
     // Translate document title
     const originalTitle = document.title;
     const translatedTitle = this.cache[originalTitle]?.[targetLang];
