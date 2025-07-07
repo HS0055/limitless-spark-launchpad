@@ -4,8 +4,7 @@ import { LoginForm } from '@/components/auth/LoginForm';
 import { Button } from '@/components/ui/button';
 import { Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import DashboardLayout from '@/components/DashboardLayout';
 import AschConformityVisualization from '@/components/AschConformityVisualization';
 import DashboardStats from '@/components/dashboard/DashboardStats';
 import LeaguesOverview from '@/components/dashboard/LeaguesOverview';
@@ -118,29 +117,22 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <div className="content-container py-8 pt-24">
+    <DashboardLayout>
+      <div className="space-y-8">
         {/* Enhanced Header */}
         <div className="mb-12">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <h1 className="text-4xl font-display font-bold mb-2">
-                Welcome back, <span className="text-gradient">Thinker!</span>
+                {t('dashboard.welcome')} <span className="text-gradient">Thinker!</span>
               </h1>
-              <p className="text-xl text-muted-foreground">Continue building your unique mind</p>
+              <p className="text-xl text-muted-foreground">{t('dashboard.subtitle')}</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">{learningStats.streakDays}</div>
-                <div className="text-sm text-muted-foreground">Day Streak 🔥</div>
+                <div className="text-sm text-muted-foreground">{t('dashboard.dayStreak')} 🔥</div>
               </div>
-              <Link to="/visual-business">
-                <Button className="btn-hero">
-                  <Brain className="w-4 h-4 mr-2" />
-                  Explore Models
-                </Button>
-              </Link>
             </div>
           </div>
         </div>
@@ -167,8 +159,7 @@ const Dashboard = () => {
           />
         </div>
       </div>
-      <Footer />
-    </div>
+    </DashboardLayout>
   );
 };
 

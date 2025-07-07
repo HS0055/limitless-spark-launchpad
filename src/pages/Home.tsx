@@ -1,18 +1,20 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
-import Header from "@/components/Header";
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Button } from "@/components/ui/button";
+import { Trophy, Target, Users, Star, Zap, Clock, Award, CheckCircle, ArrowRight, Play, Sparkles, ChevronRight } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import CompanyLogos from "@/components/CompanyLogos";
 import UpcomingLeagues from "@/components/UpcomingLeagues";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import Footer from "@/components/Footer";
 import FAQ from "@/components/FAQ";
-import { Button } from "@/components/ui/button";
-import { Trophy, Target, Users, BookOpen, Star, Zap, Clock, Award, TrendingUp, CheckCircle, ArrowRight, Play, Sparkles, ChevronRight } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 
 const Home = () => {
   const { user, loading } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   // Redirect authenticated users to dashboard
@@ -77,8 +79,31 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen">
-      <Header />
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+      {/* Simplified Marketing Header */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent-secondary rounded-xl flex items-center justify-center">
+                <Sparkles className="w-6 h-6 text-primary-foreground" />
+              </div>
+              <div>
+                <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                  TopOne <span className="text-primary">Academy</span>
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <LanguageSwitcher />
+              <Button className="btn-hero font-semibold px-6" asChild>
+                <a href="#get-started">{t('nav.getStarted')}</a>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </header>
       
       {/* Enhanced Hero Section */}
       <section className="content-section pt-24 relative">
