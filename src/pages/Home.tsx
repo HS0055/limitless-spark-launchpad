@@ -527,7 +527,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Social Proof Section */}
+      {/* Social Proof Section with Visual Elements */}
       <section className="content-section">
         <div className="content-container">
           <div className="section-header">
@@ -539,30 +539,73 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Company Logos */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 max-w-6xl mx-auto mb-16 opacity-60">
-            {["Google", "Microsoft", "Apple", "Amazon", "Meta", "Netflix"].map((company, index) => (
-              <div key={index} className="flex items-center justify-center p-6 rounded-xl bg-card/30 backdrop-blur-md border border-border/20 hover:border-primary/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                <span className="text-lg font-bold text-muted-foreground">{company}</span>
+          {/* Enhanced Company Logos with Images */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 max-w-6xl mx-auto mb-16">
+            {[
+              { name: "Google", color: "from-blue-500 to-green-500" },
+              { name: "Microsoft", color: "from-blue-600 to-cyan-500" },
+              { name: "Apple", color: "from-gray-600 to-gray-800" },
+              { name: "Amazon", color: "from-orange-500 to-yellow-500" },
+              { name: "Meta", color: "from-blue-500 to-purple-600" },
+              { name: "Netflix", color: "from-red-500 to-red-700" }
+            ].map((company, index) => (
+              <div key={index} className="group relative">
+                <div className={`flex items-center justify-center p-6 rounded-xl bg-gradient-to-br ${company.color} opacity-60 hover:opacity-80 transition-all duration-300 animate-fade-in group-hover:scale-105`} style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div className="absolute inset-0 bg-white/10 rounded-xl" />
+                  <span className="text-lg font-bold text-white relative z-10">{company.name}</span>
+                </div>
+                
+                {/* Floating business icons */}
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-white rounded-full shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <Briefcase className="w-3 h-3 text-primary" />
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Success Metrics */}
+          {/* Enhanced Success Metrics with Visual Context */}
           <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
             {[
-              { number: "50K+", label: "Active Learners", icon: Users },
-              { number: "94%", label: "Success Rate", icon: CheckCircle },
-              { number: "$25K", label: "Avg Salary Increase", icon: TrendingUp },
-              { number: "4.9/5", label: "Student Rating", icon: Star }
+              { 
+                number: "50K+", 
+                label: "Active Learners", 
+                icon: Users, 
+                bgImage: "from-blue-500/20 to-cyan-500/20",
+                description: "Professionals worldwide"
+              },
+              { 
+                number: "94%", 
+                label: "Success Rate", 
+                icon: CheckCircle, 
+                bgImage: "from-green-500/20 to-emerald-500/20",
+                description: "Career advancement"
+              },
+              { 
+                number: "$25K", 
+                label: "Avg Salary Increase", 
+                icon: TrendingUp, 
+                bgImage: "from-yellow-500/20 to-orange-500/20",
+                description: "Within 6 months"
+              },
+              { 
+                number: "4.9/5", 
+                label: "Student Rating", 
+                icon: Star, 
+                bgImage: "from-purple-500/20 to-pink-500/20",
+                description: "Verified reviews"
+              }
             ].map((metric, index) => (
-              <div key={index} className="text-center space-y-4 animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-accent-secondary rounded-2xl flex items-center justify-center">
-                  <metric.icon className="w-10 h-10 text-white" />
-                </div>
-                <div>
-                  <div className="text-4xl font-bold text-primary">{metric.number}</div>
-                  <div className="text-muted-foreground font-medium">{metric.label}</div>
+              <div key={index} className="group relative">
+                <div className={`absolute inset-0 bg-gradient-to-br ${metric.bgImage} rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-300`} />
+                <div className="relative text-center space-y-4 p-6 animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-accent-secondary rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                    <metric.icon className="w-10 h-10 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-4xl font-bold text-primary mb-1">{metric.number}</div>
+                    <div className="text-foreground font-medium mb-1">{metric.label}</div>
+                    <div className="text-sm text-muted-foreground">{metric.description}</div>
+                  </div>
                 </div>
               </div>
             ))}
