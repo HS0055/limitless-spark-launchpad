@@ -3,9 +3,19 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Users, Target, TrendingUp, Lightbulb, Eye, Heart, Share2, BookOpen, Zap, Focus, Scale } from "lucide-react";
+import { Brain, Users, Target, TrendingUp, Lightbulb, Eye, Heart, Share2, BookOpen, Zap, Focus, Scale, Star, MessageCircle, ThumbsUp, Bookmark, Filter, Search, Grid3X3, List, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 const VisualBusiness = () => {
+  const { toast } = useToast();
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
+  const [userFeedback, setUserFeedback] = useState<string>('');
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+
   const mindsetCategories = [
     { name: "Mental Models", count: 48, icon: Brain, color: "text-primary", description: "Frameworks for better thinking" },
     { name: "Decision Making", count: 32, icon: Target, color: "text-accent-secondary", description: "Tools for smarter choices" },
@@ -21,9 +31,10 @@ const VisualBusiness = () => {
       description: "Approach problems by considering what you want to avoid rather than what you want to achieve",
       difficulty: "Beginner",
       applications: ["Decision Making", "Risk Assessment", "Planning"],
-      views: "8.2K",
+      views: 8234,
       likes: 445,
-      icon: "🔄"
+      icon: "🔄",
+      rating: 4.8
     },
     {
       id: 2,
@@ -32,9 +43,10 @@ const VisualBusiness = () => {
       description: "Break down complex problems into fundamental truths and build up from there",
       difficulty: "Advanced",
       applications: ["Innovation", "Problem Solving", "Strategy"],
-      views: "12.8K",
+      views: 12834,
       likes: 892,
-      icon: "🏗️"
+      icon: "🏗️",
+      rating: 4.9
     },
     {
       id: 3,
@@ -43,9 +55,10 @@ const VisualBusiness = () => {
       description: "Focus on areas where you have deep knowledge and avoid areas where you don't",
       difficulty: "Intermediate",
       applications: ["Investment", "Career", "Decision Making"],
-      views: "6.4K",
+      views: 6412,
       likes: 324,
-      icon: "🎯"
+      icon: "🎯",
+      rating: 4.6
     },
     {
       id: 4,
@@ -54,9 +67,10 @@ const VisualBusiness = () => {
       description: "Understand how parts interconnect and influence the whole system",
       difficulty: "Advanced",
       applications: ["Business Strategy", "Problem Solving", "Leadership"],
-      views: "15.2K",
+      views: 15234,
       likes: 967,
-      icon: "🔗"
+      icon: "🔗",
+      rating: 4.7
     },
     {
       id: 5,
@@ -65,9 +79,10 @@ const VisualBusiness = () => {
       description: "80% of effects come from 20% of causes - focus on what matters most",
       difficulty: "Beginner",
       applications: ["Time Management", "Business", "Productivity"],
-      views: "18.6K",
+      views: 18634,
       likes: 1234,
-      icon: "📊"
+      icon: "📊",
+      rating: 4.9
     },
     {
       id: 6,
@@ -76,9 +91,10 @@ const VisualBusiness = () => {
       description: "The value of the best alternative foregone when making a choice",
       difficulty: "Intermediate",
       applications: ["Finance", "Business", "Personal Decisions"],
-      views: "9.8K",
+      views: 9812,
       likes: 556,
-      icon: "⚖️"
+      icon: "⚖️",
+      rating: 4.5
     },
     {
       id: 7,
@@ -87,9 +103,10 @@ const VisualBusiness = () => {
       description: "The tendency to search for information that confirms our preexisting beliefs",
       difficulty: "Beginner",
       applications: ["Decision Making", "Research", "Critical Thinking"],
-      views: "11.2K",
+      views: 11234,
       likes: 678,
-      icon: "🔍"
+      icon: "🔍",
+      rating: 4.8
     },
     {
       id: 8,
@@ -98,9 +115,10 @@ const VisualBusiness = () => {
       description: "Small, consistent actions compound over time to create extraordinary results",
       difficulty: "Beginner",
       applications: ["Investment", "Personal Growth", "Business"],
-      views: "22.4K",
+      views: 22456,
       likes: 1567,
-      icon: "📈"
+      icon: "📈",
+      rating: 4.9
     }
   ];
 
@@ -118,6 +136,76 @@ const VisualBusiness = () => {
     { number: "3.2K", label: "Active Thinkers", icon: Users, color: "text-accent-tertiary" },
     { number: "92%", label: "Better Decisions", icon: Target, color: "text-primary" }
   ];
+
+  // Enhanced interaction handlers
+  const handleLike = (modelId: number) => {
+    toast({
+      title: "Added to favorites!",
+      description: "This mental model has been saved to your collection.",
+    });
+  };
+
+  const handleToggleFavorite = (modelId: number) => {
+    const newFavorites = new Set(favorites);
+    if (newFavorites.has(modelId)) {
+      newFavorites.delete(modelId);
+      toast({
+        title: "Removed from favorites",
+        description: "Mental model removed from your collection.",
+      });
+    } else {
+      newFavorites.add(modelId);
+      toast({
+        title: "Added to favorites!",
+        description: "Mental model saved to your collection.",
+      });
+    }
+    setFavorites(newFavorites);
+  };
+
+  const handleShare = (model: any) => {
+    if (navigator.share) {
+      navigator.share({
+        title: model.title,
+        text: model.description,
+        url: window.location.href,
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied!",
+        description: "Share link copied to clipboard.",
+      });
+    }
+  };
+
+  const submitFeedback = () => {
+    if (userFeedback.trim()) {
+      toast({
+        title: "Feedback submitted!",
+        description: "Thank you for helping us improve the experience.",
+      });
+      setUserFeedback('');
+      setShowFeedbackForm(false);
+    }
+  };
+
+  // Filter mental models based on category and search
+  const filteredModels = mentalModels.filter(model => {
+    const matchesCategory = selectedCategory === 'all' || model.category.toLowerCase().includes(selectedCategory.toLowerCase());
+    const matchesSearch = searchQuery === '' || 
+      model.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      model.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      model.applications.some(app => app.toLowerCase().includes(searchQuery.toLowerCase()));
+    return matchesCategory && matchesSearch;
+  });
+
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
 
   return (
     <div className="min-h-screen">
@@ -214,64 +302,206 @@ const VisualBusiness = () => {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-16">
-            {mentalModels.map((model, index) => (
+          {/* Enhanced Filters and Search */}
+          <div className="flex flex-col lg:flex-row gap-6 mb-12 bg-card/50 backdrop-blur-sm rounded-2xl p-6 border border-border/50">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder="Search mental models..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-background/80 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                />
+              </div>
+            </div>
+            
+            <div className="flex flex-wrap gap-3 items-center">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4 text-muted-foreground" />
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-background/80 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                >
+                  <option value="all">All Categories</option>
+                  <option value="problem solving">Problem Solving</option>
+                  <option value="innovation">Innovation</option>
+                  <option value="self-awareness">Self-Awareness</option>
+                  <option value="analysis">Analysis</option>
+                  <option value="productivity">Productivity</option>
+                  <option value="economics">Economics</option>
+                  <option value="psychology">Psychology</option>
+                  <option value="finance">Finance</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center gap-1 bg-background/60 rounded-lg p-1">
+                <Button
+                  size="sm"
+                  variant={viewMode === 'grid' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode('grid')}
+                  className="h-8 w-8 p-0"
+                >
+                  <Grid3X3 className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant={viewMode === 'list' ? 'default' : 'ghost'}
+                  onClick={() => setViewMode('list')}
+                  className="h-8 w-8 p-0"
+                >
+                  <List className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Results count */}
+          <div className="mb-6">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredModels.length} of {mentalModels.length} mental models
+              {searchQuery && (
+                <span className="ml-2 text-primary font-medium">
+                  for "{searchQuery}"
+                </span>
+              )}
+            </p>
+          </div>
+
+          {/* Enhanced Mental Models Grid/List */}
+          <div className={`${viewMode === 'grid' 
+            ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6' 
+            : 'space-y-4'
+          } max-w-7xl mx-auto mb-16`}>
+            {filteredModels.map((model, index) => (
               <Card 
                 key={model.id} 
-                className="card-elevated hover-lift group animate-scale-in bg-gradient-to-br from-muted/50 to-muted-dark/50 border-border/50"
-                style={{ animationDelay: `${index * 0.1}s` }}
+                className={`card-elevated hover-lift group animate-scale-in bg-gradient-to-br from-muted/50 to-muted-dark/50 border-border/50 ${
+                  viewMode === 'list' ? 'flex flex-row items-center p-6' : ''
+                }`}
+                style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <CardContent className="p-6 h-full flex flex-col">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-2xl">{model.icon}</div>
-                    <Badge 
-                      variant={model.difficulty === 'Beginner' ? 'default' : model.difficulty === 'Intermediate' ? 'secondary' : 'outline'}
-                      className="text-xs"
-                    >
-                      {model.difficulty}
-                    </Badge>
+                <CardContent className={`${viewMode === 'grid' ? 'p-6 h-full flex flex-col' : 'flex-1 p-0'}`}>
+                  <div className={`flex items-center justify-between mb-4 ${viewMode === 'list' ? 'mb-0' : ''}`}>
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">{model.icon}</div>
+                      {viewMode === 'list' && (
+                        <div className="flex-1">
+                          <h3 className="text-lg font-display font-bold text-foreground group-hover:text-primary transition-colors">
+                            {model.title}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{model.category}</p>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge 
+                        variant={model.difficulty === 'Beginner' ? 'default' : model.difficulty === 'Intermediate' ? 'secondary' : 'outline'}
+                        className="text-xs"
+                      >
+                        {model.difficulty}
+                      </Badge>
+                      {viewMode === 'list' && (
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Star className="w-3 h-3 fill-current text-yellow-500" />
+                          <span>{model.rating}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
-                  <h3 className="text-lg font-display font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
-                    {model.title}
-                  </h3>
-                  
-                  <p className="text-sm text-muted-foreground mb-4 flex-grow leading-relaxed">
-                    {model.description}
-                  </p>
+                  {viewMode === 'grid' && (
+                    <>
+                      <h3 className="text-lg font-display font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+                        {model.title}
+                      </h3>
+                      
+                      <p className="text-sm text-muted-foreground mb-4 flex-grow leading-relaxed">
+                        {model.description}
+                      </p>
 
-                  <div className="space-y-3">
-                    <div>
-                      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Applications</p>
-                      <div className="flex flex-wrap gap-1">
-                        {model.applications.slice(0, 2).map((app, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs px-2 py-0.5">
-                            {app}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
+                      <div className="space-y-3">
+                        <div>
+                          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Applications</p>
+                          <div className="flex flex-wrap gap-1">
+                            {model.applications.slice(0, 2).map((app, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs px-2 py-0.5">
+                                {app}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-border/50">
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Eye className="w-3 h-3" />
-                          <span>{model.views}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Heart className="w-3 h-3" />
-                          <span>{model.likes}</span>
+                        <div className="flex items-center justify-between pt-2 border-t border-border/50">
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Eye className="w-3 h-3" />
+                              <span>{formatNumber(model.views)}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Heart className="w-3 h-3" />
+                              <span>{model.likes}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Star className="w-3 h-3 fill-current text-yellow-500" />
+                              <span>{model.rating}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                      <Button size="sm" variant="outline" className="h-7 px-2 text-xs hover-glow">
-                        Learn
-                      </Button>
-                    </div>
+                    </>
+                  )}
+
+                  {/* Action buttons */}
+                  <div className={`flex gap-2 ${viewMode === 'list' ? 'ml-auto' : 'mt-4'}`}>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="hover-glow group"
+                      onClick={() => handleToggleFavorite(model.id)}
+                    >
+                      <Bookmark className={`w-4 h-4 ${favorites.has(model.id) ? 'fill-current text-primary' : ''}`} />
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="hover-glow"
+                      onClick={() => handleShare(model)}
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </Button>
+                    <Button size="sm" className="hover-glow">
+                      Learn
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {/* No results message */}
+          {filteredModels.length === 0 && (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-muted flex items-center justify-center">
+                <Search className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">No mental models found</h3>
+              <p className="text-muted-foreground mb-4">
+                Try adjusting your search or filter criteria
+              </p>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('all');
+                }}
+              >
+                Clear filters
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
@@ -355,6 +585,101 @@ const VisualBusiness = () => {
                   Explore All Areas
                 </span>
               </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced User Feedback Section */}
+      <section className="content-section bg-gradient-to-b from-background via-muted/5 to-background">
+        <div className="content-container">
+          <div className="max-w-4xl mx-auto">
+            <div className="section-header mb-12">
+              <h2 className="section-title animate-slide-up">
+                Help Us <span className="text-gradient">Improve</span>
+              </h2>
+              <p className="section-subtitle animate-fade-in">
+                Your feedback helps us create better mental models and learning experiences
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {/* Feedback Form */}
+              <Card className="card-elevated">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent-secondary/10 rounded-xl flex items-center justify-center">
+                      <MessageCircle className="w-6 h-6 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold">Share Your Thoughts</h3>
+                  </div>
+                  
+                  <textarea
+                    value={userFeedback}
+                    onChange={(e) => setUserFeedback(e.target.value)}
+                    placeholder="What would you like to see improved? Any mental models you'd like us to add?"
+                    className="w-full h-32 p-4 bg-background/80 border border-border rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                  />
+                  
+                  <Button 
+                    onClick={submitFeedback}
+                    className="w-full mt-4 btn-hero"
+                    disabled={!userFeedback.trim()}
+                  >
+                    Submit Feedback
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Quick Actions */}
+              <Card className="card-elevated">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-12 h-12 bg-gradient-to-br from-accent-tertiary/20 to-primary/10 rounded-xl flex items-center justify-center">
+                      <ThumbsUp className="w-6 h-6 text-accent-tertiary" />
+                    </div>
+                    <h3 className="text-xl font-semibold">Quick Actions</h3>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start hover-glow"
+                      onClick={() => toast({
+                        title: "Thank you!",
+                        description: "Your rating has been recorded.",
+                      })}
+                    >
+                      <Star className="w-4 h-4 mr-2" />
+                      Rate this experience (5/5)
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start hover-glow"
+                      onClick={() => handleShare({ 
+                        title: 'TopOne Academy - Mindset League', 
+                        description: 'Discover mental models for better thinking' 
+                      })}
+                    >
+                      <Share2 className="w-4 h-4 mr-2" />
+                      Share with friends
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start hover-glow"
+                      onClick={() => toast({
+                        title: "Subscribed!",
+                        description: "You'll receive updates about new mental models.",
+                      })}
+                    >
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Subscribe to updates
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>
