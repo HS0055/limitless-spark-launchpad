@@ -23,6 +23,14 @@ serve(async (req) => {
       );
     }
 
+    if (!anthropicApiKey) {
+      console.error('ANTHROPIC_API_KEY is not set');
+      return new Response(
+        JSON.stringify({ error: 'ANTHROPIC_API_KEY is not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     console.log(`📦 Batch translating ${texts.length} texts to ${targetLang}`);
 
     const languageNames = {
@@ -43,6 +51,8 @@ serve(async (req) => {
     // Prepare texts for batch translation
     const textsToTranslate = texts.map((text, index) => `${index + 1}. ${text}`).join('\n');
 
+    console.log('Sending request to Claude API...');
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -57,38 +67,34 @@ serve(async (req) => {
         messages: [
           {
             role: 'user',
-            content: `TASK: Auto-detect source language and translate the following numbered list of texts to ${targetLanguage}.
+            content: `You are an expert translator. Translate each numbered text below into ${targetLanguage}. Preserve HTML tags exactly as they appear.
 
-CRITICAL REQUIREMENTS:
-- Auto-detect the source language of each text (could be English, Armenian, Russian, Spanish, French, German, Chinese, Japanese, Korean, Arabic, etc.)
-- Translate each text into ${targetLanguage}
-- Preserve ALL HTML tags exactly as they appear (including <strong>, <em>, <span>, etc.)
-- Maintain the numbered format (1. 2. 3. etc.)
-- Translate only the text content, not HTML attributes or tags
-- Use culturally appropriate expressions for the target language
-- For UI elements: use standard web terminology
-- For buttons/CTAs: use action-oriented language
-- Maintain consistent tone and style throughout
+Instructions:
+- Auto-detect the source language of each text
+- Translate to ${targetLanguage}
+- Keep HTML tags unchanged
+- Return only the numbered translations
+- Maintain the same format
 
-CONTEXT: ${context || 'Web application UI elements and content'}
-
-TEXTS TO TRANSLATE:
-${textsToTranslate}
-
-RESPONSE FORMAT: Return only the numbered translations, preserving the exact format and HTML structure.`
+Texts to translate:
+${textsToTranslate}`
           }
         ]
       }),
     });
 
+    console.log(`Claude API response status: ${response.status}`);
+
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Claude API error:', errorData);
-      throw new Error(`Claude API error: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Claude API error response:', errorText);
+      throw new Error(`Claude API error: ${response.status} - ${errorText}`);
     }
 
     const data = await response.json();
     const translatedContent = data.content[0].text.trim();
+
+    console.log('Claude API response content:', translatedContent);
 
     // Parse the numbered translations back into an object
     const translations: Record<string, string> = {};

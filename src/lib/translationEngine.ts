@@ -74,6 +74,7 @@ class TranslationEngine {
   }
 
   private collectTranslatables(): TranslatableText[] {
+    console.log('🔍 collectTranslatables called');
     const textNodes: TranslatableText[] = [];
     const seenTexts = new Set<string>();
 
@@ -150,6 +151,9 @@ class TranslationEngine {
     };
 
     walkTextNodes(document.body);
+    
+    console.log(`📊 Found ${textNodes.length} text nodes:`, textNodes.map(n => n.originalText.trim()).slice(0,10));
+    
     return textNodes;
   }
 
@@ -255,6 +259,7 @@ class TranslationEngine {
         }
 
         // Update cache with translations
+        console.log(`🗺️ Translations map:`, result.data.translations);
         Object.entries(result.data.translations).forEach(([original, translated]) => {
           const textNode = batchNodes.find(node => node.originalText === original);
           if (textNode) {
@@ -284,6 +289,7 @@ class TranslationEngine {
     textNodes.forEach(({ textNode, originalText, cacheKey, isTitle }) => {
       const translation = this.cache[cacheKey]?.[targetLang];
       if (translation && translation !== originalText) {
+        console.log(`🔄 Replacing "${originalText}" → "${translation}" on`, textNode);
         if (isTitle) {
           // Update document title
           document.title = translation;
