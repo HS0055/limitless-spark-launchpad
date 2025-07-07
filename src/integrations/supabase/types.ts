@@ -518,6 +518,7 @@ export type Database = {
           original_text: string
           page_path: string
           selector: string
+          styles: Json | null
           updated_at: string
         }
         Insert: {
@@ -530,6 +531,7 @@ export type Database = {
           original_text: string
           page_path: string
           selector: string
+          styles?: Json | null
           updated_at?: string
         }
         Update: {
@@ -542,6 +544,7 @@ export type Database = {
           original_text?: string
           page_path?: string
           selector?: string
+          styles?: Json | null
           updated_at?: string
         }
         Relationships: []
