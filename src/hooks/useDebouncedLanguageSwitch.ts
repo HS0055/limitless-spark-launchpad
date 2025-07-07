@@ -51,6 +51,21 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
           return;
         }
         
+        // ANTI-FLICKER: Add global styles to prevent visual disruption
+        const antiFlickerStyle = document.createElement('style');
+        antiFlickerStyle.id = 'anti-flicker-styles';
+        antiFlickerStyle.textContent = `
+          body { 
+            transition: none !important; 
+            animation: none !important;
+          }
+          * { 
+            transition: none !important; 
+            animation: none !important;
+          }
+        `;
+        document.head.appendChild(antiFlickerStyle);
+        
         // Update both contexts
         languageContext.setLanguage(newLang as any);
         translationContext.setLanguage(newLang);
@@ -61,6 +76,12 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
           await translationEngine.translateAll(newLang as any);
         }
         
+        // Remove anti-flicker styles after translation
+        setTimeout(() => {
+          const style = document.getElementById('anti-flicker-styles');
+          if (style) style.remove();
+        }, 200);
+        
       } catch (error) {
         // Only log error if request wasn't aborted
         if (!abortController.current?.signal.aborted) {
@@ -68,6 +89,10 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
           // Revert optimistic update on error
           setCurrentLanguage(translationContext.currentLanguage);
         }
+        
+        // Clean up styles on error
+        const style = document.getElementById('anti-flicker-styles');
+        if (style) style.remove();
       } finally {
         // Only update loading state if request wasn't aborted
         if (!abortController.current?.signal.aborted) {

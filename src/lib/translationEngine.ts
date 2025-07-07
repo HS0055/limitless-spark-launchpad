@@ -286,14 +286,7 @@ class TranslationEngine {
     // Prevent rapid language switching that causes floating
     if (this.isTranslating) {
       console.log('⏳ Translation in progress, waiting...');
-      return new Promise((resolve) => {
-        const checkInterval = setInterval(() => {
-          if (!this.isTranslating) {
-            clearInterval(checkInterval);
-            this.translateAll(targetLang).then(resolve);
-          }
-        }, 100);
-      });
+      return;
     }
     
     if (targetLang === 'en') {
@@ -302,7 +295,11 @@ class TranslationEngine {
     }
 
     this.currentLanguage = targetLang;
+    this.lastTranslatedPath = window.location.pathname;
     this.abortController = new AbortController();
+    
+    // ANTI-FLICKER: Store scroll position before translation
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     
     // STEP 1: Load global cache from Supabase first
     await this.loadGlobalCache(targetLang);
@@ -310,11 +307,16 @@ class TranslationEngine {
     // STEP 2: Apply all cached translations immediately
     this.translateCachedContent(targetLang);
     
-    // STEP 3: Only translate truly new content
+    // STEP 3: Restore scroll position to prevent jump
+    setTimeout(() => {
+      window.scrollTo(0, scrollTop);
+    }, 50);
+    
+    // STEP 4: Only translate truly new content
     const uncachedTexts = this.collectUncachedTexts(targetLang);
     if (uncachedTexts.length > 0) {
       console.log(`💰 Translating ${uncachedTexts.length} new texts (shared globally)`);
-      setTimeout(() => this.translateNewContent(uncachedTexts, targetLang), 50);
+      setTimeout(() => this.translateNewContent(uncachedTexts, targetLang), 100);
     } else {
       console.log('✅ All content from global cache - instant results!');
     }
@@ -411,9 +413,8 @@ class TranslationEngine {
             }
             this.cache[original][target_lang] = translated;
             
-            // FIXED: Only apply translation if it matches current language AND we're not already translating
-            // This prevents the infinite loop with mutation observer
-            if (target_lang === this.currentLanguage && !this.isTranslating) {
+            // OPTIMIZED: Prevent real-time updates from causing page blinking
+            if (target_lang === this.currentLanguage && !this.isTranslating && !document.getElementById('translation-freeze-styles')) {
               // Temporarily disable mutation observer to prevent loop
               const wasObserving = !!this.observer;
               if (wasObserving) {
