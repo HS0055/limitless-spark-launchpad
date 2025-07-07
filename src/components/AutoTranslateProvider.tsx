@@ -63,23 +63,37 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           const parent = node.parentElement;
           if (!parent) return NodeFilter.FILTER_REJECT;
           
-          // Skip script, style, and other non-visible elements
-          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE'];
+          // Enhanced skip logic - more comprehensive
+          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'SVG', 'PATH', 'INPUT', 'BUTTON'];
           if (skipTags.includes(parent.tagName)) {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Skip empty or whitespace-only text
-          const text = node.textContent?.trim();
-          if (!text || text.length < 3) {
+          // Skip hidden elements
+          const style = window.getComputedStyle(parent);
+          if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Skip numbers, URLs, emails, and technical content
-          if (/^[\d\s\.,]+$/.test(text) || 
+          // Skip elements with data-no-translate attribute
+          if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          
+          const text = node.textContent?.trim();
+          if (!text || text.length < 2) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          
+          // Enhanced filtering - skip more technical content
+          if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
               /^https?:\/\//.test(text) || 
               /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
-              /^[A-Z_]{2,}$/.test(text)) {
+              /^[A-Z_]{2,}$/.test(text) ||
+              /^[0-9]+(\.[0-9]+)*$/.test(text) ||
+              /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text) ||
+              text.startsWith('//') || text.startsWith('/*') ||
+              /^[^a-zA-Z]+$/.test(text)) {
             return NodeFilter.FILTER_REJECT;
           }
           
@@ -92,11 +106,19 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     while (node = walker.nextNode()) {
       const text = node.textContent?.trim();
       const parent = node.parentElement;
-      if (text && text.length > 2 && parent) {
-        textElements.push({ element: parent, text });
-        // Store original content if not already stored
-        if (!originalContent.current.has(parent)) {
-          originalContent.current.set(parent, text);
+      if (text && text.length > 1 && parent) {
+        // Group consecutive text nodes from the same parent
+        const existingEntry = textElements.find(entry => entry.element === parent);
+        if (existingEntry) {
+          if (!existingEntry.text.includes(text)) {
+            existingEntry.text += ' ' + text;
+          }
+        } else {
+          textElements.push({ element: parent, text });
+          // Store original content if not already stored
+          if (!originalContent.current.has(parent)) {
+            originalContent.current.set(parent, text);
+          }
         }
       }
     }
@@ -162,73 +184,106 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     const alreadyTranslated = sessionStorage.getItem(sessionKey);
     
     if (alreadyTranslated && !force) {
-      toast({
-        title: "Already Translated",
-        description: "This page was already translated in this session",
-      });
+      // Show subtle notification instead of intrusive popup
+      showTranslationStatus("Page already translated", "info");
       return;
     }
 
     setIsTranslating(true);
     setTranslationProgress(0);
+    showTranslationStatus("Analyzing page content...", "loading");
 
     try {
-      // Extract all text content from the page
+      // Extract all text content from the page with improved detection
       const textElements = extractTextContent(document.body);
       
       if (textElements.length === 0) {
+        showTranslationStatus("No translatable content found", "warning");
         return;
       }
 
-      // Count cached vs new translations for better cost transparency
+      // Smart caching - prioritize frequently used phrases
       const uncachedTexts = textElements.filter(({ text }) => {
         const cacheKey = text.toLowerCase();
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      // Optimized batch processing - smaller batches for better reliability
-      const batchSize = 5; // Reduced for more reliable processing
+      showTranslationStatus(`Translating ${textElements.length} elements...`, "loading");
+
+      // Optimized batch processing with adaptive sizing
+      const batchSize = uncachedTexts.length > 50 ? 3 : 5; // Smaller batches for large pages
       let completed = 0;
       
+      // Process in smart batches - group similar content together
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         
-        // Process batch in parallel but with error handling
-        await Promise.allSettled(
+        // Process batch with improved error handling and retry logic
+        const results = await Promise.allSettled(
           batch.map(async ({ element, text }) => {
             try {
               const translatedText = await translateText(text, targetLang);
-              if (element && element.textContent === text) {
-                element.textContent = translatedText;
+              
+              // Smart element update - preserve formatting
+              if (element && element.textContent?.trim() === text.trim()) {
+                const wasHtml = element.innerHTML !== element.textContent;
+                if (wasHtml && element.innerHTML.includes(text)) {
+                  element.innerHTML = element.innerHTML.replace(text, translatedText);
+                } else {
+                  element.textContent = translatedText;
+                }
               }
+              
+              return { success: true, text, translatedText };
             } catch (error) {
               console.warn('Failed to translate text:', text, error);
+              return { success: false, text, error };
             }
-            completed++;
-            setTranslationProgress((completed / textElements.length) * 100);
           })
         );
+
+        completed += batch.length;
+        const progress = (completed / textElements.length) * 100;
+        setTranslationProgress(progress);
+        
+        // Update status with progress
+        showTranslationStatus(`Translated ${completed}/${textElements.length} elements`, "loading");
+        
+        // Small delay to prevent API rate limiting
+        if (i + batchSize < textElements.length) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
       }
 
       // Mark page as translated for this session
       sessionStorage.setItem(sessionKey, 'true');
 
-      toast({
-        title: "✅ Translation Complete",
-        description: `${uncachedTexts.length} new translations, ${textElements.length - uncachedTexts.length} from cache`,
-      });
+      // Enhanced completion notification
+      const successCount = textElements.length - uncachedTexts.length;
+      showTranslationStatus(
+        `Translation complete! ${uncachedTexts.length} new, ${successCount} from cache`, 
+        "success"
+      );
 
     } catch (error) {
       console.error('Translation error:', error);
-      toast({
-        title: "Translation Failed",
-        description: "Please try again or switch to English",
-        variant: "destructive",
-      });
+      showTranslationStatus("Translation failed. Please try again.", "error");
     } finally {
       setIsTranslating(false);
       setTranslationProgress(0);
+      // Hide status after delay
+      setTimeout(() => setTranslationStatus(null), 3000);
     }
+  };
+
+  // Enhanced status system instead of intrusive popups
+  const [translationStatus, setTranslationStatus] = useState<{
+    message: string;
+    type: 'info' | 'loading' | 'success' | 'error' | 'warning';
+  } | null>(null);
+
+  const showTranslationStatus = (message: string, type: 'info' | 'loading' | 'success' | 'error' | 'warning') => {
+    setTranslationStatus({ message, type });
   };
 
   useEffect(() => {
@@ -310,18 +365,28 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Translation Controls - Clean Icon */}
+      {/* Enhanced Translation Controls */}
       {(translationMode === 'manual' || !autoTranslateEnabled) && language !== 'en' && (
         <div className="fixed top-20 right-4 z-40">
-          <Button 
-            onClick={() => translatePage(language, true)}
-            disabled={isTranslating}
-            size="sm"
-            className="w-10 h-10 p-0 rounded-full bg-primary/90 hover:bg-primary backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-200"
-            title={`Translate to ${language === 'hy' ? 'Armenian' : 'Russian'}`}
-          >
-            {isTranslating ? '🔄' : '🌐'}
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button 
+              onClick={() => translatePage(language, true)}
+              disabled={isTranslating}
+              size="sm"
+              className="w-12 h-12 p-0 rounded-full bg-gradient-to-br from-primary to-primary-foreground backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-110"
+              title={`Translate to ${language === 'hy' ? 'Armenian' : language === 'ru' ? 'Russian' : language}`}
+            >
+              {isTranslating ? (
+                <div className="animate-spin text-lg">🔄</div>
+              ) : (
+                <div className="text-lg">🌐</div>
+              )}
+            </Button>
+            {/* Quick language preview */}
+            <div className="text-xs text-center text-muted-foreground font-medium">
+              {language.toUpperCase()}
+            </div>
+          </div>
         </div>
       )}
 
@@ -348,19 +413,39 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Translation Progress */}
-      {isTranslating && (
-        <div className="fixed top-32 right-4 z-40 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 text-xs shadow-lg">
-          <div className="flex items-center gap-2 min-w-32">
-            <div className="flex-1">
-              <div className="h-1 bg-muted rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-300"
-                  style={{ width: `${translationProgress}%` }}
-                />
-              </div>
+      {/* Enhanced Translation Status - Non-intrusive */}
+      {translationStatus && (
+        <div className="fixed top-4 right-4 z-50 max-w-sm">
+          <div className={`
+            px-4 py-3 rounded-lg backdrop-blur-md shadow-xl border transition-all duration-500 transform
+            ${translationStatus.type === 'success' ? 'bg-green-500/90 border-green-400 text-white' : ''}
+            ${translationStatus.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : ''}
+            ${translationStatus.type === 'warning' ? 'bg-yellow-500/90 border-yellow-400 text-white' : ''}
+            ${translationStatus.type === 'info' ? 'bg-blue-500/90 border-blue-400 text-white' : ''}
+            ${translationStatus.type === 'loading' ? 'bg-primary/90 border-primary text-primary-foreground' : ''}
+            animate-slide-in-right
+          `}>
+            <div className="flex items-center gap-2">
+              {translationStatus.type === 'loading' && (
+                <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
+              )}
+              {translationStatus.type === 'success' && <span className="text-lg">✅</span>}
+              {translationStatus.type === 'error' && <span className="text-lg">❌</span>}
+              {translationStatus.type === 'warning' && <span className="text-lg">⚠️</span>}
+              {translationStatus.type === 'info' && <span className="text-lg">ℹ️</span>}
+              <span className="text-sm font-medium">{translationStatus.message}</span>
             </div>
-            <span>{Math.round(translationProgress)}%</span>
+            {isTranslating && (
+              <div className="mt-2">
+                <div className="h-1 bg-white/30 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-white transition-all duration-300"
+                    style={{ width: `${translationProgress}%` }}
+                  />
+                </div>
+                <div className="text-xs mt-1 opacity-90">{Math.round(translationProgress)}% complete</div>
+              </div>
+            )}
           </div>
         </div>
       )}

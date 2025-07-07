@@ -12,6 +12,7 @@ import MarketingLayout from '@/components/MarketingLayout';
 import AIContentAnalyzer from '@/components/AIContentAnalyzer';
 import BatchTranslator from '@/components/BatchTranslator';
 import TranslationManagementDashboard from '@/components/TranslationManagementDashboard';
+import TranslationPerformanceDashboard from '@/components/TranslationPerformanceDashboard';
 
 interface Translation {
   id: string;
@@ -239,7 +240,7 @@ const Translator = () => {
           </div>
 
           <Tabs defaultValue="translate" className="w-full">
-            <TabsList className="grid w-full grid-cols-5 mb-8">
+            <TabsList className="grid w-full grid-cols-6 mb-8">
               <TabsTrigger value="translate" className="flex items-center gap-2">
                 <Languages className="w-4 h-4" />
                 Translate
@@ -247,6 +248,10 @@ const Translator = () => {
               <TabsTrigger value="manage" className="flex items-center gap-2">
                 <Edit className="w-4 h-4" />
                 Manage
+              </TabsTrigger>
+              <TabsTrigger value="performance" className="flex items-center gap-2">
+                <Zap className="w-4 h-4" />
+                Performance
               </TabsTrigger>
               <TabsTrigger value="analyze" className="flex items-center gap-2">
                 <Search className="w-4 h-4" />
@@ -428,6 +433,10 @@ const Translator = () => {
 
             <TabsContent value="manage">
               <TranslationManagementDashboard />
+            </TabsContent>
+
+            <TabsContent value="performance">
+              <TranslationPerformanceDashboard />
             </TabsContent>
 
             <TabsContent value="analyze">
