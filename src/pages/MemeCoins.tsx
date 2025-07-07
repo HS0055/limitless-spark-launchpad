@@ -2,7 +2,7 @@ import PublicLayout from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { TrendingUp, TrendingDown, Users, Star, CheckCircle, ArrowRight, Zap, Target, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Users, Star, CheckCircle, ArrowRight, Zap, Target, BarChart3, Rocket, DollarSign, Brain, Eye, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const MemeCoins = () => {
@@ -12,26 +12,33 @@ const MemeCoins = () => {
     navigate('/dashboard');
   };
 
+  // Psychological stats for urgency
+  const urgencyStats = [
+    { number: "847", text: "Traders joined today", subtext: "Limited spots remaining", color: "text-green-500" },
+    { number: "₹2.4L", text: "Average monthly gains", subtext: "Last 30 days verified", color: "text-blue-500" },
+    { number: "6 hrs", text: "Left for early access", subtext: "Price increases after", color: "text-red-500" }
+  ];
+
   const features = [
     {
       icon: TrendingUp,
-      title: "Real-Time Market Data",
-      description: "Track live prices, volume, and market trends for all major meme coins"
+      title: "AI-Powered Predictions",
+      description: "Get ahead with machine learning algorithms that analyze 1000+ data points to predict meme coin movements before they happen"
     },
     {
       icon: BarChart3,
-      title: "Advanced Analytics", 
-      description: "Get detailed technical analysis and price predictions powered by AI"
+      title: "Real-Time Analytics", 
+      description: "Live market data, sentiment analysis, and whale tracking - all the tools you need to make profitable decisions instantly"
     },
     {
       icon: Users,
-      title: "Expert Community",
-      description: "Connect with seasoned traders and learn from their strategies"
+      title: "Elite Trader Community",
+      description: "Join 10,000+ successful traders sharing strategies, tips, and exclusive insider insights you won't find anywhere else"
     },
     {
       icon: Target,
-      title: "Smart Alerts",
-      description: "Never miss profitable opportunities with our intelligent alert system"
+      title: "Smart Alert System",
+      description: "Never miss a pump again with our intelligent alerts that notify you seconds before major price movements"
     }
   ];
 

@@ -395,6 +395,207 @@ const Home = () => {
         </div>
       </section>
 
+      {/* AI Visual Generation Section */}
+      <section className="content-section relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-purple-500/5" />
+        <div className="content-container relative">
+          <div className="section-header">
+            <h2 className="section-title animate-slide-up">
+              Visualize Your <span className="text-gradient">Success</span>
+            </h2>
+            <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              AI-powered visual learning that transforms complex concepts into memorable experiences
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
+            {/* AI Visual Generator */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-card via-card/80 to-card/60 backdrop-blur-xl rounded-3xl p-8 border border-border/30 shadow-2xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="ml-4 text-sm font-mono text-muted-foreground">AI Visual Generator</span>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="bg-muted/30 rounded-xl p-4 border border-border/20">
+                    <p className="text-sm text-muted-foreground mb-2">Generate business concept:</p>
+                    <p className="font-mono text-primary">"Market analysis with growth visualization"</p>
+                  </div>
+                  
+                  <div className="h-48 bg-gradient-to-br from-primary/10 to-accent-secondary/10 rounded-xl flex items-center justify-center border border-border/30">
+                    <div className="text-center space-y-3">
+                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent-secondary rounded-full animate-pulse flex items-center justify-center">
+                        <Sparkles className="w-8 h-8 text-white" />
+                      </div>
+                      <p className="text-sm text-muted-foreground">AI-Generated Visual</p>
+                    </div>
+                  </div>
+                  
+                  <Button className="w-full btn-hero" onClick={handleGetStarted}>
+                    Try AI Visuals FREE
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Benefits */}
+            <div className="space-y-8">
+              <div className="space-y-6">
+                <h3 className="text-3xl font-bold">
+                  Why Visual Learning Works Better
+                </h3>
+                <p className="text-xl text-muted-foreground">
+                  Science-backed learning methods that increase retention by 400%
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { stat: "65%", text: "of people are visual learners", icon: Eye },
+                  { stat: "90%", text: "of information processed by brain is visual", icon: Brain },
+                  { stat: "30s", text: "to process visual vs 6 minutes for text", icon: Clock },
+                  { stat: "400%", text: "better retention with visual learning", icon: TrendingUp }
+                ].map((item, index) => (
+                  <div 
+                    key={index}
+                    className="flex items-center gap-6 p-6 rounded-xl bg-card/30 backdrop-blur-md border border-border/20 hover:border-primary/30 transition-all duration-300 group animate-slide-up"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
+                    <div className="w-16 h-16 bg-gradient-to-br from-primary to-accent-secondary rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <item.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-primary">{item.stat}</div>
+                      <div className="text-muted-foreground">{item.text}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Psychological Urgency Section */}
+      <section className="content-section bg-gradient-to-br from-red-500/5 via-background to-orange-500/5 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,hsl(var(--primary))_0%,transparent_50%)] opacity-10" />
+        <div className="content-container relative">
+          <div className="max-w-4xl mx-auto text-center space-y-12">
+            <div className="space-y-6">
+              <div className="inline-flex items-center bg-red-500/10 text-red-600 px-6 py-3 rounded-full border border-red-500/20">
+                <Clock className="w-5 h-5 mr-2" />
+                <span className="font-bold">Limited Time Opportunity</span>
+              </div>
+              
+              <h2 className="text-4xl md:text-6xl font-display font-bold leading-tight">
+                Your Competition is
+                <br />
+                <span className="text-gradient">Learning Right Now</span>
+              </h2>
+              
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+                While you're thinking about it, thousands of professionals are already advancing their careers. 
+                Don't let this moment pass—your future self will thank you.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {[
+                { 
+                  number: "2,847", 
+                  text: "Students enrolled this week", 
+                  subtext: "Join them before spots fill up",
+                  color: "text-green-500"
+                },
+                { 
+                  number: "94%", 
+                  text: "Got promoted within 6 months", 
+                  subtext: "Real results, real careers",
+                  color: "text-blue-500"
+                },
+                { 
+                  number: "48hrs", 
+                  text: "Left to claim your FREE access", 
+                  subtext: "After that, it's $97/month",
+                  color: "text-red-500"
+                }
+              ].map((stat, index) => (
+                <Card key={index} className="text-center p-6 border-border/30 hover:border-primary/30 transition-all duration-300 hover:scale-105 animate-scale-in" style={{ animationDelay: `${index * 0.2}s` }}>
+                  <CardContent className="p-0">
+                    <div className={`text-4xl font-bold ${stat.color} mb-2`}>{stat.number}</div>
+                    <div className="font-semibold mb-2">{stat.text}</div>
+                    <div className="text-sm text-muted-foreground">{stat.subtext}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <div className="space-y-6">
+              <Button 
+                onClick={handleGetStarted}
+                className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-xl px-12 py-6 rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 group animate-pulse"
+              >
+                <span className="flex items-center gap-3">
+                  <Zap className="w-6 h-6 group-hover:animate-bounce" />
+                  CLAIM YOUR FREE ACCESS NOW
+                  <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                </span>
+              </Button>
+              
+              <p className="text-sm text-muted-foreground">
+                ⚡ Instant access • 🔒 No credit card required • ✅ Join 50,000+ learners
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof Section */}
+      <section className="content-section">
+        <div className="content-container">
+          <div className="section-header">
+            <h2 className="section-title animate-slide-up">
+              Trusted by <span className="text-gradient">Industry Leaders</span>
+            </h2>
+            <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              Join professionals from Fortune 500 companies who've transformed their careers
+            </p>
+          </div>
+
+          {/* Company Logos */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8 max-w-6xl mx-auto mb-16 opacity-60">
+            {["Google", "Microsoft", "Apple", "Amazon", "Meta", "Netflix"].map((company, index) => (
+              <div key={index} className="flex items-center justify-center p-6 rounded-xl bg-card/30 backdrop-blur-md border border-border/20 hover:border-primary/30 transition-all duration-300 animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <span className="text-lg font-bold text-muted-foreground">{company}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Success Metrics */}
+          <div className="grid md:grid-cols-4 gap-8 max-w-5xl mx-auto">
+            {[
+              { number: "50K+", label: "Active Learners", icon: Users },
+              { number: "94%", label: "Success Rate", icon: CheckCircle },
+              { number: "$25K", label: "Avg Salary Increase", icon: TrendingUp },
+              { number: "4.9/5", label: "Student Rating", icon: Star }
+            ].map((metric, index) => (
+              <div key={index} className="text-center space-y-4 animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="w-20 h-20 mx-auto bg-gradient-to-br from-primary to-accent-secondary rounded-2xl flex items-center justify-center">
+                  <metric.icon className="w-10 h-10 text-white" />
+                </div>
+                <div>
+                  <div className="text-4xl font-bold text-primary">{metric.number}</div>
+                  <div className="text-muted-foreground font-medium">{metric.label}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* 3D Showcase Section */}
       <section className="content-section relative">
         <div className="content-container">
