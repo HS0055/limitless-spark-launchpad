@@ -578,9 +578,9 @@ export const AITranslationEngine = () => {
         return;
       }
       
-      // Only reinitialize if language actually changed
-      if (targetLang !== language) {
-        // Reset state
+      // Only reinitialize if language actually changed and system is stable
+      if (targetLang !== language && !engine.isProcessing) {
+        // Reset state safely
         isInitialized.current = false;
         processingQueue.current = [];
         
@@ -589,9 +589,12 @@ export const AITranslationEngine = () => {
           translationCache.current.clear();
         }
         
+        // Add delay to prevent race conditions
         setTimeout(() => {
-          initializeEngine();
-        }, 100);
+          if (!engine.isProcessing) {
+            initializeEngine();
+          }
+        }, 200);
       }
     };
 
@@ -600,7 +603,7 @@ export const AITranslationEngine = () => {
     return () => {
       window.removeEventListener('languageChange', handleLanguageChange as EventListener);
     };
-  }, [language, initializeEngine]);
+  }, [language, initializeEngine, engine.isProcessing]);
 
   // Cleanup on unmount
   useEffect(() => {
