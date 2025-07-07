@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -31,48 +31,43 @@ serve(async (req) => {
     if (detectOnly) {
       console.log('Detecting language for:', text);
       
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-        model: 'gpt-4o-mini',
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': anthropicApiKey,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-4-20250514',
+        max_tokens: 10,
+        temperature: 0,
         messages: [
           {
-            role: 'system',
-            content: `You are a professional translator specializing in accurate, contextual translations. 
-            Analyze the given text and determine its language from these options: 'en' (English), 'hy' (Armenian), 'ru' (Russian).
-            
-            Rules:
-            - Return ONLY the 2-letter language code
-            - If uncertain, analyze context clues and grammar patterns
-            - Armenian text uses Armenian script (Հայերեն)
-            - Russian text uses Cyrillic script (Русский)
-            - English text uses Latin script
-            - For mixed content, identify the dominant language
-            
-            Return only the language code, nothing else.`
-          },
-          {
             role: 'user',
-            content: text
+            content: `Analyze this text and return ONLY the 2-letter language code from these options: 'en' (English), 'hy' (Armenian), 'ru' (Russian).
+
+Rules:
+- Return ONLY the language code, nothing else
+- Armenian uses Armenian script (Հայերեն)
+- Russian uses Cyrillic script (Русский) 
+- English uses Latin script
+- For mixed content, identify the dominant language
+
+Text: "${text}"`
           }
-        ],
-        max_tokens: 5,
-        temperature: 0,
-        }),
-      });
+        ]
+      }),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('OpenAI API error:', errorData);
-        throw new Error(`OpenAI API error: ${response.status}`);
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('Claude API error:', errorData);
+      throw new Error(`Claude API error: ${response.status}`);
+    }
 
-      const data = await response.json();
-      const detectedLanguage = data.choices[0].message.content.trim().toLowerCase();
+    const data = await response.json();
+    const detectedLanguage = data.content[0].text.trim().toLowerCase();
       
       console.log('Language detected:', detectedLanguage);
 
@@ -109,52 +104,51 @@ serve(async (req) => {
     const sourceLanguage = languageNames[sourceLang as keyof typeof languageNames] || sourceLang;
     const targetLanguage = languageNames[targetLang as keyof typeof languageNames] || targetLang;
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'x-api-key': anthropicApiKey,
         'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an expert translator with deep knowledge of ${sourceLanguage}, ${targetLanguage}, and cultural context.
-
-            Translation Guidelines:
-            - Maintain the original meaning, tone, and intent
-            - Preserve formatting, punctuation, and structure
-            - Use natural, fluent expressions in the target language
-            - For technical terms, use standard professional terminology
-            - For cultural references, provide appropriate cultural equivalents
-            - Keep proper nouns (names, brands) unchanged unless they have standard translations
-            - Maintain consistency in terminology throughout
-            - For business/academic content, use formal register
-            - For casual content, use appropriate informal register
-            
-            Context: This is for a multilingual education platform (TopOne Academy) focused on business skills and visual learning.
-            
-            Translate the following text from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translation, no explanations.`
-          },
-          {
-            role: 'user',
-            content: text
-          }
-        ],
+        model: 'claude-4-20250514',
         max_tokens: 4000,
         temperature: 0.1,
+        messages: [
+          {
+            role: 'user',
+            content: `You are an expert translator specializing in ${sourceLanguage} to ${targetLanguage} translation for TopOne Academy, a business education platform.
+
+CRITICAL REQUIREMENTS:
+- Analyze the COMPLETE context, structure, and semantic meaning
+- Detect UI elements, business terms, educational content, and navigation text
+- Maintain original formatting, punctuation, and HTML structure
+- Use natural, fluent expressions appropriate for business/education context
+- For technical terms, use standard professional terminology
+- Keep proper nouns (TopOne Academy, names, brands) unchanged
+- Ensure consistency in terminology throughout
+- For formal content, use formal register; for casual content, use appropriate informal tone
+- Preserve any special characters, numbers, or symbols exactly
+
+CONTEXT: This text is from TopOne Academy's multilingual business education platform. Users are learning business fundamentals, visual concepts, and professional skills.
+
+Translate this ${sourceLanguage} text to ${targetLanguage}. Return ONLY the translation with perfect accuracy:
+
+"${text}"`
+          }
+        ]
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      console.error('Claude API error:', errorData);
+      throw new Error(`Claude API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
     }
 
     const data = await response.json();
-    const translatedText = data.choices[0].message.content.trim();
+    const translatedText = data.content[0].text.trim();
 
     console.log('Translation successful:', translatedText);
 

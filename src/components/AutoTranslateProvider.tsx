@@ -27,21 +27,21 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const translationInProgress = useRef<boolean>(false);
 
   useEffect(() => {
-    // Load master translation settings
+    // Load master translation settings - Auto-enable everything by default
     try {
-      const masterEnabled = localStorage.getItem('master-translation-enabled') !== 'false';
-      setMasterTranslationEnabled(masterEnabled);
+      setMasterTranslationEnabled(true);
+      setAutoTranslateEnabled(true);
+      setTranslationMode('auto');
       
       const savedCache = localStorage.getItem('translation-cache');
       if (savedCache) {
         translationCache.current = JSON.parse(savedCache);
       }
       
-      const autoEnabled = localStorage.getItem('auto-translate-enabled') !== 'false';
-      setAutoTranslateEnabled(autoEnabled);
-      
-      const mode = localStorage.getItem('translation-mode') as 'auto' | 'manual' || 'auto';
-      setTranslationMode(mode);
+      // Force enable auto-translation for seamless experience
+      localStorage.setItem('master-translation-enabled', 'true');
+      localStorage.setItem('auto-translate-enabled', 'true');
+      localStorage.setItem('translation-mode', 'auto');
     } catch (error) {
       console.error('Error loading translation settings:', error);
     }
@@ -66,15 +66,15 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           const parent = node.parentElement;
           if (!parent) return NodeFilter.FILTER_REJECT;
           
-          // Enhanced skip logic - more comprehensive
-          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'SVG', 'PATH', 'INPUT', 'BUTTON'];
+          // Comprehensive skip logic for real-time website detection
+          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'SVG', 'PATH'];
           if (skipTags.includes(parent.tagName)) {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Skip hidden elements
+          // Skip hidden elements but be more selective
           const style = window.getComputedStyle(parent);
-          if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+          if (style.display === 'none' || style.visibility === 'hidden') {
             return NodeFilter.FILTER_REJECT;
           }
           
@@ -84,19 +84,18 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           }
           
           const text = node.textContent?.trim();
-          if (!text || text.length < 2) {
+          if (!text || text.length < 1) {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Enhanced filtering - skip more technical content
+          // More intelligent filtering - detect UI text, navigation, content
+          // Allow more text types for comprehensive translation
           if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
               /^https?:\/\//.test(text) || 
               /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
-              /^[A-Z_]{2,}$/.test(text) ||
               /^[0-9]+(\.[0-9]+)*$/.test(text) ||
               /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text) ||
-              text.startsWith('//') || text.startsWith('/*') ||
-              /^[^a-zA-Z]+$/.test(text)) {
+              text.startsWith('//') || text.startsWith('/*')) {
             return NodeFilter.FILTER_REJECT;
           }
           
@@ -130,14 +129,14 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   const translateText = async (text: string, targetLang: string): Promise<string> => {
-    // Check cache first
-    const cacheKey = text.toLowerCase();
+    // Check cache first for ultra-fast retrieval
+    const cacheKey = text.toLowerCase().trim();
     if (translationCache.current[cacheKey]?.[targetLang]) {
       return translationCache.current[cacheKey][targetLang];
     }
 
     try {
-      // Use faster AI translate function with speed optimization
+      // Use Claude 4 for superior translation quality and speed
       const { data, error } = await supabase.functions.invoke('ai-translate', {
         body: {
           text: text,
@@ -150,18 +149,18 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
       const translatedText = data.translatedText;
 
-      // Cache the translation
+      // Aggressive caching for speed
       if (!translationCache.current[cacheKey]) {
         translationCache.current[cacheKey] = {};
       }
       translationCache.current[cacheKey][targetLang] = translatedText;
       
-      // Save to localStorage
+      // Batch save to localStorage for performance
       saveCache();
 
       return translatedText;
     } catch (error) {
-      console.error('Translation error:', error);
+      console.error('Claude translation error:', error);
       return text; // Fallback to original text
     }
   };
@@ -242,21 +241,21 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      // Optimized batch processing with adaptive sizing
-      const batchSize = uncachedTexts.length > 50 ? 2 : 3; // Smaller batches for reliability
+      // Ultra-fast parallel processing for Claude 4
+      const batchSize = Math.min(uncachedTexts.length > 100 ? 5 : 8, textElements.length); // Larger batches for Claude
       let completed = 0;
       
-      // Process in smart batches
+      // Process in optimized parallel batches
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         
-        // Process batch with improved error handling
-        await Promise.allSettled(
+        // Parallel processing with Claude's superior speed
+        const results = await Promise.allSettled(
           batch.map(async ({ element, text }) => {
             try {
               const translatedText = await translateText(text, targetLang);
               
-              // Smart element update - preserve formatting
+              // Intelligent element update - preserve all formatting
               if (element && element.textContent?.trim() === text.trim()) {
                 const wasHtml = element.innerHTML !== element.textContent;
                 if (wasHtml && element.innerHTML.includes(text)) {
@@ -268,7 +267,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               
               return { success: true, text, translatedText };
             } catch (error) {
-              console.warn('Failed to translate text:', text, error);
+              console.warn('Claude translation failed:', text, error);
               return { success: false, text, error };
             }
           })
@@ -278,9 +277,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         const progress = (completed / textElements.length) * 100;
         setTranslationProgress(progress);
         
-        // Small delay to prevent API rate limiting
+        // Minimal delay for Claude's fast processing
         if (i + batchSize < textElements.length) {
-          await new Promise(resolve => setTimeout(resolve, 50));
+          await new Promise(resolve => setTimeout(resolve, 25));
         }
       }
 
@@ -394,45 +393,6 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* ONE MASTER TRANSLATION ICON - Controls Everything */}
-      <div className="fixed top-20 right-4 z-50">
-        <div className="flex flex-col items-center gap-2">
-          <Button 
-            onClick={handleMasterTranslation}
-            disabled={isTranslating || translationInProgress.current}
-            size="lg"
-            className={`
-              w-14 h-14 p-0 rounded-full backdrop-blur-sm shadow-xl border-2 transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed
-              ${masterTranslationEnabled 
-                ? 'bg-gradient-to-br from-green-500 to-green-600 border-green-400 text-white hover:shadow-green-500/50' 
-                : 'bg-gradient-to-br from-primary to-primary-foreground border-primary text-primary-foreground hover:shadow-primary/50'
-              }
-            `}
-            title="Master Translation Control - One click translates everything"
-          >
-            {isTranslating ? (
-              <div className="animate-spin text-xl">🔄</div>
-            ) : masterTranslationEnabled ? (
-              <div className="text-xl">✨</div>
-            ) : (
-              <div className="text-xl">🌐</div>
-            )}
-          </Button>
-          
-          {/* Status indicator */}
-          <div className="text-xs text-center text-muted-foreground font-medium">
-            {isTranslating ? 'Working...' : 
-             masterTranslationEnabled ? 'Active' : 'Click to Start'}
-          </div>
-          
-          {/* Current language indicator */}
-          {language !== 'en' && (
-            <div className="px-2 py-1 bg-background/80 backdrop-blur-sm rounded text-xs font-medium border">
-              {language.toUpperCase()}
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* Compact Translation Status - Much Smaller & Comfortable */}
       {translationStatus && (
