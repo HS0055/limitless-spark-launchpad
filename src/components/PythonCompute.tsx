@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Calculator, BarChart3, TrendingUp } from 'lucide-react';
+import Icon from '@/components/Icon';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,37 +21,37 @@ const PythonCompute = () => {
     statistics: {
       name: 'Statistical Analysis',
       description: 'Calculate mean, median, standard deviation, etc.',
-      icon: BarChart3,
+      icon: 'BarChart3' as const,
       example: '[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]'
     },
     linearRegression: {
       name: 'Linear Regression',
       description: 'Find best fit line for data points',
-      icon: TrendingUp,
+      icon: 'TrendingUp' as const,
       example: '{"xData": [1, 2, 3, 4, 5], "yData": [2, 4, 6, 8, 10]}'
     },
     correlationCoefficient: {
       name: 'Correlation Analysis',
       description: 'Calculate correlation between two datasets',
-      icon: Calculator,
+      icon: 'Calculator' as const,
       example: '{"xData": [1, 2, 3, 4, 5], "yData": [2, 4, 6, 8, 10]}'
     },
     movingAverage: {
       name: 'Moving Average',
       description: 'Smooth time series data',
-      icon: TrendingUp,
+      icon: 'TrendingUp' as const,
       example: '{"data": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "windowSize": 3}'
     },
     compoundInterest: {
       name: 'Compound Interest',
       description: 'Calculate investment growth',
-      icon: Calculator,
+      icon: 'Calculator' as const,
       example: '{"principal": 1000, "rate": 0.05, "time": 10, "frequency": 12}'
     },
     textAnalysis: {
       name: 'Text Analysis',
       description: 'Analyze text content and statistics',
-      icon: BarChart3,
+      icon: 'BarChart3' as const,
       example: '"This is a sample text for analysis. It contains multiple sentences and words for testing."'
     }
   };
@@ -114,7 +114,7 @@ const PythonCompute = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-5 w-5" />
+            <Icon name="Calculator" className="h-5 w-5" />
             Computation Result
           </CardTitle>
           <CardDescription>
@@ -150,7 +150,7 @@ const PythonCompute = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Calculator className="h-6 w-6" />
+            <Icon name="Calculator" className="h-6 w-6" />
             Python-like Computation Engine
           </CardTitle>
           <CardDescription>
@@ -168,7 +168,7 @@ const PythonCompute = () => {
                 {Object.entries(operations).map(([key, op]) => (
                   <SelectItem key={key} value={key}>
                     <div className="flex items-center gap-2">
-                      <op.icon className="h-4 w-4" />
+                      <Icon name={op.icon} className="h-4 w-4" />
                       <div>
                         <div className="font-medium">{op.name}</div>
                         <div className="text-xs text-muted-foreground">{op.description}</div>
@@ -204,12 +204,12 @@ const PythonCompute = () => {
           >
             {isLoading ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Icon name="Loader2" className="mr-2 h-4 w-4 animate-spin" />
                 Computing...
               </>
             ) : (
               <>
-                <Calculator className="mr-2 h-4 w-4" />
+                <Icon name="Calculator" className="mr-2 h-4 w-4" />
                 Execute Computation
               </>
             )}
