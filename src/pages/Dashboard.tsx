@@ -1,32 +1,16 @@
-import { useEffect, useState } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { BookOpen, Clock, Trophy, Users, Play, Brain, Target, Lightbulb, TrendingUp, Star, Eye, Heart, Zap, Award, ChevronRight, Lock, Unlock, Gamepad2, Crown, Shield, Rocket } from 'lucide-react';
+import { Brain } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AschConformityVisualization from '@/components/AschConformityVisualization';
+import DashboardStats from '@/components/dashboard/DashboardStats';
+import LeaguesOverview from '@/components/dashboard/LeaguesOverview';
+import MentalModelsList from '@/components/dashboard/MentalModelsList';
+import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  thumbnail_url: string;
-  category: string;
-  level: string;
-  progress: number;
-  enrolled_at: string;
-  instructor: {
-    display_name: string;
-  };
-  _count: {
-    lessons: number;
-  };
-}
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
@@ -160,139 +144,10 @@ const Dashboard = () => {
         </div>
 
         {/* Enhanced Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <Card className="card-elevated hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Mental Models</p>
-                  <p className="text-3xl font-bold text-gradient">{learningStats.masteredModels}</p>
-                  <p className="text-xs text-muted-foreground">of {learningStats.totalModels} available</p>
-                </div>
-                <Brain className="w-10 h-10 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-elevated hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Learning Hours</p>
-                  <p className="text-3xl font-bold text-gradient">{learningStats.learningHours}</p>
-                  <p className="text-xs text-muted-foreground">this month</p>
-                </div>
-                <Clock className="w-10 h-10 text-accent-secondary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-elevated hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Streak Days</p>
-                  <p className="text-3xl font-bold text-gradient">{learningStats.streakDays}</p>
-                  <p className="text-xs text-muted-foreground">current streak</p>
-                </div>
-                <Trophy className="w-10 h-10 text-accent-tertiary" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="card-elevated hover-lift">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground">Weekly Goal</p>
-                  <p className="text-3xl font-bold text-gradient">{learningStats.weeklyGoal}%</p>
-                  <p className="text-xs text-muted-foreground">almost there!</p>
-                </div>
-                <Target className="w-10 h-10 text-primary" />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <DashboardStats stats={learningStats} />
 
         {/* Leagues Overview */}
-        <div className="mb-12">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-display font-bold">Learning Leagues</h2>
-            <Link to="/league">
-              <Button variant="outline" className="btn-outline-enhanced">
-                <span className="flex items-center gap-2">
-                  View All Programs
-                  <ChevronRight className="w-4 h-4" />
-                </span>
-              </Button>
-            </Link>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6 mb-8">
-            <Card className="card-elevated hover-lift group">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-accent-secondary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Gamepad2 className="w-6 h-6 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gradient-secondary">Beginner League</h3>
-                    <p className="text-xs text-muted-foreground">Foundation Building</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Start your journey with essential mental models and decision-making frameworks.
-                </p>
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary">12 Models</Badge>
-                  <div className="text-xs text-muted-foreground">2.1K participants</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-elevated hover-lift group">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-accent-tertiary/20 to-primary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Crown className="w-6 h-6 text-accent-tertiary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gradient-secondary">Advanced League</h3>
-                    <p className="text-xs text-muted-foreground">Strategic Mastery</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Deep dive into complex systems thinking and advanced cognitive strategies.
-                </p>
-                <div className="flex items-center justify-between">
-                  <Badge variant="default">24 Models</Badge>
-                  <div className="text-xs text-muted-foreground">892 participants</div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="card-elevated hover-lift group">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-12 h-12 bg-gradient-to-br from-accent-secondary/20 to-accent-tertiary/10 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <Rocket className="w-6 h-6 text-accent-secondary" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gradient-secondary">Elite League</h3>
-                    <p className="text-xs text-muted-foreground">Innovation & Leadership</p>
-                  </div>
-                </div>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Master cutting-edge frameworks for innovation and strategic leadership.
-                </p>
-                <div className="flex items-center justify-between">
-                  <Badge variant="outline">18 Models</Badge>
-                  <div className="text-xs text-muted-foreground">284 participants</div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        <LeaguesOverview />
 
         {/* Asch Conformity Visualization */}
         <div className="mb-12">
@@ -301,148 +156,13 @@ const Dashboard = () => {
 
         {/* Learning Progress */}
         <div className="grid lg:grid-cols-3 gap-8 mb-12">
-          <div className="lg:col-span-2">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-display font-bold">Your Mental Models</h2>
-              <Link to="/visual-business">
-                <Button variant="outline" className="btn-outline-enhanced">
-                  <span className="flex items-center gap-2">
-                    Browse All
-                    <ChevronRight className="w-4 h-4" />
-                  </span>
-                </Button>
-              </Link>
-            </div>
-
-            <div className="grid gap-6">
-              {mockMentalModels.map((model) => (
-                <Card key={model.id} className="card-glass hover-lift">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4">
-                      <div className="text-3xl">{model.icon}</div>
-                      <div className="flex-1">
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <h3 className="text-lg font-semibold mb-1">{model.title}</h3>
-                            <p className="text-sm text-muted-foreground mb-2">{model.description}</p>
-                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                              <span>{model.category}</span>
-                              <span>•</span>
-                              <span>{model.difficulty}</span>
-                              <span>•</span>
-                              <span>{model.completedLessons}/{model.lessons} lessons</span>
-                              <span>•</span>
-                              <span>{model.timeSpent}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1">
-                              <Star className="w-4 h-4 fill-current text-yellow-500" />
-                              <span className="text-sm font-medium">{model.rating}</span>
-                            </div>
-                            <Badge variant={model.progress === 100 ? 'default' : 'secondary'}>
-                              {model.progress === 100 ? 'Mastered' : 'In Progress'}
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        <div className="mb-4">
-                          <div className="flex justify-between text-sm mb-2">
-                            <span>Progress</span>
-                            <span>{model.progress}%</span>
-                          </div>
-                          <Progress value={model.progress} className="h-2" />
-                        </div>
-
-                        <div className="flex gap-3">
-                          <Button className="flex-1" variant={model.progress === 100 ? 'outline' : 'default'}>
-                            <Play className="w-4 h-4 mr-2" />
-                            {model.progress === 100 ? 'Review' : 'Continue'}
-                          </Button>
-                          <Button variant="outline" size="icon" className="hover-glow">
-                            <Heart className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-
+          <MentalModelsList models={mockMentalModels} />
+          
           {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Next Goal */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-primary" />
-                  Next Goal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground mb-4">{learningStats.nextGoal}</p>
-                <Progress value={80} className="mb-2" />
-                <p className="text-xs text-muted-foreground">3 more to go!</p>
-              </CardContent>
-            </Card>
-
-            {/* Achievements */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Award className="w-5 h-5 text-accent-tertiary" />
-                  Recent Achievements
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {mockAchievements.map((achievement, index) => (
-                  <div key={index} className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                    achievement.unlocked ? 'bg-primary/10 border border-primary/20' : 'bg-muted/50'
-                  }`}>
-                    <div className={`text-xl ${achievement.unlocked ? '' : 'grayscale opacity-50'}`}>
-                      {achievement.unlocked ? achievement.icon : <Lock className="w-5 h-5 text-muted-foreground" />}
-                    </div>
-                    <div className="flex-1">
-                      <h4 className={`text-sm font-medium ${achievement.unlocked ? 'text-foreground' : 'text-muted-foreground'}`}>
-                        {achievement.title}
-                      </h4>
-                      <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                    </div>
-                    {achievement.unlocked && <Unlock className="w-4 h-4 text-primary" />}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Quick Actions */}
-            <Card className="card-elevated">
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Link to="/league">
-                  <Button variant="outline" className="w-full justify-start hover-glow">
-                    <Trophy className="w-4 h-4 mr-2" />
-                    Browse Programs
-                  </Button>
-                </Link>
-                <Link to="/community">
-                  <Button variant="outline" className="w-full justify-start hover-glow">
-                    <Users className="w-4 h-4 mr-2" />
-                    Join Community
-                  </Button>
-                </Link>
-                <Link to="/settings">
-                  <Button variant="outline" className="w-full justify-start hover-glow">
-                    <Target className="w-4 h-4 mr-2" />
-                    Set Goals
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
+          <DashboardSidebar 
+            nextGoal={learningStats.nextGoal}
+            achievements={mockAchievements}
+          />
         </div>
       </div>
       <Footer />
