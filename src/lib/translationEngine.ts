@@ -243,8 +243,9 @@ class TranslationEngine {
       }
     });
 
-    // Also translate common attributes
+    // Also translate common attributes and data-i18n elements
     this.translateAttributes(targetLang);
+    this.translateDataI18nElements(targetLang);
   }
 
   private translateAttributes(targetLang: Language) {
@@ -260,6 +261,20 @@ class TranslationEngine {
           element.setAttribute(attr, translation);
         }
       });
+    });
+  }
+
+  private translateDataI18nElements(targetLang: Language) {
+    // Handle elements with data-i18n attribute (like nav items)
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n');
+      if (!key) return;
+      
+      const translation = this.cache[key]?.[targetLang];
+      if (translation && translation !== key) {
+        console.log(`🔄 Translating nav item "${key}" → "${translation}"`);
+        element.textContent = translation;
+      }
     });
   }
 
@@ -305,7 +320,7 @@ class TranslationEngine {
       }
     }
 
-    // Also collect attribute values
+    // Also collect attribute values and data-i18n keys
     const attributesToTranslate = ['placeholder', 'title', 'aria-label', 'alt'];
     attributesToTranslate.forEach(attr => {
       document.querySelectorAll(`[${attr}]`).forEach(element => {
@@ -315,6 +330,15 @@ class TranslationEngine {
           uncachedTexts.push(value);
         }
       });
+    });
+
+    // Collect data-i18n keys for navigation translation
+    document.querySelectorAll('[data-i18n]').forEach(element => {
+      const key = element.getAttribute('data-i18n')?.trim();
+      if (key && !seenTexts.has(key) && !this.cache[key]?.[targetLang]) {
+        seenTexts.add(key);
+        uncachedTexts.push(key);
+      }
     });
 
     return uncachedTexts;

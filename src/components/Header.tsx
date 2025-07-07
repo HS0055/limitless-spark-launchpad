@@ -1,10 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Menu, X, BookOpen, Users, Target, DollarSign, Home, Settings, Trophy, TrendingUp, Image, Calculator } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import Icon, { IconName } from "@/components/Icon";
+import NavItem from "@/components/NavItem";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,18 +14,18 @@ const Header = () => {
   const { t } = useLanguage();
 
   const mainNavItems = [
-    { name: t('nav.home'), href: "/", icon: Home },
-    { name: t('nav.programs'), href: "/league", icon: Trophy },
-    { name: t('nav.business'), href: "/business-fundamentals", icon: Target },
-    { name: t('nav.memeCoins'), href: "/meme-coins", icon: TrendingUp },
-    { name: t('nav.visual'), href: "/visual-business", icon: Image },
-    { name: t('nav.aiTools'), href: "/ai-tools", icon: BookOpen },
-    { name: "Python Tools", href: "/python-tools", icon: Calculator },
+    { name: 'nav.home', href: "/", icon: "Home" as IconName },
+    { name: 'nav.programs', href: "/league", icon: "Trophy" as IconName },
+    { name: 'nav.business', href: "/business-fundamentals", icon: "Target" as IconName },
+    { name: 'nav.memeCoins', href: "/meme-coins", icon: "TrendingUp" as IconName },
+    { name: 'nav.visual', href: "/visual-business", icon: "Image" as IconName },
+    { name: 'nav.aiTools', href: "/ai-tools", icon: "BookOpen" as IconName },
+    { name: "Python Tools", href: "/python-tools", icon: "Calculator" as IconName },
   ];
 
   const secondaryNavItems = [
-    { name: t('nav.community'), href: "#testimonials", icon: Users },
-    { name: t('nav.pricing'), href: "#pricing", icon: DollarSign },
+    { name: 'nav.community', href: "#testimonials", icon: "Users" as IconName },
+    { name: 'nav.pricing', href: "#pricing", icon: "DollarSign" as IconName },
   ];
 
   return (
@@ -36,7 +37,7 @@ const Header = () => {
             <Link to="/" className="flex items-center space-x-3 group">
               <div className="relative">
                 <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent-secondary to-accent-tertiary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
-                  <BookOpen className="w-6 h-6 text-primary-foreground" />
+                  <Icon name="BookOpen" className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-accent-tertiary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
@@ -53,57 +54,27 @@ const Header = () => {
           <div className="hidden lg:flex items-center space-x-1">
             {/* Main Navigation */}
             <div className="flex items-center space-x-1 mr-6">
-              {mainNavItems.map((item) => {
-                const isActive = location.pathname === item.href;
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 group relative ${
-                      isActive 
-                        ? 'bg-primary/10 text-primary border border-primary/20' 
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-                    }`}
-                  >
-                    <item.icon className={`w-4 h-4 transition-colors ${
-                      isActive ? 'text-primary' : 'group-hover:text-primary'
-                    }`} />
-                    <span className="font-medium">{item.name}</span>
-                  </Link>
-                );
-              })}
+              {mainNavItems.map((item) => (
+                <NavItem
+                  key={item.name}
+                  label={item.name}
+                  href={item.href}
+                  icon={item.icon}
+                />
+              ))}
             </div>
 
             {/* Secondary Navigation */}
             <div className="flex items-center space-x-1 border-l border-border pl-6">
-              {secondaryNavItems.map((item) => {
-                const isExternal = item.href.startsWith('#');
-                
-                if (isExternal) {
-                  return (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className="px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 flex items-center space-x-2 group"
-                    >
-                      <item.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
-                      <span className="font-medium">{item.name}</span>
-                    </a>
-                  );
-                }
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className="px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 flex items-center space-x-2 group"
-                  >
-                    <item.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
-                    <span className="font-medium">{item.name}</span>
-                  </Link>
-                );
-              })}
+              {secondaryNavItems.map((item) => (
+                <NavItem
+                  key={item.name}
+                  label={item.name}
+                  href={item.href}
+                  icon={item.icon}
+                  isExternal={item.href.startsWith('#')}
+                />
+              ))}
             </div>
           </div>
 
@@ -120,9 +91,9 @@ const Header = () => {
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
-                  <Settings className={`w-4 h-4 transition-colors ${
-                    location.pathname === '/settings' ? 'text-primary' : 'group-hover:text-primary'
-                  }`} />
+                    <Icon name="Settings" className={`w-4 h-4 transition-colors ${
+                      location.pathname === '/settings' ? 'text-primary' : 'group-hover:text-primary'
+                    }`} />
                   <span className="font-medium">{t('nav.settings')}</span>
                 </Link>
                 <Button variant="outline" onClick={signOut} className="font-medium">
@@ -143,7 +114,7 @@ const Header = () => {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors border border-border"
           >
-            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {isMenuOpen ? <Icon name="X" className="w-5 h-5" /> : <Icon name="Menu" className="w-5 h-5" />}
           </button>
         </div>
 
@@ -168,7 +139,7 @@ const Header = () => {
                       }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
+                      <Icon name={item.icon} className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
                       <span className="font-medium">{item.name}</span>
                     </Link>
                   );
@@ -189,7 +160,7 @@ const Header = () => {
                         className="flex items-center space-x-3 p-4 rounded-xl hover:bg-muted/80 transition-all duration-200 text-muted-foreground hover:text-foreground"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <item.icon className="w-5 h-5" />
+                        <Icon name={item.icon} className="w-5 h-5" />
                         <span className="font-medium">{item.name}</span>
                       </a>
                     );
@@ -202,7 +173,7 @@ const Header = () => {
                       className="flex items-center space-x-3 p-4 rounded-xl hover:bg-muted/80 transition-all duration-200 text-muted-foreground hover:text-foreground"
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <item.icon className="w-5 h-5" />
+                      <Icon name={item.icon} className="w-5 h-5" />
                       <span className="font-medium">{item.name}</span>
                     </Link>
                   );
@@ -231,7 +202,7 @@ const Header = () => {
                       }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <Settings className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-primary' : ''}`} />
+                      <Icon name="Settings" className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-primary' : ''}`} />
                       <span className="font-medium">{t('nav.settings')}</span>
                     </Link>
                     <Button 
