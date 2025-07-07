@@ -2,7 +2,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+// import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
@@ -80,15 +80,13 @@ const AppContent = () => {
 const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <LanguageProvider>
-            <TranslationProvider>
-              <AppContent />
-            </TranslationProvider>
-          </LanguageProvider>
-        </AuthProvider>
-      </TooltipProvider>
+      <AuthProvider>
+        <LanguageProvider>
+          <TranslationProvider>
+            <AppContent />
+          </TranslationProvider>
+        </LanguageProvider>
+      </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>
 );
