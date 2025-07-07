@@ -234,6 +234,7 @@ const AdminPanel = () => {
           <TabsList>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
+            <TabsTrigger value="content">Website Content</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
@@ -321,6 +322,121 @@ const AdminPanel = () => {
                       <FileText className="w-4 h-4 mr-2" />
                       Add Resources
                     </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="content">
+            <Card>
+              <CardHeader>
+                <CardTitle>Website Content Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="text-center py-8">
+                    <Edit className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2">Website Text Editor</h3>
+                    <p className="text-muted-foreground mb-4">
+                      Edit all website texts and translations from here
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold mb-2">Navigation & Buttons</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Home</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Get Started</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Learn More</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold mb-2">Hero Section</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Main Title</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Subtitle</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Description</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold mb-2">Features Section</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Visual Learning</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Minute Lessons</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Gamified Experience</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4">
+                          <h4 className="font-semibold mb-2">FAQ Section</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Questions & Answers</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Contact Support</span>
+                              <Button variant="ghost" size="sm">
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
                   </div>
                 </div>
               </CardContent>

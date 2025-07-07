@@ -15,6 +15,7 @@ class TranslationEngine {
   private observer: MutationObserver | null = null;
   private debounceTimer: number | null = null;
   private translatedElements = new WeakSet<Element>();
+  private abortController: AbortController | null = null;
 
   constructor() {
     this.loadCache();
@@ -115,18 +116,28 @@ class TranslationEngine {
   }
 
   async translateAll(targetLang: Language) {
+    // Cancel any ongoing translation
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    
     if (targetLang === 'en') {
       this.restoreOriginalLanguage();
       return;
     }
 
     this.currentLanguage = targetLang;
-    await this.translateAllContent(targetLang);
+    this.abortController = new AbortController();
+    
+    // Instant UI update with cached content
+    this.translateCachedContent(targetLang);
+    
+    // Background translation of new content
+    setTimeout(() => this.translateAllContent(targetLang), 0);
   }
 
   private async translateAllContent(targetLang: Language) {
     if (this.isTranslating) {
-      console.log('⚠️ Translation already in progress');
       return;
     }
 
