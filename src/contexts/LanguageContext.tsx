@@ -7,6 +7,7 @@ interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   t: (key: string) => string;
+  isTranslating: boolean;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -296,6 +297,7 @@ interface LanguageProviderProps {
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   const { user } = useAuth();
   const [language, setLanguageState] = useState<Language>('en');
+  const [isTranslating, setIsTranslating] = useState(false);
 
   // Load language preference on mount
   useEffect(() => {
@@ -315,11 +317,28 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
     
+    // Trigger auto-translation
+    if (lang !== 'en') {
+      triggerAutoTranslation(lang);
+    } else {
+      restoreOriginalContent();
+    }
+    
     // If user is logged in, save preference to profile
     if (user) {
-      // We'll implement this later when we update the profiles table
       console.log('TODO: Save language preference to user profile');
     }
+  };
+
+  const triggerAutoTranslation = async (targetLang: Language) => {
+    setIsTranslating(true);
+    // Auto-translation logic will be implemented here
+    setTimeout(() => setIsTranslating(false), 2000); // Temporary
+  };
+
+  const restoreOriginalContent = () => {
+    // Restore original content logic
+    setIsTranslating(false);
   };
 
   const t = (key: string): string => {
@@ -327,7 +346,7 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, setLanguage, t, isTranslating }}>
       {children}
     </LanguageContext.Provider>
   );

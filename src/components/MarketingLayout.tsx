@@ -3,7 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import Footer from '@/components/Footer';
 
 interface MarketingLayoutProps {
@@ -11,10 +11,20 @@ interface MarketingLayoutProps {
 }
 
 const MarketingLayout = ({ children }: MarketingLayoutProps) => {
-  const { t } = useLanguage();
+  const { t, isTranslating } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
+      {/* Translation Loading Overlay */}
+      {isTranslating && (
+        <div className="fixed top-20 right-4 z-50 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-4 py-3 shadow-lg">
+          <div className="flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            <span className="text-sm font-medium">Translating page...</span>
+          </div>
+        </div>
+      )}
+      
       {/* Simplified Marketing Header */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
