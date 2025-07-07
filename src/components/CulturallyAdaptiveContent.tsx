@@ -1,7 +1,7 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ReactNode } from 'react';
 
-interface ContentVariant {
+export interface ContentVariant {
   en: ReactNode;
   hy: ReactNode;
   ru: ReactNode;
@@ -41,6 +41,7 @@ export const CulturalHeroContent = () => {
           <span className="text-primary font-bold"> visual learning</span>.
           Transform complex concepts into actionable insights.
         </p>
+        <CulturalCallToAction />
       </div>
     ),
     hy: (
@@ -55,9 +56,10 @@ export const CulturalHeroContent = () => {
         </h1>
         <p className="text-lg md:text-xl text-muted-foreground leading-relaxed font-medium max-w-4xl mx-auto mb-14 animate-fade-in">
           Միացիր Բիզնես հիմունքների լիգային և ձեռք բեր վստահություն 
-          <span className="text-primary font-bold"> տեսարան ուսուցման</span> միջոցով։
+          <span className="text-primary font-bold"> տեսողական ուսուցման</span> միջոցով։
           Փոխակերպիր բարդ հասկացությունները գործնական գիտելիքի։
         </p>
+        <CulturalCallToAction />
       </div>
     ),
     ru: (
@@ -75,6 +77,7 @@ export const CulturalHeroContent = () => {
           <span className="text-primary font-bold"> визуальное обучение</span>.
           Превращай сложные концепции в практические решения.
         </p>
+        <CulturalCallToAction />
       </div>
     )
   };

@@ -518,13 +518,18 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return;
     }
 
-    // Intelligent auto-translation with delay
+    // Intelligent auto-translation with delay - DISABLED to prevent popup
+    /* 
     const timer = setTimeout(() => {
       translatePage(language);
       previousLanguage.current = language;
     }, 500);
 
     return () => clearTimeout(timer);
+    */
+    
+    // Silent language switching without auto-translation popup
+    previousLanguage.current = language;
   }, [language, masterTranslationEnabled, autoTranslateEnabled, translationMode]);
 
   const enableAutoTranslate = () => {
@@ -584,40 +589,10 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Compact Translation Status - Much Smaller & Comfortable */}
-      {translationStatus && (
-        <div className="fixed top-16 right-4 z-50 max-w-xs">
-          <div className={`
-            px-3 py-2 rounded-md backdrop-blur-sm shadow-md border text-xs transition-all duration-300 transform
-            ${translationStatus.type === 'success' ? 'bg-green-500/80 border-green-400/50 text-white' : ''}
-            ${translationStatus.type === 'error' ? 'bg-red-500/80 border-red-400/50 text-white' : ''}
-            ${translationStatus.type === 'warning' ? 'bg-yellow-500/80 border-yellow-400/50 text-white' : ''}
-            ${translationStatus.type === 'info' ? 'bg-blue-500/80 border-blue-400/50 text-white' : ''}
-            ${translationStatus.type === 'loading' ? 'bg-primary/80 border-primary/50 text-primary-foreground' : ''}
-            animate-slide-in-right
-          `}>
-            <div className="flex items-center gap-1.5">
-              {translationStatus.type === 'loading' && (
-                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
-              )}
-              {translationStatus.type === 'success' && <span className="text-xs">✓</span>}
-              {translationStatus.type === 'error' && <span className="text-xs">✗</span>}
-              {translationStatus.type === 'warning' && <span className="text-xs">⚠</span>}
-              {translationStatus.type === 'info' && <span className="text-xs">i</span>}
-              <span className="font-medium leading-tight">{translationStatus.message}</span>
-            </div>
-            {isTranslating && translationProgress > 0 && (
-              <div className="mt-1">
-                <div className="h-0.5 bg-white/30 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-white transition-all duration-200"
-                    style={{ width: `${translationProgress}%` }}
-                  />
-                </div>
-                <div className="text-[10px] mt-0.5 opacity-90">{Math.round(translationProgress)}%</div>
-              </div>
-            )}
-          </div>
+      {/* Translation Status - Hidden for better UX */}
+      {false && translationStatus && (
+        <div className="hidden">
+          {/* Status removed to eliminate popup */}
         </div>
       )}
       
