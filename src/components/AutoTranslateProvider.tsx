@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
-import AITranslationEngine from '@/components/AITranslationEngine';
 
 interface TranslationCache {
   [key: string]: {
@@ -600,9 +599,6 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
   return (
     <>
-      {/* AI Translation Engine - Invisible Background System */}
-      <AITranslationEngine />
-      
       {/* Cost Warning Modal */}
       {showCostWarning && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">

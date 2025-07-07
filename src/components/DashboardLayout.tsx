@@ -73,6 +73,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
 
             {/* User Actions */}
             <div className="flex items-center space-x-2">
+              <LanguageSwitcher />
               <Button variant="ghost" size="sm" asChild>
                 <Link to="/settings">
                   <Settings className="w-4 h-4" />

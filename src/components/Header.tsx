@@ -107,13 +107,13 @@ const Header = () => {
           </div>
 
           {/* CTA Button */}
-          <div className="flex items-center space-x-3">
+          <div className="hidden lg:flex items-center space-x-3">
             <LanguageSwitcher />
             {user ? (
               <>
                 <Link
                   to="/settings"
-                  className={`hidden lg:flex p-2 rounded-lg transition-all duration-200 items-center space-x-2 group ${
+                  className={`p-2 rounded-lg transition-all duration-200 flex items-center space-x-2 group ${
                     location.pathname === '/settings' 
                       ? 'bg-primary/10 text-primary border border-primary/20' 
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -124,12 +124,12 @@ const Header = () => {
                   }`} />
                   <span className="font-medium">{t('nav.settings')}</span>
                 </Link>
-                <Button variant="outline" onClick={signOut} className="hidden lg:inline-flex font-medium">
+                <Button variant="outline" onClick={signOut} className="font-medium">
                   {t('nav.signOut')}
                 </Button>
               </>
             ) : (
-              <Button className="hidden lg:inline-flex btn-hero font-semibold px-6" asChild>
+              <Button className="btn-hero font-semibold px-6" asChild>
                 <Link to="/dashboard">
                   {t('nav.getStarted')}
                 </Link>
@@ -210,6 +210,9 @@ const Header = () => {
 
               {/* Actions */}
               <div className="pt-4 border-t border-border space-y-3">
+                <div className="flex justify-center mb-3">
+                  <LanguageSwitcher />
+                </div>
                 {!user ? (
                   <Button className="w-full btn-hero font-semibold py-3" asChild>
                     <Link to="/dashboard">

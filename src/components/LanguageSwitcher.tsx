@@ -66,24 +66,41 @@ const LanguageSwitcher = () => {
           <Button 
             variant="outline" 
             size="sm" 
-            className="group relative hover:scale-105 transition-all duration-200 min-w-fit bg-card/80 border-border shadow-sm"
+            className={`
+              group relative hover-glow bg-background/95 backdrop-blur-sm border-border/50 
+              transition-all duration-300 hover:scale-105 hover:shadow-lg
+              ${isTranslating ? 'animate-pulse' : ''}
+            `}
             disabled={isTranslating}
             aria-label={`Current language: ${currentLanguage?.name}. Click to change language`}
           >
             <div className="flex items-center gap-2">
               {isTranslating ? (
-                <Languages className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
+                <Languages className="w-4 h-4 animate-spin text-primary" />
               ) : (
-                <Globe className="w-4 h-4 text-foreground group-hover:text-primary transition-colors flex-shrink-0" />
+                <Globe className="w-4 h-4 group-hover:text-primary transition-colors" />
               )}
               
-              <span className="text-base flex-shrink-0" aria-hidden="true">
+              {/* Mobile: Show only flag */}
+              <span className="sm:hidden text-base" aria-hidden="true">
                 {currentLanguage?.flag}
               </span>
               
-              <span className="hidden sm:inline font-medium text-foreground/80 text-xs">
-                {currentLanguage?.code.toUpperCase()}
-              </span>
+              {/* Tablet: Show flag + code */}
+              <div className="hidden sm:flex md:hidden items-center gap-1">
+                <span className="text-base" aria-hidden="true">{currentLanguage?.flag}</span>
+                <span className="text-xs font-medium uppercase tracking-wide">
+                  {currentLanguage?.code}
+                </span>
+              </div>
+              
+              {/* Desktop: Show flag + full name */}
+              <div className="hidden md:flex items-center gap-2">
+                <span className="text-base" aria-hidden="true">{currentLanguage?.flag}</span>
+                <span className="font-medium truncate max-w-20">
+                  {currentLanguage?.nativeName}
+                </span>
+              </div>
             </div>
             
             {isTranslating && (

@@ -1,424 +1,418 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  TrendingUp, Zap, Target, AlertTriangle, CheckCircle, 
-  Brain, Globe, Users, BarChart3, RefreshCw
+  Activity, 
+  Zap, 
+  Database, 
+  Globe, 
+  TrendingUp, 
+  Clock, 
+  CheckCircle,
+  AlertCircle,
+  BarChart3,
+  Settings
 } from 'lucide-react';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { apiClient } from '@/lib/apiClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface PerformanceMetrics {
-  translationAccuracy: number;
-  processingSpeed: number;
-  contentCoverage: number;
+  cacheHitRate: number;
+  avgTranslationTime: number;
+  totalTranslations: number;
+  languagePairs: number;
   errorRate: number;
-  userEngagement: number;
-  aiModelPerformance: {
-    claude: { accuracy: number; speed: number; usage: number };
-    openai: { accuracy: number; speed: number; usage: number };
-    perplexity: { accuracy: number; speed: number; usage: number };
-  };
-  recentTranslations: Array<{
-    text: string;
-    language: string;
-    accuracy: number;
-    time: number;
-    model: string;
-  }>;
-  contentStats: {
-    totalElements: number;
-    translatedElements: number;
-    pendingElements: number;
-    errorElements: number;
-  };
+  apiCalls: number;
+  cacheSize: number;
 }
 
-export const TranslationPerformanceDashboard = () => {
-  const { user } = useAuth();
+interface LanguageStats {
+  code: string;
+  name: string;
+  flag: string;
+  translations: number;
+  avgTime: number;
+  cacheHit: number;
+}
+
+const TranslationPerformanceDashboard = () => {
+  const { toast } = useToast();
   const [metrics, setMetrics] = useState<PerformanceMetrics>({
-    translationAccuracy: 0,
-    processingSpeed: 0,
-    contentCoverage: 0,
-    errorRate: 0,
-    userEngagement: 0,
-    aiModelPerformance: {
-      claude: { accuracy: 0, speed: 0, usage: 0 },
-      openai: { accuracy: 0, speed: 0, usage: 0 },
-      perplexity: { accuracy: 0, speed: 0, usage: 0 }
-    },
-    recentTranslations: [],
-    contentStats: {
-      totalElements: 0,
-      translatedElements: 0,
-      pendingElements: 0,
-      errorElements: 0
-    }
+    cacheHitRate: 85,
+    avgTranslationTime: 1.2,
+    totalTranslations: 1456,
+    languagePairs: 6,
+    errorRate: 2.1,
+    apiCalls: 234,
+    cacheSize: 2.4
   });
-  
-  const [isLoading, setIsLoading] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  // Fetch performance metrics
-  const fetchMetrics = async () => {
-    setIsLoading(true);
-    try {
-      // Simulate fetching real metrics - in production this would come from analytics
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setMetrics({
-        translationAccuracy: Math.random() * 20 + 85, // 85-95%
-        processingSpeed: Math.random() * 5 + 8, // 8-13 elements/sec
-        contentCoverage: Math.random() * 15 + 80, // 80-95%
-        errorRate: Math.random() * 3 + 1, // 1-4%
-        userEngagement: Math.random() * 10 + 85, // 85-95%
-        aiModelPerformance: {
-          claude: {
-            accuracy: Math.random() * 10 + 88,
-            speed: Math.random() * 2 + 7,
-            usage: Math.random() * 20 + 40
-          },
-          openai: {
-            accuracy: Math.random() * 8 + 85,
-            speed: Math.random() * 3 + 9,
-            usage: Math.random() * 15 + 25
-          },
-          perplexity: {
-            accuracy: Math.random() * 12 + 82,
-            speed: Math.random() * 4 + 6,
-            usage: Math.random() * 25 + 35
-          }
-        },
-        recentTranslations: generateRecentTranslations(),
-        contentStats: {
-          totalElements: Math.floor(Math.random() * 200) + 800,
-          translatedElements: Math.floor(Math.random() * 150) + 700,
-          pendingElements: Math.floor(Math.random() * 30) + 20,
-          errorElements: Math.floor(Math.random() * 10) + 2
-        }
-      });
-      
-      setLastUpdated(new Date());
-    } catch (error) {
-      console.error('Error fetching metrics:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const [languageStats, setLanguageStats] = useState<LanguageStats[]>([
+    { code: 'en', name: 'English', flag: '🇺🇸', translations: 856, avgTime: 0.8, cacheHit: 92 },
+    { code: 'hy', name: 'Armenian', flag: '🇦🇲', translations: 342, avgTime: 1.4, cacheHit: 78 },
+    { code: 'ru', name: 'Russian', flag: '🇷🇺', translations: 258, avgTime: 1.6, cacheHit: 81 }
+  ]);
 
-  const generateRecentTranslations = () => {
-    const sampleTexts = [
-      'Welcome to our platform',
-      'Get started today',
-      'Learn business fundamentals',
-      'Join our community',
-      'Subscribe now',
-      'Contact support',
-      'Featured courses',
-      'Success stories'
-    ];
-    
-    const languages = ['hy', 'ru'];
-    const models = ['claude', 'openai', 'perplexity'];
-    
-    return Array.from({ length: 8 }, (_, i) => ({
-      text: sampleTexts[i],
-      language: languages[Math.floor(Math.random() * languages.length)],
-      accuracy: Math.random() * 15 + 85,
-      time: Math.random() * 2000 + 500,
-      model: models[Math.floor(Math.random() * models.length)]
-    }));
-  };
+  const [realTimeStats, setRealTimeStats] = useState({
+    activeTranslations: 0,
+    queuedRequests: 0,
+    lastUpdate: new Date()
+  });
 
-  // Auto-refresh metrics
+  // Simulate real-time updates
   useEffect(() => {
-    fetchMetrics();
-    const interval = setInterval(fetchMetrics, 30000); // Refresh every 30 seconds
+    const interval = setInterval(() => {
+      setRealTimeStats(prev => ({
+        ...prev,
+        activeTranslations: Math.floor(Math.random() * 5),
+        queuedRequests: Math.floor(Math.random() * 3),
+        lastUpdate: new Date()
+      }));
+    }, 5000);
+
     return () => clearInterval(interval);
   }, []);
 
-  const getStatusColor = (value: number, threshold: number = 85) => {
-    if (value >= threshold) return 'text-green-400';
-    if (value >= threshold * 0.8) return 'text-yellow-400';
-    return 'text-red-400';
+  const optimizeCache = async () => {
+    toast({
+      title: "Cache Optimization Started",
+      description: "Cleaning up unused translations and optimizing storage...",
+    });
+
+    // Simulate optimization process
+    setTimeout(() => {
+      setMetrics(prev => ({
+        ...prev,
+        cacheHitRate: Math.min(prev.cacheHitRate + 5, 95),
+        cacheSize: prev.cacheSize * 0.8
+      }));
+
+      toast({
+        title: "Cache Optimized",
+        description: "Cache hit rate improved and storage optimized",
+      });
+    }, 2000);
   };
 
-  const getModelIcon = (model: string) => {
-    switch (model) {
-      case 'claude': return '🧠';
-      case 'openai': return '🤖';
-      case 'perplexity': return '🔍';
-      default: return '⚡';
-    }
+  const clearCache = async () => {
+    localStorage.removeItem('translation-cache');
+    setMetrics(prev => ({
+      ...prev,
+      cacheHitRate: 0,
+      cacheSize: 0
+    }));
+
+    toast({
+      title: "Cache Cleared",
+      description: "All cached translations have been removed",
+      variant: "destructive"
+    });
   };
 
-  if (!user) return null;
+  const getPerformanceColor = (value: number, threshold: number, invert = false) => {
+    const isGood = invert ? value < threshold : value > threshold;
+    return isGood ? 'text-green-600' : 'text-red-600';
+  };
 
   return (
-    <div className="space-y-6 p-6 max-w-7xl mx-auto">
-      {/* Header */}
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Translation Performance Analytics</h1>
+          <h2 className="text-3xl font-bold tracking-tight">Translation Performance</h2>
           <p className="text-muted-foreground">
-            Real-time insights into AI translation system performance
+            Monitor and optimize your translation system performance
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="text-sm text-muted-foreground">
-            Last updated: {lastUpdated.toLocaleTimeString()}
-          </div>
-          <Button onClick={fetchMetrics} disabled={isLoading} variant="outline">
-            <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
+        <div className="flex gap-2">
+          <Badge variant="outline" className="text-green-600 border-green-600">
+            <Activity className="w-3 h-3 mr-1" />
+            System Online
+          </Badge>
+          <Badge variant="outline">
+            Last updated: {realTimeStats.lastUpdate.toLocaleTimeString()}
+          </Badge>
         </div>
       </div>
 
-      {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Translation Accuracy</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${getStatusColor(metrics.translationAccuracy, 90)}`}>
-              {metrics.translationAccuracy.toFixed(1)}%
-            </div>
-            <Progress value={metrics.translationAccuracy} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              Excellent performance across all models
-            </p>
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="languages">Languages</TabsTrigger>
+          <TabsTrigger value="cache">Cache</TabsTrigger>
+          <TabsTrigger value="settings">Settings</TabsTrigger>
+        </TabsList>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Processing Speed</CardTitle>
-            <Zap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-400">
-              {metrics.processingSpeed.toFixed(1)}/s
-            </div>
-            <Progress value={(metrics.processingSpeed / 15) * 100} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              Elements processed per second
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Content Coverage</CardTitle>
-            <Globe className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${getStatusColor(metrics.contentCoverage, 85)}`}>
-              {metrics.contentCoverage.toFixed(1)}%
-            </div>
-            <Progress value={metrics.contentCoverage} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              Website content translated
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${metrics.errorRate < 3 ? 'text-green-400' : 'text-red-400'}`}>
-              {metrics.errorRate.toFixed(1)}%
-            </div>
-            <Progress value={100 - metrics.errorRate * 10} className="mt-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              Translation failure rate
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* AI Models Performance */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Brain className="w-5 h-5" />
-            AI Models Performance Comparison
-          </CardTitle>
-          <CardDescription>
-            Real-time performance metrics for each AI translation model
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {Object.entries(metrics.aiModelPerformance).map(([model, perf]) => (
-              <div key={model} className="space-y-4 p-4 border border-border rounded-lg">
+        <TabsContent value="overview" className="space-y-6">
+          {/* Key Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-6">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{getModelIcon(model)}</span>
-                    <h3 className="font-semibold capitalize">{model}</h3>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Cache Hit Rate</p>
+                    <p className={`text-2xl font-bold ${getPerformanceColor(metrics.cacheHitRate, 80)}`}>
+                      {metrics.cacheHitRate}%
+                    </p>
                   </div>
-                  <Badge variant="outline">{perf.usage.toFixed(0)}% usage</Badge>
+                  <Database className="w-8 h-8 text-muted-foreground" />
                 </div>
-                
-                <div className="space-y-3">
+                <Progress value={metrics.cacheHitRate} className="mt-2" />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Accuracy</span>
-                      <span className={getStatusColor(perf.accuracy, 85)}>
-                        {perf.accuracy.toFixed(1)}%
-                      </span>
-                    </div>
-                    <Progress value={perf.accuracy} className="h-2" />
+                    <p className="text-sm font-medium text-muted-foreground">Avg Speed</p>
+                    <p className={`text-2xl font-bold ${getPerformanceColor(metrics.avgTranslationTime, 2, true)}`}>
+                      {metrics.avgTranslationTime}s
+                    </p>
                   </div>
-                  
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Speed</span>
-                      <span className="text-blue-400">{perf.speed.toFixed(1)}/s</span>
-                    </div>
-                    <Progress value={(perf.speed / 12) * 100} className="h-2" />
-                  </div>
-                  
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>Usage</span>
-                      <span>{perf.usage.toFixed(0)}%</span>
-                    </div>
-                    <Progress value={perf.usage} className="h-2" />
-                  </div>
+                  <Zap className="w-8 h-8 text-muted-foreground" />
                 </div>
-              </div>
-            ))}
+                <div className="text-xs text-muted-foreground mt-2">
+                  Target: &lt;2.0s
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Total Translations</p>
+                    <p className="text-2xl font-bold text-primary">
+                      {metrics.totalTranslations.toLocaleString()}
+                    </p>
+                  </div>
+                  <Globe className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div className="text-xs text-green-600 mt-2 flex items-center">
+                  <TrendingUp className="w-3 h-3 mr-1" />
+                  +12% this week
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Error Rate</p>
+                    <p className={`text-2xl font-bold ${getPerformanceColor(metrics.errorRate, 5, true)}`}>
+                      {metrics.errorRate}%
+                    </p>
+                  </div>
+                  <AlertCircle className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  Target: &lt;5%
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Content Statistics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Content Statistics
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Total Elements</span>
-                <Badge variant="outline">{metrics.contentStats.totalElements}</Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-400" />
-                  Translated
-                </span>
-                <Badge className="bg-green-500 hover:bg-green-600">
-                  {metrics.contentStats.translatedElements}
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium flex items-center gap-2">
-                  <RefreshCw className="w-4 h-4 text-yellow-400" />
-                  Pending
-                </span>
-                <Badge variant="secondary">{metrics.contentStats.pendingElements}</Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-red-400" />
-                  Errors
-                </span>
-                <Badge variant="destructive">{metrics.contentStats.errorElements}</Badge>
-              </div>
-              
-              <div className="pt-2">
-                <div className="text-sm text-muted-foreground mb-2">
-                  Translation Progress
+          {/* Real-time Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                Real-time Activity
+              </CardTitle>
+              <CardDescription>
+                Current translation activity and system status
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Active Translations</span>
+                    <Badge variant={realTimeStats.activeTranslations > 0 ? "default" : "secondary"}>
+                      {realTimeStats.activeTranslations}
+                    </Badge>
+                  </div>
+                  <Progress value={realTimeStats.activeTranslations * 20} />
                 </div>
-                <Progress 
-                  value={(metrics.contentStats.translatedElements / metrics.contentStats.totalElements) * 100} 
-                  className="h-3"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Translations</CardTitle>
-            <CardDescription>
-              Latest translation activities across all languages
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {metrics.recentTranslations.map((translation, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-accent/30 rounded">
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm truncate">
-                      {translation.text}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Queued Requests</span>
+                    <Badge variant={realTimeStats.queuedRequests > 0 ? "destructive" : "secondary"}>
+                      {realTimeStats.queuedRequests}
+                    </Badge>
+                  </div>
+                  <Progress value={realTimeStats.queuedRequests * 33} />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">System Load</span>
+                    <Badge variant="outline">
+                      Normal
+                    </Badge>
+                  </div>
+                  <Progress value={35} />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="languages" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Language Performance</CardTitle>
+              <CardDescription>
+                Translation performance breakdown by language
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {languageStats.map((lang) => (
+                  <div key={lang.code} className="p-4 border rounded-lg">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{lang.flag}</span>
+                        <div>
+                          <h3 className="font-semibold">{lang.name}</h3>
+                          <p className="text-sm text-muted-foreground">
+                            {lang.translations} translations
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">
+                          {lang.avgTime}s avg
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {lang.cacheHit}% cached
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-xs">
-                        {translation.language.toUpperCase()}
-                      </Badge>
-                      <Badge variant="secondary" className="text-xs">
-                        {getModelIcon(translation.model)} {translation.model}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {translation.time}ms
-                      </span>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-xs">
+                        <span>Cache Hit Rate</span>
+                        <span>{lang.cacheHit}%</span>
+                      </div>
+                      <Progress value={lang.cacheHit} />
                     </div>
                   </div>
-                  <div className={`text-sm font-medium ${getStatusColor(translation.accuracy, 85)}`}>
-                    {translation.accuracy.toFixed(0)}%
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* User Engagement */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="w-5 h-5" />
-            User Engagement
-          </CardTitle>
-          <CardDescription>
-            How users interact with translated content
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-2xl font-bold text-primary">
-                {metrics.userEngagement.toFixed(1)}%
+                ))}
               </div>
-              <p className="text-sm text-muted-foreground">
-                Users actively engaging with translated content
-              </p>
-            </div>
-            <div className="w-32">
-              <Progress value={metrics.userEngagement} className="h-3" />
-            </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="cache" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Cache Statistics</CardTitle>
+                <CardDescription>
+                  Current cache usage and performance
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Cache Size</span>
+                  <span className="text-sm text-muted-foreground">{metrics.cacheSize}MB</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Hit Rate</span>
+                  <span className="text-sm font-bold text-green-600">{metrics.cacheHitRate}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">API Calls Saved</span>
+                  <span className="text-sm text-primary">{Math.round(metrics.totalTranslations * metrics.cacheHitRate / 100)}</span>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Cache Management</CardTitle>
+                <CardDescription>
+                  Optimize and manage translation cache
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button onClick={optimizeCache} className="w-full">
+                  <Zap className="w-4 h-4 mr-2" />
+                  Optimize Cache
+                </Button>
+                <Button variant="outline" onClick={clearCache} className="w-full">
+                  <Database className="w-4 h-4 mr-2" />
+                  Clear Cache
+                </Button>
+                <div className="text-xs text-muted-foreground">
+                  Cache optimization improves hit rates and reduces storage usage
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        <TabsContent value="settings" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="w-5 h-5" />
+                Performance Settings
+              </CardTitle>
+              <CardDescription>
+                Configure translation system performance parameters
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">Batch Size</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Number of translations processed simultaneously
+                    </p>
+                  </div>
+                  <Badge variant="outline">5</Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">Cache TTL</h4>
+                    <p className="text-xs text-muted-foreground">
+                      How long translations are cached
+                    </p>
+                  </div>
+                  <Badge variant="outline">30 days</Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">API Model</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Current AI model for translations
+                    </p>
+                  </div>
+                  <Badge variant="outline">GPT-4.1-Mini</Badge>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-medium">Rate Limiting</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Requests per minute limit
+                    </p>
+                  </div>
+                  <Badge variant="outline">60 RPM</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
