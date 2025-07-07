@@ -297,16 +297,6 @@ interface LanguageProviderProps {
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   const [language, setLanguageState] = useState<Language>('en');
   const [isTranslating, setIsTranslating] = useState(false);
-  
-  // Get user safely to avoid dependency issues
-  let user = null;
-  try {
-    const auth = useAuth();
-    user = auth?.user;
-  } catch (error) {
-    // Auth context not ready yet, that's okay
-    console.log('Auth context not ready yet');
-  }
 
   // Load language preference on mount
   useEffect(() => {
@@ -334,10 +324,7 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
       restoreOriginalContent();
     }
     
-    // If user is logged in, save preference to profile
-    if (user) {
-      console.log('TODO: Save language preference to user profile');
-    }
+    // TODO: Save language preference to user profile when available
   };
 
   const triggerAutoTranslation = async (targetLang: Language) => {
