@@ -120,7 +120,10 @@ class TranslationEngine {
 
   private setupMutationObserver() {
     this.observer = new MutationObserver(() => {
-      if (this.currentLanguage !== 'en' && !this.isTranslating) {
+      // COMPREHENSIVE FIX: Multiple checks to prevent any floating
+      if (this.currentLanguage !== 'en' && 
+          !this.isTranslating && 
+          !document.getElementById('translation-freeze-styles')) {
         this.debouncedRetranslate();
       }
     });
@@ -138,9 +141,11 @@ class TranslationEngine {
     }
     
     this.debounceTimer = window.setTimeout(() => {
-      // Prevent rapid re-translations that cause floating
-      if (this.isTranslating) {
-        console.log('⏳ Translation already in progress, skipping...');
+      // COMPREHENSIVE CHECK: Prevent ALL possible floating scenarios
+      if (this.isTranslating || 
+          document.getElementById('translation-freeze-styles') ||
+          document.body.style.overflow === 'hidden') {
+        console.log('⏳ Translation blocked to prevent floating');
         return;
       }
       
@@ -148,11 +153,11 @@ class TranslationEngine {
       // Use faster, cached-only translation for dynamic updates
       this.translateCachedContent(this.currentLanguage);
       
-      // Only check for new content occasionally to prevent rapid cycles
-      if (Math.random() < 0.1) { // Reduced to 10% chance to prevent excessive API calls
-        this.translateAllContent(this.currentLanguage);
-      }
-    }, 800); // Increased delay to prevent rapid floating
+      // Completely disable random re-translations to prevent floating
+      // if (Math.random() < 0.1) { // DISABLED to prevent floating
+      //   this.translateAllContent(this.currentLanguage);
+      // }
+    }, 1200); // Increased delay even more to prevent any floating
   }
 
   async translateAll(targetLang: Language) {
@@ -321,11 +326,19 @@ class TranslationEngine {
   }
 
   private translateCachedContent(targetLang: Language) {
-    // Comprehensive solution to prevent text floating during translation
+    // ULTIMATE FLOATING PREVENTION: Most comprehensive solution
     const body = document.body;
     const html = document.documentElement;
     
-    // Create a comprehensive style block to disable ALL animations and transitions
+    // Set translation flag immediately to prevent conflicts
+    this.isTranslating = true;
+    
+    // Disconnect mutation observer completely during translation
+    if (this.observer) {
+      this.observer.disconnect();
+    }
+    
+    // Create the most comprehensive freeze possible
     const styleBlock = document.createElement('style');
     styleBlock.id = 'translation-freeze-styles';
     styleBlock.textContent = `
@@ -335,16 +348,25 @@ class TranslationEngine {
         transform: none !important;
       }
       body {
+        overflow: hidden !important;
         overflow-anchor: none !important;
       }
     `;
     document.head.appendChild(styleBlock);
     
-    // Prevent layout shifts by freezing scroll and dimensions
+    // Freeze scroll and dimensions completely
+    const originalScrollTop = window.scrollY;
+    const originalScrollLeft = window.scrollX;
     const originalOverflow = body.style.overflow;
     const originalHeight = body.style.height;
+    const originalPosition = body.style.position;
+    
     body.style.overflow = 'hidden';
     body.style.height = body.scrollHeight + 'px';
+    body.style.position = 'fixed';
+    body.style.top = `-${originalScrollTop}px`;
+    body.style.left = `-${originalScrollLeft}px`;
+    body.style.width = '100%';
     
     // Translate document title first
     const originalTitle = document.title;
@@ -379,8 +401,7 @@ class TranslationEngine {
       textNodesToTranslate.push(node as Text);
     }
 
-    // Batch all text replacements to minimize reflows
-    const fragment = document.createDocumentFragment();
+    // Batch all text replacements in one operation
     textNodesToTranslate.forEach(textNode => {
       const originalText = textNode.textContent?.trim();
       if (!originalText) return;
@@ -396,7 +417,7 @@ class TranslationEngine {
     this.translateAttributes(targetLang);
     this.translateDataI18nElements(targetLang);
     
-    // Restore layout and enable animations after translation is complete
+    // Restore everything after translation is complete
     requestAnimationFrame(() => {
       // Remove the freeze styles
       const freezeStyles = document.getElementById('translation-freeze-styles');
@@ -404,12 +425,25 @@ class TranslationEngine {
         freezeStyles.remove();
       }
       
-      // Restore original overflow and height
+      // Restore all original styles and scroll position
       body.style.overflow = originalOverflow;
       body.style.height = originalHeight;
+      body.style.position = originalPosition;
+      body.style.top = '';
+      body.style.left = '';
+      body.style.width = '';
+      
+      // Restore scroll position
+      window.scrollTo(originalScrollLeft, originalScrollTop);
       
       // Force a reflow to ensure everything is properly positioned
       body.offsetHeight;
+      
+      // Re-enable mutation observer after everything is settled
+      setTimeout(() => {
+        this.isTranslating = false;
+        this.setupMutationObserver();
+      }, 200); // Longer delay to ensure complete stability
     });
   }
 
