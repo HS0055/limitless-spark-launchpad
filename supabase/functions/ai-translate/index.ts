@@ -118,24 +118,9 @@ Text: "${text}"`
         messages: [
           {
             role: 'user',
-            content: `You are an expert translator specializing in ${sourceLanguage} to ${targetLanguage} translation for TopOne Academy, a business education platform.
+            content: `Translate from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, nothing else.
 
-CRITICAL REQUIREMENTS:
-- Analyze the COMPLETE context, structure, and semantic meaning
-- Detect UI elements, business terms, educational content, and navigation text
-- Maintain original formatting, punctuation, and HTML structure
-- Use natural, fluent expressions appropriate for business/education context
-- For technical terms, use standard professional terminology
-- Keep proper nouns (TopOne Academy, names, brands) unchanged
-- Ensure consistency in terminology throughout
-- For formal content, use formal register; for casual content, use appropriate informal tone
-- Preserve any special characters, numbers, or symbols exactly
-
-CONTEXT: This text is from TopOne Academy's multilingual business education platform. Users are learning business fundamentals, visual concepts, and professional skills.
-
-Translate this ${sourceLanguage} text to ${targetLanguage}. Return ONLY the translation with perfect accuracy:
-
-"${text}"`
+Text to translate: "${text}"`
           }
         ]
       }),
