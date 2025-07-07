@@ -139,12 +139,14 @@ class TranslationEngine {
     
     this.debounceTimer = window.setTimeout(() => {
       console.log('🔄 Dynamic content detected, re-translating…');
-      // Prevent layout shifts during translation
-      document.body.style.overflow = 'hidden';
-      this.translateAllContent(this.currentLanguage).finally(() => {
-        document.body.style.overflow = '';
-      });
-    }, 150); // Slightly longer delay for stability
+      // Use faster, cached-only translation for dynamic updates
+      this.translateCachedContent(this.currentLanguage);
+      
+      // Only check for new content occasionally
+      if (Math.random() < 0.3) { // 30% chance to check for new content
+        this.translateAllContent(this.currentLanguage);
+      }
+    }, 200); // Longer delay for stability
   }
 
   async translateAll(targetLang: Language) {
@@ -369,7 +371,7 @@ class TranslationEngine {
     const uncachedTexts: string[] = [];
     const seenTexts = new Set<string>();
 
-    // More selective collection to reduce API costs
+    // More aggressive filtering to reduce API calls
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
@@ -383,61 +385,45 @@ class TranslationEngine {
           if (parent.hasAttribute('data-no-translate')) return NodeFilter.FILTER_REJECT;
           
           const text = node.textContent?.trim();
-          // Only accept meaningful text (3+ chars) to reduce costs
-          return (text && text.length >= 3) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          // More aggressive filtering - 5+ chars and meaningful content
+          return (text && text.length >= 5 && !/^[\d\s\.,\-\+\(\)\[\]%$€£¥]+$/.test(text)) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
         }
       }
     );
 
     let node;
-    while (node = walker.nextNode()) {
+    while (node = walker.nextNode() && uncachedTexts.length < 30) { // Limit to 30 items max
       const text = node.textContent?.trim();
       if (text && !seenTexts.has(text) && !this.cache[text]?.[targetLang]) {
-        // Strict filtering to avoid unnecessary API calls
+        // Super strict filtering to reduce API costs
         if (!/^[\d\s\.,\-\+\(\)\[\]%$€£¥]*$/.test(text) && // Skip pure numbers/symbols
             !/^https?:\/\//.test(text) && // Skip URLs
             !/^[^\s]+@[^\s]+\.[^\s]+$/.test(text) && // Skip emails
             !/^[\/\\]/.test(text) && // Skip file paths
             !/^[A-Z]{2,}$/.test(text) && // Skip pure uppercase abbreviations
-            text.length >= 3 && // Minimum length
-            text.length <= 500) { // Maximum length to avoid huge costs
+            text.length >= 5 && // Minimum length increased
+            text.length <= 200) { // Shorter maximum length
           seenTexts.add(text);
           uncachedTexts.push(text);
         }
       }
     }
 
-    // Also collect attribute values and data-i18n keys
-    const attributesToTranslate = ['placeholder', 'title', 'aria-label', 'alt'];
-    attributesToTranslate.forEach(attr => {
-      document.querySelectorAll(`[${attr}]`).forEach(element => {
-        const value = element.getAttribute(attr)?.trim();
-        if (value && value.length > 2 && !seenTexts.has(value) && !this.cache[value]?.[targetLang]) {
-          seenTexts.add(value);
-          uncachedTexts.push(value);
-        }
-      });
-    });
-
-    // Collect data-i18n keys for navigation translation
-    document.querySelectorAll('[data-i18n]').forEach(element => {
-      const key = element.getAttribute('data-i18n')?.trim();
-      if (key && !seenTexts.has(key) && !this.cache[key]?.[targetLang]) {
-        seenTexts.add(key);
-        uncachedTexts.push(key);
-      }
-    });
-
     return uncachedTexts;
   }
 
   private async translateNewContent(texts: string[], targetLang: Language) {
-    const batchSize = 50; // Larger batches to reduce API costs
+    const batchSize = 20; // Smaller batches for faster response
     
     const batchPromises = [];
     for (let i = 0; i < texts.length; i += batchSize) {
       const batch = texts.slice(i, i + batchSize);
       batchPromises.push(this.translateBatch(batch, targetLang));
+      
+      // Add delay between batches to prevent overwhelming the API
+      if (i + batchSize < texts.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
     }
 
     await Promise.allSettled(batchPromises);
@@ -445,38 +431,47 @@ class TranslationEngine {
     // Apply newly translated content immediately
     this.translateCachedContent(targetLang);
     
-    // Save to global cache for other users
-    await this.saveToGlobalCache(targetLang);
+    // Save to global cache in background (non-blocking)
+    this.saveToGlobalCacheBackground(targetLang);
   }
 
-  private async saveToGlobalCache(targetLang: Language) {
-    try {
-      const { supabase } = await import('@/integrations/supabase/client');
-      
-      // Get all translations for this language that might be new
-      const translations = Object.entries(this.cache)
-        .filter(([_, translations]) => translations[targetLang])
-        .map(([original, translations]) => ({
-          original,
-          target_lang: targetLang,
-          translated: translations[targetLang]
-        }));
-      
-      if (translations.length > 0) {
-        // Upsert to global cache (will ignore duplicates)
-        const { error } = await supabase
-          .from('translation_cache')
-          .upsert(translations, { onConflict: 'original,target_lang' });
+  private async saveToGlobalCacheBackground(targetLang: Language) {
+    // Use setTimeout to make this non-blocking
+    setTimeout(async () => {
+      try {
+        const { supabase } = await import('@/integrations/supabase/client');
+        
+        // Get only new translations for this language
+        const translations = Object.entries(this.cache)
+          .filter(([_, translations]) => translations[targetLang])
+          .slice(-50) // Only save the last 50 to reduce payload
+          .map(([original, translations]) => ({
+            original,
+            target_lang: targetLang,
+            translated: translations[targetLang]
+          }));
+        
+        if (translations.length > 0) {
+          // Upsert to global cache in smaller chunks
+          const chunkSize = 25;
+          for (let i = 0; i < translations.length; i += chunkSize) {
+            const chunk = translations.slice(i, i + chunkSize);
+            await supabase
+              .from('translation_cache')
+              .upsert(chunk, { onConflict: 'original,target_lang' });
+            
+            // Small delay between chunks
+            if (i + chunkSize < translations.length) {
+              await new Promise(resolve => setTimeout(resolve, 50));
+            }
+          }
           
-        if (error) {
-          console.error('Failed to save to global cache:', error);
-        } else {
-          console.log(`🌍 Saved ${translations.length} translations to global cache`);
+          console.log(`🌍 Saved ${translations.length} translations to global cache (background)`);
         }
+      } catch (error) {
+        console.error('Background save to global cache failed:', error);
       }
-    } catch (error) {
-      console.error('Failed to save to global cache:', error);
-    }
+    }, 500); // Delay to ensure UI responsiveness
   }
 
   private async translateBatch(texts: string[], targetLang: Language): Promise<void> {
