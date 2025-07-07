@@ -15,6 +15,7 @@ import AdminPanel from "./pages/AdminPanel";
 import Community from "./pages/Community";
 import Settings from "./pages/Settings";
 import League from "./pages/League";
+import PythonToolsPage from "./pages/PythonToolsPage";
 import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
 import AITools from "./pages/AITools";
@@ -52,7 +53,8 @@ const App = () => (
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/business-fundamentals" element={<Index />} />
-                    <Route path="/league" element={<League />} />
+            <Route path="/league" element={<League />} />
+            <Route path="/python-tools" element={<PythonToolsPage />} />
                     <Route path="/meme-coins" element={<MemeCoins />} />
                     <Route path="/visual-business" element={<VisualBusiness />} />
                     <Route path="/ai-tools" element={<AITools />} />

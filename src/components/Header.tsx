@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, X, BookOpen, Users, Target, DollarSign, Home, Settings, Trophy, TrendingUp, Image } from "lucide-react";
+import { Menu, X, BookOpen, Users, Target, DollarSign, Home, Settings, Trophy, TrendingUp, Image, Calculator } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -19,6 +19,7 @@ const Header = () => {
     { name: t('nav.memeCoins'), href: "/meme-coins", icon: TrendingUp },
     { name: t('nav.visual'), href: "/visual-business", icon: Image },
     { name: t('nav.aiTools'), href: "/ai-tools", icon: BookOpen },
+    { name: "Python Tools", href: "/python-tools", icon: Calculator },
   ];
 
   const secondaryNavItems = [

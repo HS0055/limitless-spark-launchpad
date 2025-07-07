@@ -1,5 +1,8 @@
 import SectionLayout from '@/components/SectionLayout';
+import AIChat from '@/components/AIChat';
+import AIContentAnalyzer from '@/components/AIContentAnalyzer';
 import AIImageGenerator from '@/components/AIImageGenerator';
+import PythonCompute from '@/components/PythonCompute';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
