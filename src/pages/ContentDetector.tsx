@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Search, 
   Eye, 
@@ -25,16 +26,26 @@ import {
   Type,
   Image,
   MousePointer,
-  Hash
+  Hash,
+  Languages,
+  Sparkles,
+  RefreshCw,
+  ArrowRight
 } from 'lucide-react';
 import { contentDetector, DetectedContent, ContentType } from '@/lib/contentDetector';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/contexts/TranslationContext';
+import { useSeamlessTranslation } from '@/hooks/useSeamlessTranslation';
+import { supabase } from '@/integrations/supabase/client';
 import PublicLayout from '@/components/PublicLayout';
 
 const ContentDetector: React.FC = () => {
   const [isScanning, setIsScanning] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
   const [detectedContent, setDetectedContent] = useState<DetectedContent[]>([]);
   const [filteredContent, setFilteredContent] = useState<DetectedContent[]>([]);
+  const [translationProgress, setTranslationProgress] = useState(0);
+  const [targetLanguage, setTargetLanguage] = useState('es');
   const [scanOptions, setScanOptions] = useState({
     includeHidden: false,
     watchChanges: true,
@@ -47,7 +58,135 @@ const ContentDetector: React.FC = () => {
     searchText: ''
   });
   const [scanProgress, setScanProgress] = useState(0);
+  const [translatedItems, setTranslatedItems] = useState<Set<string>>(new Set());
   const { toast } = useToast();
+  const { currentLanguage, availableLanguages } = useTranslation();
+  const { translatePage, isTranslating: seamlessTranslating, progress: seamlessProgress } = useSeamlessTranslation();
+
+  // Auto-translate and update whole website
+  const handleAutoTranslateWebsite = async () => {
+    if (!targetLanguage || targetLanguage === 'en') {
+      toast({
+        title: "⚠️ Select Target Language",
+        description: "Please select a language other than English to translate to",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsTranslating(true);
+    setTranslationProgress(0);
+    
+    try {
+      toast({
+        title: "🌍 Auto-Translating Website",
+        description: "Scanning and translating all content on the website...",
+      });
+
+      // Step 1: Detect all content (25% progress)
+      const progressInterval = setInterval(() => {
+        setTranslationProgress(prev => Math.min(prev + 5, 25));
+      }, 100);
+
+      const results = await contentDetector.detectAllContent({
+        includeHidden: true,
+        watchChanges: false,
+        prioritizeVisible: true
+      });
+      
+      clearInterval(progressInterval);
+      setTranslationProgress(30);
+      setDetectedContent(results);
+      setFilteredContent(results);
+
+      // Step 2: Use seamless translation for whole page (50% progress)
+      setTranslationProgress(40);
+      await translatePage(targetLanguage);
+      setTranslationProgress(70);
+
+      // Step 3: Batch translate detected content and store in database
+      const untranslatedContent = results.filter(item => 
+        item.originalText.trim().length > 0 && 
+        !/^[a-f0-9-]{8,}$/i.test(item.originalText) // Skip IDs
+      );
+
+      if (untranslatedContent.length > 0) {
+        await batchTranslateAndStore(untranslatedContent, targetLanguage);
+      }
+      
+      setTranslationProgress(100);
+      
+      toast({
+        title: "✅ Website Translation Complete",
+        description: `Successfully translated ${results.length} content items to ${availableLanguages.find(l => l.code === targetLanguage)?.name}`,
+      });
+
+      // Show translated items
+      setTranslatedItems(new Set(results.map(item => item.id)));
+
+    } catch (error) {
+      console.error('Auto-translation failed:', error);
+      toast({
+        title: "❌ Translation Failed",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsTranslating(false);
+      setTimeout(() => setTranslationProgress(0), 3000);
+    }
+  };
+
+  // Batch translate content and store in database
+  const batchTranslateAndStore = async (content: DetectedContent[], targetLang: string) => {
+    const batchSize = 20;
+    const batches: DetectedContent[][] = [];
+    
+    for (let i = 0; i < content.length; i += batchSize) {
+      batches.push(content.slice(i, i + batchSize));
+    }
+
+    for (const [index, batch] of batches.entries()) {
+      try {
+        // Extract texts for translation
+        const textsToTranslate = batch.map(item => item.originalText);
+        
+        // Call AI translation service
+        const { data, error } = await supabase.functions.invoke('ai-translate', {
+          body: {
+            texts: textsToTranslate,
+            targetLanguage: targetLang,
+            context: 'website_content'
+          }
+        });
+
+        if (error) throw error;
+        
+        // Store translations in database
+        const translations = data.translations;
+        const translationRecords = batch.map((item, idx) => ({
+          original_text: item.originalText,
+          translated_text: translations[idx] || item.originalText,
+          target_language: targetLang,
+          page_path: window.location.pathname,
+          source_language: 'en',
+          is_active: true
+        }));
+
+        await supabase
+          .from('website_translations')
+          .upsert(translationRecords, {
+            onConflict: 'original_text,target_language,page_path'
+          });
+
+        // Update progress
+        setTranslationProgress(70 + (index + 1) / batches.length * 25);
+        
+      } catch (error) {
+        console.error(`Batch ${index} translation failed:`, error);
+      }
+    }
+  };
 
   const handleScan = async () => {
     setIsScanning(true);
@@ -191,13 +330,108 @@ const ContentDetector: React.FC = () => {
             </p>
           </div>
 
-          {/* Scan Controls */}
+          {/* Auto-Translation Section */}
+          <Card className="mb-8 border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-6 h-6 text-primary" />
+                Auto-Translate Entire Website
+              </CardTitle>
+              <p className="text-muted-foreground">
+                Automatically detect, translate, and update all content on your website in one click
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="targetLanguage">Target Language</Label>
+                    <Select value={targetLanguage} onValueChange={setTargetLanguage}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select language" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableLanguages.filter(lang => lang.code !== 'en').map((lang) => (
+                          <SelectItem key={lang.code} value={lang.code}>
+                            {lang.flag} {lang.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <Button 
+                      onClick={handleAutoTranslateWebsite}
+                      disabled={isTranslating || !targetLanguage}
+                      className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-bold px-8 py-4 text-lg"
+                    >
+                      {isTranslating ? (
+                        <>
+                          <RefreshCw className="w-5 h-5 mr-2 animate-spin" />
+                          Translating Website...
+                        </>
+                      ) : (
+                        <>
+                          <Globe className="w-5 h-5 mr-2" />
+                          Auto-Translate Website
+                          <ArrowRight className="w-5 h-5 ml-2" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {(isTranslating || translationProgress > 0) && (
+                    <div className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Translation Progress</span>
+                        <span>{translationProgress}%</span>
+                      </div>
+                      <Progress value={translationProgress} className="w-full h-3" />
+                      <div className="text-xs text-muted-foreground">
+                        {translationProgress <= 30 && "🔍 Detecting content..."}
+                        {translationProgress > 30 && translationProgress <= 70 && "🌍 Translating website..."}
+                        {translationProgress > 70 && "💾 Storing translations..."}
+                        {translationProgress === 100 && "✅ Translation complete!"}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      Detects all content automatically
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      Translates with AI-powered accuracy
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      Updates entire website instantly
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      Stores translations for future use
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Manual Scan Controls */}
           <Card className="mb-8">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5" />
-                Detection Controls
+                Manual Detection Controls
               </CardTitle>
+              <p className="text-muted-foreground">
+                Fine-tune content detection and view detailed analysis
+              </p>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
@@ -396,14 +630,22 @@ const ContentDetector: React.FC = () => {
                         <TableBody>
                           {filteredContent.slice(0, 50).map((item, index) => (
                             <TableRow key={index}>
-                              <TableCell className="max-w-xs">
-                                <div className="truncate font-mono text-sm">
-                                  {item.originalText}
-                                </div>
-                                <div className="text-xs text-muted-foreground">
-                                  {item.metadata.wordCount} words
-                                </div>
-                              </TableCell>
+                          <TableCell className="max-w-xs">
+                            <div className="flex items-center gap-2">
+                              <div className="truncate font-mono text-sm">
+                                {item.originalText}
+                              </div>
+                              {translatedItems.has(item.id) && (
+                                <Badge variant="default" className="bg-green-500/10 text-green-600">
+                                  <CheckCircle className="w-3 h-3 mr-1" />
+                                  Translated
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {item.metadata.wordCount} words
+                            </div>
+                          </TableCell>
                               <TableCell>
                                 <Badge variant="secondary" className="flex items-center gap-1">
                                   <span className={getContentTypeColor(item.contentType)}>
@@ -548,16 +790,37 @@ const ContentDetector: React.FC = () => {
           )}
 
           {/* No Results State */}
-          {detectedContent.length === 0 && !isScanning && (
+          {detectedContent.length === 0 && !isScanning && !isTranslating && (
             <Card className="text-center p-12">
-              <Scan className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-              <h3 className="text-xl font-semibold mb-2">Ready to Scan</h3>
-              <p className="text-muted-foreground mb-6">
-                Click "Start Detection" to analyze this page for translatable content
-              </p>
-              <Button onClick={handleScan} className="bg-primary hover:bg-primary/90">
-                Start Detection
-              </Button>
+              <div className="space-y-6">
+                <Scan className="w-20 h-20 mx-auto text-muted-foreground" />
+                <div>
+                  <h3 className="text-2xl font-semibold mb-3">Ready to Transform Your Website</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                    Use our advanced AI-powered system to automatically detect and translate all content on your website
+                  </p>
+                </div>
+                
+                <div className="space-y-4">
+                  <Button 
+                    onClick={handleAutoTranslateWebsite} 
+                    disabled={!targetLanguage}
+                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-bold px-8 py-4 text-lg"
+                  >
+                    <Globe className="w-5 h-5 mr-2" />
+                    Auto-Translate Website
+                  </Button>
+                  
+                  <div className="text-sm text-muted-foreground">
+                    Or use manual controls below for detailed analysis
+                  </div>
+                  
+                  <Button onClick={handleScan} variant="outline">
+                    <Scan className="w-4 h-4 mr-2" />
+                    Manual Content Detection
+                  </Button>
+                </div>
+              </div>
             </Card>
           )}
         </div>
