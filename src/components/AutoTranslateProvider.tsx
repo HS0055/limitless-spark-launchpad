@@ -92,86 +92,174 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     }
   };
 
-  // AI Vision Context Analysis for better translation accuracy
+  // Enhanced AI Vision Context Analysis for superior translation accuracy
   const analyzeElementContext = (element: Element): string => {
     const contexts = [];
     
-    // Analyze semantic HTML tags
+    // Advanced semantic HTML analysis
     const tagName = element.tagName.toLowerCase();
     const semanticTags: Record<string, string> = {
-      'h1': 'main heading',
-      'h2': 'section heading', 
+      'h1': 'primary page heading',
+      'h2': 'major section heading', 
       'h3': 'subsection heading',
-      'h4': 'minor heading',
+      'h4': 'minor section heading',
       'h5': 'small heading',
-      'h6': 'tiny heading',
-      'p': 'paragraph text',
+      'h6': 'micro heading',
+      'p': 'paragraph content',
       'button': 'interactive button',
-      'a': 'navigation link',
+      'a': 'link or navigation',
       'nav': 'navigation menu',
-      'header': 'page header',
-      'footer': 'page footer',
-      'main': 'main content',
+      'header': 'page header area',
+      'footer': 'page footer area',
+      'main': 'main page content',
       'aside': 'sidebar content',
       'article': 'article content',
       'section': 'content section',
       'span': 'inline text',
-      'div': 'content block',
+      'div': 'content container',
       'li': 'list item',
-      'td': 'table data',
-      'th': 'table header',
+      'td': 'table data cell',
+      'th': 'table header cell',
       'label': 'form label',
-      'title': 'page title'
+      'title': 'page title',
+      'input': 'form input field',
+      'textarea': 'text area field',
+      'select': 'dropdown selection',
+      'option': 'dropdown option',
+      'legend': 'form section legend',
+      'figcaption': 'image caption',
+      'blockquote': 'quoted content',
+      'cite': 'citation',
+      'time': 'time reference',
+      'address': 'contact information'
     };
     
     if (semanticTags[tagName]) {
       contexts.push(semanticTags[tagName]);
     }
     
-    // Analyze CSS classes for context clues
+    // Advanced CSS class and ID analysis
     const className = element.className || '';
-    if (className.includes('nav')) contexts.push('navigation');
-    if (className.includes('menu')) contexts.push('menu');
-    if (className.includes('button') || className.includes('btn')) contexts.push('button');
-    if (className.includes('title') || className.includes('heading')) contexts.push('title');
-    if (className.includes('desc') || className.includes('text')) contexts.push('description');
-    if (className.includes('card')) contexts.push('card content');
-    if (className.includes('hero')) contexts.push('hero section');
-    if (className.includes('footer')) contexts.push('footer');
-    if (className.includes('header')) contexts.push('header');
-    if (className.includes('price')) contexts.push('pricing');
-    if (className.includes('cta')) contexts.push('call to action');
+    const id = element.id || '';
     
-    // Analyze element position and hierarchy
+    // UI component detection
+    if (className.includes('nav') || id.includes('nav')) contexts.push('navigation component');
+    if (className.includes('menu') || id.includes('menu')) contexts.push('menu component');
+    if (className.includes('button') || className.includes('btn')) contexts.push('button component');
+    if (className.includes('title') || className.includes('heading')) contexts.push('title component');
+    if (className.includes('desc') || className.includes('description')) contexts.push('description text');
+    if (className.includes('card')) contexts.push('card component');
+    if (className.includes('hero')) contexts.push('hero section');
+    if (className.includes('footer')) contexts.push('footer section');
+    if (className.includes('header')) contexts.push('header section');
+    if (className.includes('sidebar')) contexts.push('sidebar section');
+    if (className.includes('price') || className.includes('cost')) contexts.push('pricing information');
+    if (className.includes('cta') || className.includes('call-to-action')) contexts.push('call-to-action');
+    if (className.includes('feature')) contexts.push('feature description');
+    if (className.includes('testimonial')) contexts.push('testimonial content');
+    if (className.includes('benefit')) contexts.push('benefit statement');
+    if (className.includes('service')) contexts.push('service description');
+    if (className.includes('product')) contexts.push('product information');
+    if (className.includes('contact')) contexts.push('contact information');
+    if (className.includes('form')) contexts.push('form element');
+    if (className.includes('modal') || className.includes('popup')) contexts.push('modal content');
+    if (className.includes('tooltip')) contexts.push('tooltip text');
+    if (className.includes('badge') || className.includes('tag')) contexts.push('badge or tag');
+    if (className.includes('alert') || className.includes('notification')) contexts.push('alert message');
+    if (className.includes('error') || className.includes('warning')) contexts.push('error or warning message');
+    if (className.includes('success')) contexts.push('success message');
+    if (className.includes('placeholder')) contexts.push('placeholder text');
+    if (className.includes('caption')) contexts.push('caption text');
+    if (className.includes('copyright')) contexts.push('copyright notice');
+    if (className.includes('legal')) contexts.push('legal text');
+    if (className.includes('policy')) contexts.push('policy text');
+    if (className.includes('terms')) contexts.push('terms text');
+    
+    // Business context detection
+    if (className.includes('business') || id.includes('business')) contexts.push('business content');
+    if (className.includes('marketing') || id.includes('marketing')) contexts.push('marketing content');
+    if (className.includes('finance') || id.includes('finance')) contexts.push('financial content');
+    if (className.includes('education') || id.includes('education')) contexts.push('educational content');
+    if (className.includes('learning') || id.includes('learning')) contexts.push('learning content');
+    if (className.includes('course') || id.includes('course')) contexts.push('course content');
+    if (className.includes('program') || id.includes('program')) contexts.push('program content');
+    if (className.includes('league') || id.includes('league')) contexts.push('league content');
+    
+    // Position-based context analysis
     try {
       const rect = element.getBoundingClientRect();
-      if (rect.top < 200) contexts.push('top section');
-      if (rect.bottom > window.innerHeight - 200) contexts.push('bottom section');
+      if (rect.top < 200) contexts.push('above-the-fold content');
+      if (rect.top > window.innerHeight - 200) contexts.push('below-the-fold content');
+      if (rect.left < 100) contexts.push('left-aligned content');
+      if (rect.right > window.innerWidth - 100) contexts.push('right-aligned content');
+      if (rect.width > window.innerWidth * 0.8) contexts.push('full-width content');
     } catch (e) {
       // Skip if getBoundingClientRect fails
     }
     
-    // Analyze parent context for better understanding
+    // Hierarchical context analysis
     let parent = element.parentElement;
     let depth = 0;
-    while (parent && parent !== document.body && depth < 5) {
+    while (parent && parent !== document.body && depth < 8) {
       const parentTag = parent.tagName.toLowerCase();
-      if (parentTag === 'nav') contexts.push('navigation area');
-      if (parentTag === 'header') contexts.push('header area');
-      if (parentTag === 'footer') contexts.push('footer area');
-      if (parentTag === 'main') contexts.push('main content area');
-      if (parent.className && parent.className.includes('hero')) contexts.push('hero section');
+      const parentClass = parent.className || '';
+      
+      if (parentTag === 'nav') contexts.push('within navigation');
+      if (parentTag === 'header') contexts.push('within header');
+      if (parentTag === 'footer') contexts.push('within footer');
+      if (parentTag === 'main') contexts.push('within main content');
+      if (parentTag === 'aside') contexts.push('within sidebar');
+      if (parentTag === 'article') contexts.push('within article');
+      if (parentTag === 'section') contexts.push('within section');
+      if (parentTag === 'form') contexts.push('within form');
+      if (parentTag === 'table') contexts.push('within table');
+      if (parentTag === 'ul' || parentTag === 'ol') contexts.push('within list');
+      
+      if (parentClass.includes('hero')) contexts.push('within hero section');
+      if (parentClass.includes('features')) contexts.push('within features section');
+      if (parentClass.includes('testimonials')) contexts.push('within testimonials section');
+      if (parentClass.includes('pricing')) contexts.push('within pricing section');
+      if (parentClass.includes('about')) contexts.push('within about section');
+      if (parentClass.includes('contact')) contexts.push('within contact section');
+      if (parentClass.includes('services')) contexts.push('within services section');
+      if (parentClass.includes('products')) contexts.push('within products section');
+      if (parentClass.includes('team')) contexts.push('within team section');
+      if (parentClass.includes('blog')) contexts.push('within blog section');
+      if (parentClass.includes('news')) contexts.push('within news section');
+      if (parentClass.includes('events')) contexts.push('within events section');
+      if (parentClass.includes('gallery')) contexts.push('within gallery section');
+      if (parentClass.includes('portfolio')) contexts.push('within portfolio section');
+      
       parent = parent.parentElement;
       depth++;
     }
     
-    return contexts.length > 0 ? contexts.join(', ') : 'general content';
+    // ARIA and accessibility context
+    const ariaRole = element.getAttribute('role');
+    if (ariaRole) contexts.push(`${ariaRole} role`);
+    
+    const ariaLabel = element.getAttribute('aria-label');
+    if (ariaLabel) contexts.push('accessibility label');
+    
+    const ariaDescribedBy = element.getAttribute('aria-describedby');
+    if (ariaDescribedBy) contexts.push('accessibility description');
+    
+    // Data attributes for additional context
+    for (const attr of element.attributes) {
+      if (attr.name.startsWith('data-') && attr.value) {
+        if (attr.name.includes('type')) contexts.push(`${attr.value} type`);
+        if (attr.name.includes('category')) contexts.push(`${attr.value} category`);
+        if (attr.name.includes('section')) contexts.push(`${attr.value} section`);
+      }
+    }
+    
+    return contexts.length > 0 ? contexts.join(', ') : 'general web content';
   };
 
   const extractTextContent = (element: Element): Array<{ element: Element; text: string; context: string }> => {
     const textElements: Array<{ element: Element; text: string; context: string }> = [];
     
-    // Enhanced tree walker for comprehensive content detection
+    // Ultra-comprehensive content detection system
     const walker = document.createTreeWalker(
       element,
       NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -181,15 +269,15 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             const parent = node.parentElement;
             if (!parent) return NodeFilter.FILTER_REJECT;
             
-            // Only skip truly technical content
-            const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT'];
+            // Skip only essential non-translatable content
+            const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE'];
             if (skipTags.includes(parent.tagName)) {
               return NodeFilter.FILTER_REJECT;
             }
             
-            // Skip hidden elements only if completely hidden
+            // Skip completely hidden elements
             const style = window.getComputedStyle(parent);
-            if (style.display === 'none' || style.visibility === 'hidden') {
+            if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
               return NodeFilter.FILTER_REJECT;
             }
             
@@ -203,29 +291,46 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               return NodeFilter.FILTER_REJECT;
             }
             
-            // Enhanced filtering - allow MORE content types
-            if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
-                /^https?:\/\//.test(text) || 
-                /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
-                text.startsWith('//') || text.startsWith('/*') ||
-                /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text)) {
+            // More precise filtering - catch more translatable content
+            if (/^\s*$/.test(text) || // Empty/whitespace only
+                /^[\d\s\.,\-\+\(\)\[\]%]+$/.test(text) || // Numbers/symbols only
+                /^https?:\/\//.test(text) || // URLs
+                /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) || // Emails
+                /^[A-Z_][A-Z0-9_]*$/.test(text) || // Constants
+                /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text) || // Brackets/symbols
+                /^[0-9]+[px|em|rem|%]?$/.test(text) || // CSS values
+                text.startsWith('//') || text.startsWith('/*') || // Comments
+                /^\$\{/.test(text) || // Template literals
+                /^[a-z]+(-[a-z]+)*$/.test(text) && text.length < 4 // Short kebab-case
+            ) {
               return NodeFilter.FILTER_REJECT;
             }
             
             return NodeFilter.FILTER_ACCEPT;
           }
           
-          // For element nodes, check if they have text content or important attributes
+          // Enhanced element attribute detection
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             
-            // Check for translatable attributes
-            const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
+            // Comprehensive translatable attributes
+            const translatableAttrs = [
+              'title', 'alt', 'placeholder', 'aria-label', 'aria-description',
+              'data-tooltip', 'data-title', 'label', 'value'
+            ];
+            
             for (const attr of translatableAttrs) {
               const value = element.getAttribute(attr);
-              if (value && value.trim().length > 1) {
+              if (value && value.trim().length > 1 && !/^[0-9]+$/.test(value)) {
                 return NodeFilter.FILTER_ACCEPT;
               }
+            }
+            
+            // Check for pseudo-elements with content
+            const computedStyle = window.getComputedStyle(element, '::before');
+            const beforeContent = computedStyle.getPropertyValue('content');
+            if (beforeContent && beforeContent !== 'none' && beforeContent !== '""') {
+              return NodeFilter.FILTER_ACCEPT;
             }
           }
           

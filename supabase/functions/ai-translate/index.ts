@@ -119,31 +119,51 @@ Text: "${text}"`
           {
             role: 'user',
             content: visionMode ? 
-              `You are an expert AI translator with vision capabilities for comprehensive website translation.
+              `You are a professional website translator specializing in ${sourceLanguage} to ${targetLanguage} translation with deep cultural understanding.
 
-CONTEXT ANALYSIS: ${context || 'general web content'}
-ELEMENT TYPE: Web page element requiring maximum accuracy
-SOURCE: ${sourceLanguage} → TARGET: ${targetLanguage}
+TRANSLATION CONTEXT: ${context || 'general web content'}
+CONTENT TYPE: ${context.includes('navigation') ? 'Navigation element' : 
+              context.includes('button') ? 'Interactive button' : 
+              context.includes('heading') ? 'Content heading' : 
+              context.includes('hero') ? 'Hero section content' : 
+              context.includes('pricing') ? 'Pricing content' : 
+              context.includes('footer') ? 'Footer content' : 
+              context.includes('card') ? 'Card content' : 
+              context.includes('menu') ? 'Menu item' : 'Web content'}
 
-CRITICAL REQUIREMENTS:
-- Analyze the complete semantic context of this web element
-- Detect UI patterns, navigation elements, business content, and user interface text
-- Preserve exact formatting, spacing, and special characters
-- Use culturally appropriate expressions for the target language
-- Maintain consistency with web conventions and user expectations
-- For buttons/CTAs: use action-oriented language appropriate for the target culture
-- For headings: preserve hierarchy and impact
-- For navigation: use standard web terminology
-- For content: maintain tone and register
+EXPERT TRANSLATION REQUIREMENTS:
+1. CULTURAL ADAPTATION: Adapt expressions, idioms, and cultural references for ${targetLanguage} speakers
+2. UI/UX OPTIMIZATION: Use terminology familiar to ${targetLanguage} web users
+3. TONE PRESERVATION: Maintain the original tone while making it natural in ${targetLanguage}
+4. CONTEXT AWARENESS: Consider the webpage context and user experience
+5. LOCALIZATION: Use appropriate currency, dates, and cultural conventions
+6. CONSISTENCY: Maintain brand voice and messaging consistency
 
-Web Element Context: ${context}
-Text to translate: "${text}"
+SPECIFIC GUIDELINES:
+- For navigation: Use standard web navigation terms in ${targetLanguage}
+- For buttons/CTAs: Use action-oriented language that motivates ${targetLanguage} users
+- For headings: Preserve impact and hierarchy while being culturally appropriate
+- For marketing copy: Adapt persuasive language for ${targetLanguage} market
+- For technical terms: Use established ${targetLanguage} terminology
+- For pricing: Consider local purchasing psychology and terminology
 
-Return ONLY the precise translation that fits this web context.` 
+QUALITY STANDARDS:
+- Professional business translation quality
+- Native-level fluency and naturalness
+- Culturally appropriate and engaging
+- SEO-friendly when applicable
+- Maintains original formatting and structure
+
+SOURCE TEXT: "${text}"
+
+Provide ONLY the expertly translated text that fits perfectly in this web context:` 
               : 
-              `Translate from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, nothing else.
+              `You are a professional translator. Translate the following ${sourceLanguage} text to ${targetLanguage} with cultural adaptation and natural fluency.
 
-Text to translate: "${text}"`
+Context: ${context || 'general content'}
+Text: "${text}"
+
+Provide ONLY the translated text:`
           }
         ]
       }),
