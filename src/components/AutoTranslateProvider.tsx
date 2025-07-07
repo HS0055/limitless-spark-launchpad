@@ -516,123 +516,133 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      // Ultra-fast parallel processing for Claude 4
-      const batchSize = Math.min(uncachedTexts.length > 100 ? 5 : 8, textElements.length);
+      // Rate-limited processing to avoid API limits
+      const batchSize = 8; // Smaller batches for better rate limiting
       let completed = 0;
       
-      // Process in optimized parallel batches
+      console.log(`🔄 Processing ${textElements.length} elements in batches of ${batchSize} with rate limiting...`);
+      
+      // Process in rate-limited parallel batches
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
+        console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(textElements.length/batchSize)}`);
         
-        // AI Vision-Enhanced parallel processing with comprehensive updates
-        await Promise.allSettled(
-          batch.map(async ({ element, text, context }) => {
-            try {
-              const translatedText = await translateText(text, targetLang, context);
+        const batchPromises = batch.map(async ({ element, text, context }, index) => {
+          // Stagger requests within batch to respect rate limits
+          const delay = index * 150; // 150ms delay between each request
+          if (delay > 0) {
+            await new Promise(resolve => setTimeout(resolve, delay));
+          }
+          
+          try {
+            const translatedText = await translateText(text, targetLang, context);
               
-                // Ultra-robust element update system
-                if (element) {
-                  try {
-                    // Check if this is an attribute translation
-                    if (context.includes('attribute')) {
-                      const attrMatch = context.match(/(title|alt|placeholder|aria-label|aria-description|data-tooltip|data-title|label|value) attribute/);
-                      if (attrMatch) {
-                        const attrName = attrMatch[1];
-                        element.setAttribute(attrName, translatedText);
-                      }
-                    } else {
-                      // Text content translation with comprehensive strategies
-                      const originalText = text.trim();
-                      let updated = false;
-                      
-                      // Strategy 1: Direct textContent match
-                      if (element.textContent?.trim() === originalText) {
-                        element.textContent = translatedText;
+            // Ultra-robust element update system
+            if (element) {
+              try {
+                // Check if this is an attribute translation
+                if (context.includes('attribute')) {
+                  const attrMatch = context.match(/(title|alt|placeholder|aria-label|aria-description|data-tooltip|data-title|label|value) attribute/);
+                  if (attrMatch) {
+                    const attrName = attrMatch[1];
+                    element.setAttribute(attrName, translatedText);
+                  }
+                } else {
+                  // Text content translation with comprehensive strategies
+                  const originalText = text.trim();
+                  let updated = false;
+                  
+                  // Strategy 1: Direct textContent match
+                  if (element.textContent?.trim() === originalText) {
+                    element.textContent = translatedText;
+                    updated = true;
+                  }
+                  // Strategy 2: Partial textContent match
+                  else if (element.textContent?.includes(originalText)) {
+                    element.textContent = element.textContent.replace(originalText, translatedText);
+                    updated = true;
+                  }
+                  // Strategy 3: innerHTML replacement (preserve HTML structure)
+                  else if (element.innerHTML.includes(originalText)) {
+                    element.innerHTML = element.innerHTML.replace(originalText, translatedText);
+                    updated = true;
+                  }
+                  // Strategy 4: Deep text node search and replace
+                  else {
+                    const walker = document.createTreeWalker(
+                      element,
+                      NodeFilter.SHOW_TEXT,
+                      null
+                    );
+                    
+                    let textNode;
+                    while (textNode = walker.nextNode()) {
+                      const nodeText = textNode.textContent?.trim();
+                      if (nodeText === originalText) {
+                        textNode.textContent = translatedText;
                         updated = true;
-                      }
-                      // Strategy 2: Partial textContent match
-                      else if (element.textContent?.includes(originalText)) {
-                        element.textContent = element.textContent.replace(originalText, translatedText);
+                        break;
+                      } else if (textNode.textContent?.includes(originalText)) {
+                        textNode.textContent = textNode.textContent.replace(originalText, translatedText);
                         updated = true;
-                      }
-                      // Strategy 3: innerHTML replacement (preserve HTML structure)
-                      else if (element.innerHTML.includes(originalText)) {
-                        element.innerHTML = element.innerHTML.replace(originalText, translatedText);
-                        updated = true;
-                      }
-                      // Strategy 4: Deep text node search and replace
-                      else {
-                        const walker = document.createTreeWalker(
-                          element,
-                          NodeFilter.SHOW_TEXT,
-                          null
-                        );
-                        
-                        let textNode;
-                        while (textNode = walker.nextNode()) {
-                          const nodeText = textNode.textContent?.trim();
-                          if (nodeText === originalText) {
-                            textNode.textContent = translatedText;
-                            updated = true;
-                            break;
-                          } else if (textNode.textContent?.includes(originalText)) {
-                            textNode.textContent = textNode.textContent.replace(originalText, translatedText);
-                            updated = true;
-                            break;
-                          }
-                        }
-                      }
-                      
-                      // Strategy 5: Force update if we have the element but couldn't match text
-                      if (!updated && element.textContent) {
-                        // Last resort: replace entire content if it's the only text
-                        const elementTextNodes = [];
-                        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
-                        let textNode;
-                        while (textNode = walker.nextNode()) {
-                          if (textNode.textContent?.trim()) {
-                            elementTextNodes.push(textNode);
-                          }
-                        }
-                        
-                        // If element has only one meaningful text node, replace it
-                        if (elementTextNodes.length === 1) {
-                          elementTextNodes[0].textContent = translatedText;
-                          updated = true;
-                        }
-                      }
-                      
-                      // Visual feedback for successful translation
-                      if (updated && element instanceof HTMLElement) {
-                        element.style.opacity = '0.98';
-                        setTimeout(() => {
-                          element.style.opacity = '';
-                        }, 50);
+                        break;
                       }
                     }
-                  } catch (error) {
-                    console.warn('Translation update failed for element:', error);
+                  }
+                  
+                  // Strategy 5: Force update if we have the element but couldn't match text
+                  if (!updated && element.textContent) {
+                    // Last resort: replace entire content if it's the only text
+                    const elementTextNodes = [];
+                    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+                    let textNode;
+                    while (textNode = walker.nextNode()) {
+                      if (textNode.textContent?.trim()) {
+                        elementTextNodes.push(textNode);
+                      }
+                    }
+                    
+                    // If element has only one meaningful text node, replace it
+                    if (elementTextNodes.length === 1) {
+                      elementTextNodes[0].textContent = translatedText;
+                      updated = true;
+                    }
+                  }
+                  
+                  // Visual feedback for successful translation
+                  if (updated && element instanceof HTMLElement) {
+                    element.style.opacity = '0.98';
+                    setTimeout(() => {
+                      element.style.opacity = '';
+                    }, 50);
                   }
                 }
-              
-              return { success: true, text, translatedText, context };
-            } catch (error) {
-              // Send error to admin logging only
-              if (hasAdminRole) {
-                logToAdmin('AI Vision translation failed', { text, context, error });
+              } catch (error) {
+                console.warn('Translation update failed for element:', error);
               }
-              return { success: false, text, error, context };
             }
-          })
-        );
+            
+            return { success: true, text, translatedText, context };
+          } catch (error) {
+            // Send error to admin logging only
+            if (hasAdminRole) {
+              logToAdmin('AI Vision translation failed', { text, context, error });
+            }
+            return { success: false, text, error, context };
+          }
+        });
+
+        // Wait for all batch promises to complete
+        await Promise.allSettled(batchPromises);
 
         completed += batch.length;
         const progress = (completed / textElements.length) * 100;
         setTranslationProgress(progress);
         
-        // Minimal delay for Claude's fast processing
+        // Add delay between batches to respect rate limits
         if (i + batchSize < textElements.length) {
-          await new Promise(resolve => setTimeout(resolve, 25));
+          console.log('⏱️ Waiting 2s before next batch...');
+          await new Promise(resolve => setTimeout(resolve, 2000));
         }
       }
 
