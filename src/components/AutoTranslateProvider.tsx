@@ -498,10 +498,10 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     setIsTranslating(true);
     setTranslationProgress(0);
     
-    // SILENT PROCESSING - No status messages unless forced
-    if (force) {
-      showTranslationStatus("Translating...", "loading");
-    }
+    // SILENT PROCESSING - No status messages at all
+    // if (force) {
+    //   showTranslationStatus("Translating...", "loading");
+    // }
 
     const startTime = Date.now();
 
@@ -510,7 +510,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       const textElements = extractTextContent(document.body);
       
       if (textElements.length === 0) {
-        if (force) showTranslationStatus("No text found", "warning");
+        // if (force) showTranslationStatus("No text found", "warning");
         return;
       }
 
@@ -596,7 +596,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       if (hasAdminRole) {
         logToAdmin('Translation error', { error: (error as Error).message, targetLang });
       }
-      if (force) showTranslationStatus("Failed", "error");
+      // if (force) showTranslationStatus("Failed", "error");
     } finally {
       setIsTranslating(false);
       setTranslationProgress(0);
@@ -613,7 +613,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   } | null>(null);
 
   const showTranslationStatus = (message: string, type: 'info' | 'loading' | 'success' | 'error' | 'warning') => {
-    setTranslationStatus({ message, type });
+    // DISABLED: No status messages to prevent any popups
+    // setTranslationStatus({ message, type });
   };
 
   useEffect(() => {
@@ -695,10 +696,10 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Translation Status - Hidden for better UX */}
+      {/* Translation Status - COMPLETELY DISABLED */}
       {false && translationStatus && (
         <div className="hidden">
-          {/* Status removed to eliminate popup */}
+          {/* All status notifications disabled to prevent popups */}
         </div>
       )}
       

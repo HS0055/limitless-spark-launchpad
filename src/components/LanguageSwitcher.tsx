@@ -45,6 +45,7 @@ const LanguageSwitcher = () => {
           variant="outline" 
           size="sm" 
           className="hover-glow bg-card/60 backdrop-blur-md border-primary/20 text-foreground shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105"
+          data-no-translate
         >
           <Globe className="w-4 h-4 mr-2 text-primary" />
           <span className="inline sm:hidden">{currentLanguage?.flag}</span>
@@ -54,7 +55,7 @@ const LanguageSwitcher = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-64 bg-card/95 backdrop-blur-xl border-primary/20 shadow-2xl rounded-xl"
+        className="w-64 bg-background/98 backdrop-blur-xl border-primary/20 shadow-2xl rounded-xl z-[100]"
         sideOffset={8}
       >
         <div className="p-2 space-y-1">
@@ -83,11 +84,6 @@ const LanguageSwitcher = () => {
               )}
             </DropdownMenuItem>
           ))}
-        </div>
-        <div className="border-t border-border/50 p-3 mt-2">
-          <p className="text-xs text-muted-foreground text-center">
-            🌍 Content adapts automatically to your language
-          </p>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
