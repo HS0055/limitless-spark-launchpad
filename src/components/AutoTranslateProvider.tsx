@@ -157,6 +157,18 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return;
     }
 
+    // Check if page was already translated for this session
+    const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
+    const alreadyTranslated = sessionStorage.getItem(sessionKey);
+    
+    if (alreadyTranslated && !force) {
+      toast({
+        title: "Already Translated",
+        description: "This page was already translated in this session",
+      });
+      return;
+    }
+
     setIsTranslating(true);
     setTranslationProgress(0);
 
@@ -168,25 +180,29 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return;
       }
 
-      // Count how many texts need translation (not cached)
+      // Count cached vs new translations for better cost transparency
       const uncachedTexts = textElements.filter(({ text }) => {
         const cacheKey = text.toLowerCase();
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      // Aggressive batch processing for speed
-      const batchSize = 10; // Increased batch size
+      // Optimized batch processing - smaller batches for better reliability
+      const batchSize = 5; // Reduced for more reliable processing
       let completed = 0;
       
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         
-        // Process entire batch in parallel for maximum speed
-        await Promise.all(
+        // Process batch in parallel but with error handling
+        await Promise.allSettled(
           batch.map(async ({ element, text }) => {
-            const translatedText = await translateText(text, targetLang);
-            if (element && element.textContent === text) {
-              element.textContent = translatedText;
+            try {
+              const translatedText = await translateText(text, targetLang);
+              if (element && element.textContent === text) {
+                element.textContent = translatedText;
+              }
+            } catch (error) {
+              console.warn('Failed to translate text:', text, error);
             }
             completed++;
             setTranslationProgress((completed / textElements.length) * 100);
@@ -194,16 +210,19 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         );
       }
 
+      // Mark page as translated for this session
+      sessionStorage.setItem(sessionKey, 'true');
+
       toast({
-        title: "Translation Complete",
-        description: `Translated ${uncachedTexts.length} new texts, used ${textElements.length - uncachedTexts.length} cached`,
+        title: "✅ Translation Complete",
+        description: `${uncachedTexts.length} new translations, ${textElements.length - uncachedTexts.length} from cache`,
       });
 
     } catch (error) {
-      console.error('Auto-translation error:', error);
+      console.error('Translation error:', error);
       toast({
         title: "Translation Failed",
-        description: "Failed to translate page content",
+        description: "Please try again or switch to English",
         variant: "destructive",
       });
     } finally {
@@ -291,19 +310,18 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Translation Controls */}
+      {/* Translation Controls - Clean Icon */}
       {(translationMode === 'manual' || !autoTranslateEnabled) && language !== 'en' && (
-        <div className="fixed top-20 right-4 z-40 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 shadow-lg">
-          <div className="flex items-center gap-2">
-            <Button 
-              size="sm" 
-              onClick={() => translatePage(language, true)}
-              disabled={isTranslating}
-              className="h-8 px-3 text-xs"
-            >
-              {isTranslating ? '🔄' : '🌐'} Translate Page
-            </Button>
-          </div>
+        <div className="fixed top-20 right-4 z-40">
+          <Button 
+            onClick={() => translatePage(language, true)}
+            disabled={isTranslating}
+            size="sm"
+            className="w-10 h-10 p-0 rounded-full bg-primary/90 hover:bg-primary backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-200"
+            title={`Translate to ${language === 'hy' ? 'Armenian' : 'Russian'}`}
+          >
+            {isTranslating ? '🔄' : '🌐'}
+          </Button>
         </div>
       )}
 
