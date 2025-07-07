@@ -279,7 +279,7 @@
   }
 
   .btn-hero {
-    @apply relative font-bold px-10 py-5 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 border border-primary/20 overflow-hidden group;
+    @apply relative font-bold px-10 py-5 rounded-full shadow-xl hover:shadow-2xl transform hover:scale-105 border border-primary/20 overflow-hidden;
     background: var(--gradient-primary);
     transition: var(--transition-bounce);
   }
@@ -310,7 +310,7 @@
   }
 
   .btn-outline-enhanced {
-    @apply border-2 border-primary/30 bg-transparent text-primary hover:bg-primary hover:text-primary-foreground rounded-xl px-6 py-3 font-semibold relative overflow-hidden group;
+    @apply border-2 border-primary/30 bg-transparent text-primary hover:bg-primary hover:text-primary-foreground rounded-xl px-6 py-3 font-semibold relative overflow-hidden;
     transition: var(--transition-spring);
   }
 
