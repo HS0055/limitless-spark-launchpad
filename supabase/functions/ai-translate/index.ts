@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, sourceLang, targetLang, detectOnly } = await req.json();
+    const { text, sourceLang, targetLang, detectOnly, context, enhancedMode } = await req.json();
 
     if (!text) {
       return new Response(
@@ -118,7 +118,22 @@ Text: "${text}"`
         messages: [
           {
             role: 'user',
-            content: `Translate from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, nothing else.
+            content: enhancedMode ? 
+              `You are a professional translator specializing in ${sourceLanguage} to ${targetLanguage} translation.
+              
+${context ? `CONTEXT: ${context}` : ''}
+
+Translate this text with maximum accuracy and cultural appropriateness. Consider:
+- Cultural nuances and idiomatic expressions
+- Professional terminology if applicable
+- Tone and register of the original text
+- Technical accuracy for specialized content
+
+Return ONLY the best translation.
+
+Text: "${text}"` 
+              : 
+              `Translate from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, nothing else.
 
 Text to translate: "${text}"`
           }
@@ -134,6 +149,11 @@ Text to translate: "${text}"`
 
     const data = await response.json();
     const translatedText = data.content[0].text.trim();
+    
+    // Calculate confidence score based on response quality indicators
+    const confidence = Math.min(0.95, Math.max(0.75, 
+      (translatedText.length / text.length > 0.5 && translatedText.length / text.length < 2.0) ? 0.9 : 0.8
+    ));
 
     console.log('Translation successful:', translatedText);
 
@@ -141,7 +161,9 @@ Text to translate: "${text}"`
       JSON.stringify({ 
         translatedText,
         sourceLang,
-        targetLang 
+        targetLang,
+        confidence: enhancedMode ? confidence : null,
+        alternatives: enhancedMode ? [] : null // Could be expanded with multiple translations
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
