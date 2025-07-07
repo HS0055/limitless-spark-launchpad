@@ -28,7 +28,6 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const originalContent = useRef<Map<Element, string>>(new Map());
   const previousLanguage = useRef<string>('en');
   const translationInProgress = useRef<boolean>(false);
-  const dynamicTranslationTimer = useRef<NodeJS.Timeout>();
 
   // Admin-only logging function
   const logToAdmin = async (message: string, data: any) => {
@@ -82,77 +81,12 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     } catch (error) {
       console.error('Error loading translation settings:', error);
     }
+  }, [user]);
 
-    // ENHANCED: Dynamic content observer for real-time translation
-    const setupDynamicContentObserver = () => {
-      if (!masterTranslationEnabled || language === 'en') return;
-
-      const observer = new MutationObserver((mutations) => {
-        let hasNewContent = false;
-        
-        mutations.forEach((mutation) => {
-          // Check for new text content
-          if (mutation.type === 'childList') {
-            mutation.addedNodes.forEach((node) => {
-              if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
-                hasNewContent = true;
-              } else if (node.nodeType === Node.ELEMENT_NODE) {
-                const element = node as Element;
-                if (element.textContent?.trim() || element.hasAttribute('title') || element.hasAttribute('placeholder')) {
-                  hasNewContent = true;
-                }
-              }
-            });
-          }
-          
-          // Check for attribute changes
-          if (mutation.type === 'attributes') {
-            const target = mutation.target as Element;
-            const attrName = mutation.attributeName;
-            if (attrName && ['title', 'placeholder', 'aria-label'].includes(attrName)) {
-              hasNewContent = true;
-            }
-          }
-        });
-
-        // Translate new content with debounce
-        if (hasNewContent) {
-          clearTimeout(dynamicTranslationTimer.current);
-          dynamicTranslationTimer.current = setTimeout(() => {
-            translatePage(language, false);
-          }, 300);
-        }
-      });
-
-      observer.observe(document.body, {
-        childList: true,
-        subtree: true,
-        attributes: true,
-        attributeFilter: ['title', 'placeholder', 'aria-label']
-      });
-
-      return observer;
-    };
-
-    const dynamicObserver = setupDynamicContentObserver();
-    
-    return () => {
-      if (dynamicObserver) {
-        dynamicObserver.disconnect();
-      }
-    };
-  }, [user, masterTranslationEnabled, language]);
-
-  // ENHANCED: Save cache to localStorage with compression
+  // Save cache to localStorage
   const saveCache = () => {
     try {
-      // Only save most frequently used translations to avoid localStorage bloat
-      const frequentlyUsed = Object.entries(translationCache.current)
-        .filter(([key, translations]) => Object.keys(translations).length > 0)
-        .slice(0, 200); // Limit to top 200 most used translations
-      
-      const compactCache = Object.fromEntries(frequentlyUsed);
-      localStorage.setItem('translation-cache', JSON.stringify(compactCache));
+      localStorage.setItem('translation-cache', JSON.stringify(translationCache.current));
     } catch (error) {
       console.error('Error saving translation cache:', error);
     }
@@ -237,7 +171,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const extractTextContent = (element: Element): Array<{ element: Element; text: string; context: string }> => {
     const textElements: Array<{ element: Element; text: string; context: string }> = [];
     
-    // Enhanced tree walker for COMPREHENSIVE content detection
+    // Enhanced tree walker for comprehensive content detection
     const walker = document.createTreeWalker(
       element,
       NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -269,7 +203,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               return NodeFilter.FILTER_REJECT;
             }
             
-            // ENHANCED: Allow MORE content types - be more inclusive
+            // Enhanced filtering - allow MORE content types
             if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
                 /^https?:\/\//.test(text) || 
                 /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
@@ -285,8 +219,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             
-            // Check for translatable attributes - EXPANDED LIST
-            const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label', 'data-tooltip', 'data-title'];
+            // Check for translatable attributes
+            const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
             for (const attr of translatableAttrs) {
               const value = element.getAttribute(attr);
               if (value && value.trim().length > 1) {
@@ -327,9 +261,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           }
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
-        // Handle translatable attributes - EXPANDED
+        // Handle translatable attributes
         const element = node as Element;
-        const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label', 'data-tooltip', 'data-title'];
+        const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
         
         for (const attr of translatableAttrs) {
           const value = element.getAttribute(attr);
@@ -354,36 +288,14 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   const translateText = async (text: string, targetLang: string, context?: string): Promise<string> => {
-    // ENHANCED: Multi-level cache system for ultra-fast retrieval
+    // Check cache first for ultra-fast retrieval
     const cacheKey = `${text.toLowerCase().trim()}_${context || ''}`;
     if (translationCache.current[cacheKey]?.[targetLang]) {
       return translationCache.current[cacheKey][targetLang];
     }
 
-    // ADVANCED: Check persistent browser cache for cross-session translations
-    const persistentCacheKey = `translation_${cacheKey}_${targetLang}`;
     try {
-      const cachedTranslation = localStorage.getItem(persistentCacheKey);
-      if (cachedTranslation) {
-        const cached = JSON.parse(cachedTranslation);
-        const isExpired = Date.now() - cached.timestamp > 7 * 24 * 60 * 60 * 1000; // 7 days
-        if (!isExpired) {
-          // Restore to in-memory cache for even faster future access
-          if (!translationCache.current[cacheKey]) {
-            translationCache.current[cacheKey] = {};
-          }
-          translationCache.current[cacheKey][targetLang] = cached.translation;
-          return cached.translation;
-        } else {
-          localStorage.removeItem(persistentCacheKey); // Clean expired cache
-        }
-      }
-    } catch (error) {
-      // Silent fail for cache read errors
-    }
-
-    try {
-      // Use optimized API client with enhanced caching and deduplication
+      // Use optimized API client with caching and deduplication
       const result = await apiClient.invoke('ai-translate', {
         body: {
           text: text,
@@ -393,7 +305,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           visionMode: true
         }
       }, {
-        ttl: 600000, // 10 minute cache (increased for better performance)
+        ttl: 300000, // 5 minute cache
         skipCache: false
       });
 
@@ -401,21 +313,11 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
       const translatedText = result.data.translatedText;
 
-      // ENHANCED: Multi-layer aggressive caching with context
+      // Enhanced aggressive caching with context
       if (!translationCache.current[cacheKey]) {
         translationCache.current[cacheKey] = {};
       }
       translationCache.current[cacheKey][targetLang] = translatedText;
-      
-      // ADVANCED: Persistent browser cache for cross-session performance
-      try {
-        localStorage.setItem(persistentCacheKey, JSON.stringify({
-          translation: translatedText,
-          timestamp: Date.now()
-        }));
-      } catch (error) {
-        // Silent fail if localStorage is full
-      }
       
       // Batch save to localStorage for performance
       saveCache();
@@ -482,35 +384,23 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
     const alreadyTranslated = sessionStorage.getItem(sessionKey);
     
-    // ENHANCED: Skip notification but still allow retranslation for dynamic content
-    if (alreadyTranslated && !force) {
-      // Silent check for new content that might need translation
-      const currentContent = extractTextContent(document.body);
-      const hasNewContent = currentContent.some(({ text, context }) => {
-        const cacheKey = `${text.toLowerCase()}_${context || ''}`;
-        return !translationCache.current[cacheKey]?.[targetLang];
-      });
-      
-      if (!hasNewContent) return; // No new content, skip translation
+    if (alreadyTranslated && !force && hasTranslatedOnce) {
+      return; // Silent return, no notification for auto-mode
     }
 
     translationInProgress.current = true;
     setIsTranslating(true);
     setTranslationProgress(0);
-    
-    // SILENT PROCESSING - No status messages at all
-    // if (force) {
-    //   showTranslationStatus("Translating...", "loading");
-    // }
+    showTranslationStatus("Translating...", "loading");
 
     const startTime = Date.now();
 
     try {
-      // Extract all text content from the page with ENHANCED detection
+      // Extract all text content from the page with improved detection
       const textElements = extractTextContent(document.body);
       
       if (textElements.length === 0) {
-        // if (force) showTranslationStatus("No text found", "warning");
+        showTranslationStatus("No text found", "warning");
         return;
       }
 
@@ -520,11 +410,11 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      // OPTIMIZED: Ultra-fast parallel processing for Claude 4
-      const batchSize = Math.min(uncachedTexts.length > 100 ? 8 : 12, textElements.length);
+      // Ultra-fast parallel processing for Claude 4
+      const batchSize = Math.min(uncachedTexts.length > 100 ? 5 : 8, textElements.length);
       let completed = 0;
       
-      // Process in optimized parallel batches with ENHANCED speed
+      // Process in optimized parallel batches
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         
@@ -538,7 +428,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               if (element) {
                 // Check if this is an attribute translation
                 if (context.includes('attribute')) {
-                  const attrMatch = context.match(/(title|alt|placeholder|aria-label|data-tooltip|data-title) attribute/);
+                  const attrMatch = context.match(/(title|alt|placeholder|aria-label) attribute/);
                   if (attrMatch) {
                     const attrName = attrMatch[1];
                     if (element.getAttribute(attrName) === text) {
@@ -546,7 +436,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
                     }
                   }
                 } else if (element.textContent?.trim() === text.trim()) {
-                  // Handle text content with improved replacement
+                  // Handle text content
                   const wasHtml = element.innerHTML !== element.textContent;
                   if (wasHtml && element.innerHTML.includes(text)) {
                     element.innerHTML = element.innerHTML.replace(text, translatedText);
@@ -571,9 +461,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         const progress = (completed / textElements.length) * 100;
         setTranslationProgress(progress);
         
-        // REDUCED delay for even faster processing
+        // Minimal delay for Claude's fast processing
         if (i + batchSize < textElements.length) {
-          await new Promise(resolve => setTimeout(resolve, 15));
+          await new Promise(resolve => setTimeout(resolve, 25));
         }
       }
 
@@ -581,13 +471,12 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       sessionStorage.setItem(sessionKey, 'true');
       setHasTranslatedOnce(true);
 
-      // SILENT SUCCESS - Only log for admin, no user notification
-      if (hasAdminRole) {
-        logToAdmin('Silent translation completed', {
+      // Show success only on manual trigger (admin-only logging)
+      if (force && hasAdminRole) {
+        logToAdmin('Translation completed', {
           targetLang,
           elementsTranslated: textElements.length,
-          duration: Date.now() - startTime,
-          isAutomatic: !force
+          duration: Date.now() - startTime
         });
       }
 
@@ -596,13 +485,13 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       if (hasAdminRole) {
         logToAdmin('Translation error', { error: (error as Error).message, targetLang });
       }
-      // if (force) showTranslationStatus("Failed", "error");
+      showTranslationStatus("Failed", "error");
     } finally {
       setIsTranslating(false);
       setTranslationProgress(0);
       translationInProgress.current = false;
-      // Auto-hide status after 1 second for faster UX
-      setTimeout(() => setTranslationStatus(null), 1000);
+      // Auto-hide status after 2 seconds
+      setTimeout(() => setTranslationStatus(null), 2000);
     }
   };
 
@@ -613,8 +502,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   } | null>(null);
 
   const showTranslationStatus = (message: string, type: 'info' | 'loading' | 'success' | 'error' | 'warning') => {
-    // DISABLED: No status messages to prevent any popups
-    // setTranslationStatus({ message, type });
+    setTranslationStatus({ message, type });
   };
 
   useEffect(() => {
@@ -630,9 +518,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return;
     }
 
-    // Intelligent auto-translation with delay - RESTORED without popup
+    // Intelligent auto-translation with delay
     const timer = setTimeout(() => {
-      translatePage(language, false); // false = no forced status messages
+      translatePage(language);
       previousLanguage.current = language;
     }, 500);
 
@@ -696,10 +584,40 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Translation Status - COMPLETELY DISABLED */}
-      {false && translationStatus && (
-        <div className="hidden">
-          {/* All status notifications disabled to prevent popups */}
+      {/* Compact Translation Status - Much Smaller & Comfortable */}
+      {translationStatus && (
+        <div className="fixed top-16 right-4 z-50 max-w-xs">
+          <div className={`
+            px-3 py-2 rounded-md backdrop-blur-sm shadow-md border text-xs transition-all duration-300 transform
+            ${translationStatus.type === 'success' ? 'bg-green-500/80 border-green-400/50 text-white' : ''}
+            ${translationStatus.type === 'error' ? 'bg-red-500/80 border-red-400/50 text-white' : ''}
+            ${translationStatus.type === 'warning' ? 'bg-yellow-500/80 border-yellow-400/50 text-white' : ''}
+            ${translationStatus.type === 'info' ? 'bg-blue-500/80 border-blue-400/50 text-white' : ''}
+            ${translationStatus.type === 'loading' ? 'bg-primary/80 border-primary/50 text-primary-foreground' : ''}
+            animate-slide-in-right
+          `}>
+            <div className="flex items-center gap-1.5">
+              {translationStatus.type === 'loading' && (
+                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
+              )}
+              {translationStatus.type === 'success' && <span className="text-xs">✓</span>}
+              {translationStatus.type === 'error' && <span className="text-xs">✗</span>}
+              {translationStatus.type === 'warning' && <span className="text-xs">⚠</span>}
+              {translationStatus.type === 'info' && <span className="text-xs">i</span>}
+              <span className="font-medium leading-tight">{translationStatus.message}</span>
+            </div>
+            {isTranslating && translationProgress > 0 && (
+              <div className="mt-1">
+                <div className="h-0.5 bg-white/30 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-white transition-all duration-200"
+                    style={{ width: `${translationProgress}%` }}
+                  />
+                </div>
+                <div className="text-[10px] mt-0.5 opacity-90">{Math.round(translationProgress)}%</div>
+              </div>
+            )}
+          </div>
         </div>
       )}
       
