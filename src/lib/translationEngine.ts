@@ -320,6 +320,10 @@ class TranslationEngine {
       textNodesToTranslate.push(node as Text);
     }
 
+    // Temporarily disable transitions to prevent floating text effect
+    document.body.style.setProperty('transition', 'none', 'important');
+    document.body.style.setProperty('animation', 'none', 'important');
+    
     // Batch translate text nodes for better performance
     textNodesToTranslate.forEach(textNode => {
       const originalText = textNode.textContent?.trim();
@@ -328,9 +332,26 @@ class TranslationEngine {
       const translation = this.cache[originalText]?.[targetLang];
       if (translation && translation !== originalText) {
         console.log(`🔄 Replacing "${originalText}" → "${translation}"`);
+        // Apply translation instantly without transitions
+        const parentElement = textNode.parentElement;
+        if (parentElement) {
+          parentElement.style.setProperty('transition', 'none', 'important');
+        }
         textNode.textContent = translation;
       }
     });
+    
+    // Re-enable transitions after a short delay
+    setTimeout(() => {
+      document.body.style.removeProperty('transition');
+      document.body.style.removeProperty('animation');
+      textNodesToTranslate.forEach(textNode => {
+        const parentElement = textNode.parentElement;
+        if (parentElement) {
+          parentElement.style.removeProperty('transition');
+        }
+      });
+    }, 50);
 
     // Also translate common attributes and data-i18n elements
     this.translateAttributes(targetLang);
