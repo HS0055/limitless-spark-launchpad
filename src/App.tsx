@@ -23,6 +23,7 @@ import VisualBusiness from "./pages/VisualBusiness";
 import AITools from "./pages/AITools";
 import EditorApp from "./pages/EditorApp";
 import WebEditor from "./pages/WebEditor";
+import AIContentStudio from "./pages/AIContentStudio";
 import BugTracker from "./pages/BugTracker";
 import NotFound from "./pages/NotFound";
 
@@ -65,6 +66,7 @@ const AppContent = () => {
             <Route path="/ai-tools" element={<AITools />} />
             <Route path="/editor" element={<EditorApp />} />
             <Route path="/web-editor" element={<WebEditor />} />
+            <Route path="/ai-content-studio" element={<AIContentStudio />} />
             <Route path="/bug-tracker" element={<BugTracker />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminPanel />} />
