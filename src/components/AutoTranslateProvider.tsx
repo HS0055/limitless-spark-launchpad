@@ -28,6 +28,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const originalContent = useRef<Map<Element, string>>(new Map());
   const previousLanguage = useRef<string>('en');
   const translationInProgress = useRef<boolean>(false);
+  const dynamicTranslationTimer = useRef<NodeJS.Timeout>();
 
   // Admin-only logging function
   const logToAdmin = async (message: string, data: any) => {
@@ -81,7 +82,66 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     } catch (error) {
       console.error('Error loading translation settings:', error);
     }
-  }, [user]);
+
+    // ENHANCED: Dynamic content observer for real-time translation
+    const setupDynamicContentObserver = () => {
+      if (!masterTranslationEnabled || language === 'en') return;
+
+      const observer = new MutationObserver((mutations) => {
+        let hasNewContent = false;
+        
+        mutations.forEach((mutation) => {
+          // Check for new text content
+          if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+                hasNewContent = true;
+              } else if (node.nodeType === Node.ELEMENT_NODE) {
+                const element = node as Element;
+                if (element.textContent?.trim() || element.hasAttribute('title') || element.hasAttribute('placeholder')) {
+                  hasNewContent = true;
+                }
+              }
+            });
+          }
+          
+          // Check for attribute changes
+          if (mutation.type === 'attributes') {
+            const target = mutation.target as Element;
+            const attrName = mutation.attributeName;
+            if (attrName && ['title', 'placeholder', 'aria-label'].includes(attrName)) {
+              hasNewContent = true;
+            }
+          }
+        });
+
+        // Translate new content with debounce
+        if (hasNewContent) {
+          clearTimeout(dynamicTranslationTimer.current);
+          dynamicTranslationTimer.current = setTimeout(() => {
+            translatePage(language, false);
+          }, 300);
+        }
+      });
+
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['title', 'placeholder', 'aria-label']
+      });
+
+      return observer;
+    };
+
+    const dynamicObserver = setupDynamicContentObserver();
+    
+    return () => {
+      if (dynamicObserver) {
+        dynamicObserver.disconnect();
+      }
+    };
+  }, [user, masterTranslationEnabled, language]);
 
   // ENHANCED: Save cache to localStorage with compression
   const saveCache = () => {
