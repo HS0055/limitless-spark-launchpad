@@ -287,6 +287,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     return textElements;
   };
 
+  // Multi-model translation with instant fallback
   const translateText = async (text: string, targetLang: string, context?: string): Promise<string> => {
     // Check cache first for ultra-fast retrieval
     const cacheKey = `${text.toLowerCase().trim()}_${context || ''}`;
@@ -294,42 +295,62 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return translationCache.current[cacheKey][targetLang];
     }
 
-    try {
-      // Use optimized API client with caching and deduplication
-      const result = await apiClient.invoke('ai-translate', {
-        body: {
-          text: text,
-          sourceLang: 'en',
-          targetLang: targetLang,
-          context: context,
-          visionMode: true
+    // Smart model selection based on content type and context
+    const selectOptimalModel = (text: string, context: string) => {
+      if (context.includes('navigation') || context.includes('menu')) return 'claude';
+      if (context.includes('button') || context.includes('cta')) return 'openai';
+      if (context.includes('content') || text.length > 100) return 'perplexity';
+      return 'claude'; // default
+    };
+
+    const models = ['claude', 'openai', 'perplexity'];
+    const preferredModel = selectOptimalModel(text, context || '');
+    
+    // Try models in order of preference for instant results
+    for (const model of [preferredModel, ...models.filter(m => m !== preferredModel)]) {
+      try {
+        const result = await apiClient.invoke('ai-translate', {
+          body: {
+            text: text,
+            sourceLang: 'en',
+            targetLang: targetLang,
+            context: context,
+            visionMode: true,
+            preferredModel: model
+          }
+        }, {
+          ttl: 300000, // 5 minute cache
+          skipCache: false
+        });
+
+        if (!result.error && result.data?.translatedText) {
+          const translatedText = result.data.translatedText;
+
+          // Enhanced aggressive caching with context
+          if (!translationCache.current[cacheKey]) {
+            translationCache.current[cacheKey] = {};
+          }
+          translationCache.current[cacheKey][targetLang] = translatedText;
+          
+          // Batch save to localStorage for performance
+          saveCache();
+
+          return translatedText;
         }
-      }, {
-        ttl: 300000, // 5 minute cache
-        skipCache: false
-      });
-
-      if (result.error) throw result.error;
-
-      const translatedText = result.data.translatedText;
-
-      // Enhanced aggressive caching with context
-      if (!translationCache.current[cacheKey]) {
-        translationCache.current[cacheKey] = {};
+      } catch (error) {
+        // Continue to next model on error
+        if (hasAdminRole) {
+          logToAdmin(`${model} translation failed`, { text, context, error });
+        }
+        continue;
       }
-      translationCache.current[cacheKey][targetLang] = translatedText;
-      
-      // Batch save to localStorage for performance
-      saveCache();
-
-      return translatedText;
-    } catch (error) {
-      // Admin-only error logging
-      if (hasAdminRole) {
-        logToAdmin('Translation error', { text, context, error });
-      }
-      return text; // Fallback to original text
     }
+
+    // Final fallback
+    if (hasAdminRole) {
+      logToAdmin('All translation models failed', { text, context });
+    }
+    return text; // Return original text if all models fail
   };
 
   const restoreOriginalContent = () => {
@@ -410,19 +431,41 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      // Ultra-fast parallel processing for Claude 4
-      const batchSize = Math.min(uncachedTexts.length > 100 ? 5 : 8, textElements.length);
+      // Instant multi-model parallel processing with intelligent batching
+      const batchSize = Math.min(uncachedTexts.length > 50 ? 8 : 12, textElements.length);
       let completed = 0;
       
-      // Process in optimized parallel batches
-      for (let i = 0; i < textElements.length; i += batchSize) {
-        const batch = textElements.slice(i, i + batchSize);
-        
-        // AI Vision-Enhanced parallel processing with comprehensive updates
-        await Promise.allSettled(
-          batch.map(async ({ element, text, context }) => {
-            try {
-              const translatedText = await translateText(text, targetLang, context);
+      // Real-time content analysis and instant translation
+      const processIntelligentBatches = async () => {
+        // Priority processing for visible elements
+        const visibleElements = textElements.filter(({ element }) => {
+          try {
+            const rect = element.getBoundingClientRect();
+            return rect.top < window.innerHeight && rect.bottom > 0;
+          } catch {
+            return true; // Include if we can't determine visibility
+          }
+        });
+
+        const nonVisibleElements = textElements.filter(({ element }) => {
+          try {
+            const rect = element.getBoundingClientRect();
+            return rect.top >= window.innerHeight || rect.bottom <= 0;
+          } catch {
+            return false;
+          }
+        });
+
+        // Process visible elements first for instant user experience
+        for (const elementGroup of [visibleElements, nonVisibleElements]) {
+          for (let i = 0; i < elementGroup.length; i += batchSize) {
+            const batch = elementGroup.slice(i, i + batchSize);
+            
+            // Instant AI Vision-Enhanced parallel processing
+            await Promise.allSettled(
+              batch.map(async ({ element, text, context }) => {
+                try {
+                  const translatedText = await translateText(text, targetLang, context);
               
               // Enhanced element update - handle both text content and attributes
               if (element) {
@@ -457,15 +500,19 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           })
         );
 
-        completed += batch.length;
-        const progress = (completed / textElements.length) * 100;
-        setTranslationProgress(progress);
-        
-        // Minimal delay for Claude's fast processing
-        if (i + batchSize < textElements.length) {
-          await new Promise(resolve => setTimeout(resolve, 25));
+            completed += batch.length;
+            const progress = (completed / textElements.length) * 100;
+            setTranslationProgress(progress);
+            
+            // Instant processing with no delay for better UX
+            if (elementGroup === visibleElements && i + batchSize < elementGroup.length) {
+              await new Promise(resolve => setTimeout(resolve, 10)); // Minimal delay for visible elements
+            }
+          }
         }
-      }
+      };
+
+      await processIntelligentBatches();
 
       // Mark page as translated for this session
       sessionStorage.setItem(sessionKey, 'true');

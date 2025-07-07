@@ -2,6 +2,8 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+const perplexityApiKey = Deno.env.get('PERPLEXITY_API_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,7 +17,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, sourceLang, targetLang, detectOnly, context, visionMode } = await req.json();
+    const { text, sourceLang, targetLang, detectOnly, context, visionMode, preferredModel } = await req.json();
 
     if (!text) {
       return new Response(
@@ -27,47 +29,82 @@ serve(async (req) => {
       );
     }
 
-    // Language detection mode
+    // Multi-model language detection for higher accuracy
     if (detectOnly) {
-      console.log('Detecting language for:', text);
+      console.log('Multi-model language detection for:', text);
       
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': anthropicApiKey,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 10,
-        temperature: 0,
-        messages: [
-          {
-            role: 'user',
-            content: `Analyze this text and return ONLY the 2-letter language code from these options: 'en' (English), 'hy' (Armenian), 'ru' (Russian).
-
-Rules:
-- Return ONLY the language code, nothing else
-- Armenian uses Armenian script (Հայերեն)
-- Russian uses Cyrillic script (Русский) 
-- English uses Latin script
-- For mixed content, identify the dominant language
-
-Text: "${text}"`
+      const detectWithMultipleModels = async () => {
+        const results = [];
+        
+        // Claude detection
+        try {
+          const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+              'x-api-key': anthropicApiKey,
+              'Content-Type': 'application/json',
+              'anthropic-version': '2023-06-01',
+            },
+            body: JSON.stringify({
+              model: 'claude-3-5-sonnet-20241022',
+              max_tokens: 10,
+              temperature: 0,
+              messages: [{
+                role: 'user',
+                content: `Language code only: 'en', 'hy', or 'ru' for: "${text}"`
+              }]
+            }),
+          });
+          
+          if (claudeResponse.ok) {
+            const claudeData = await claudeResponse.json();
+            results.push(claudeData.content[0].text.trim().toLowerCase());
           }
-        ]
-      }),
-    });
+        } catch (e) {
+          console.log('Claude detection failed:', e);
+        }
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Claude API error:', errorData);
-      throw new Error(`Claude API error: ${response.status}`);
-    }
+        // OpenAI detection as backup
+        if (openaiApiKey) {
+          try {
+            const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${openaiApiKey}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                max_tokens: 5,
+                temperature: 0,
+                messages: [{
+                  role: 'user',
+                  content: `Return only language code: 'en', 'hy', or 'ru' for: "${text}"`
+                }]
+              }),
+            });
+            
+            if (openaiResponse.ok) {
+              const openaiData = await openaiResponse.json();
+              results.push(openaiData.choices[0].message.content.trim().toLowerCase());
+            }
+          } catch (e) {
+            console.log('OpenAI detection failed:', e);
+          }
+        }
 
-    const data = await response.json();
-    const detectedLanguage = data.content[0].text.trim().toLowerCase();
+        // Consensus or fallback
+        const mostCommon = results.reduce((acc, lang) => {
+          acc[lang] = (acc[lang] || 0) + 1;
+          return acc;
+        }, {});
+        
+        return Object.keys(mostCommon).reduce((a, b) => 
+          mostCommon[a] > mostCommon[b] ? a : b
+        ) || 'en';
+      };
+
+      const detectedLanguage = await detectWithMultipleModels();
       
       console.log('Language detected:', detectedLanguage);
 
@@ -104,59 +141,108 @@ Text: "${text}"`
     const sourceLanguage = languageNames[sourceLang as keyof typeof languageNames] || sourceLang;
     const targetLanguage = languageNames[targetLang as keyof typeof languageNames] || targetLang;
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': anthropicApiKey,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        temperature: 0.1,
-        messages: [
-          {
+    // Multi-model translation for better accuracy and speed
+    const translateWithMultipleModels = async () => {
+      const model = preferredModel || 'claude';
+      
+      if (model === 'openai' && openaiApiKey) {
+        try {
+          const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${openaiApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'gpt-4o-mini',
+              max_tokens: 2000,
+              temperature: 0.1,
+              messages: [{
+                role: 'system',
+                content: 'You are an expert translator. Translate precisely while maintaining context and cultural appropriateness.'
+              }, {
+                role: 'user',
+                content: visionMode ? 
+                  `Context: ${context || 'web content'}\nTranslate ${sourceLanguage} to ${targetLanguage}: "${text}"` :
+                  `Translate from ${sourceLanguage} to ${targetLanguage}: "${text}"`
+              }]
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+          }
+        } catch (e) {
+          console.log('OpenAI translation failed, fallback to Claude:', e);
+        }
+      }
+
+      if (model === 'perplexity' && perplexityApiKey) {
+        try {
+          const response = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${perplexityApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'llama-3.1-sonar-small-128k-online',
+              max_tokens: 1000,
+              temperature: 0.1,
+              messages: [{
+                role: 'system',
+                content: 'Expert translator with real-time context awareness.'
+              }, {
+                role: 'user',
+                content: `Translate ${sourceLanguage} to ${targetLanguage}: "${text}"`
+              }]
+            }),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            return data.choices[0].message.content.trim();
+          }
+        } catch (e) {
+          console.log('Perplexity translation failed, fallback to Claude:', e);
+        }
+      }
+
+      // Claude as primary/fallback
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicApiKey,
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 4000,
+          temperature: 0.05,
+          messages: [{
             role: 'user',
             content: visionMode ? 
-              `You are an expert AI translator with vision capabilities for comprehensive website translation.
-
-CONTEXT ANALYSIS: ${context || 'general web content'}
-ELEMENT TYPE: Web page element requiring maximum accuracy
+              `Expert web translator. Context: ${context || 'web content'}
 SOURCE: ${sourceLanguage} → TARGET: ${targetLanguage}
+Translate with cultural awareness: "${text}"
+Return ONLY the translation.` : 
+              `Translate ${sourceLanguage} to ${targetLanguage}: "${text}"`
+          }]
+        }),
+      });
 
-CRITICAL REQUIREMENTS:
-- Analyze the complete semantic context of this web element
-- Detect UI patterns, navigation elements, business content, and user interface text
-- Preserve exact formatting, spacing, and special characters
-- Use culturally appropriate expressions for the target language
-- Maintain consistency with web conventions and user expectations
-- For buttons/CTAs: use action-oriented language appropriate for the target culture
-- For headings: preserve hierarchy and impact
-- For navigation: use standard web terminology
-- For content: maintain tone and register
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Claude API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      }
 
-Web Element Context: ${context}
-Text to translate: "${text}"
+      const data = await response.json();
+      return data.content[0].text.trim();
+    };
 
-Return ONLY the precise translation that fits this web context.` 
-              : 
-              `Translate from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, nothing else.
-
-Text to translate: "${text}"`
-          }
-        ]
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Claude API error:', errorData);
-      throw new Error(`Claude API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-    const data = await response.json();
-    const translatedText = data.content[0].text.trim();
+    const translatedText = await translateWithMultipleModels();
     
     // Calculate confidence score based on response quality indicators
     const confidence = Math.min(0.95, Math.max(0.75, 
