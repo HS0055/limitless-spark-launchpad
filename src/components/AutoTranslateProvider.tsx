@@ -13,6 +13,7 @@ interface TranslationCache {
 export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const [masterTranslationEnabled, setMasterTranslationEnabled] = useState(true);
   const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true); // Enable by default
   const [showCostWarning, setShowCostWarning] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -25,24 +26,24 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const previousLanguage = useRef<string>('en');
   const translationInProgress = useRef<boolean>(false);
 
-  // Load cache from localStorage
   useEffect(() => {
+    // Load master translation settings
     try {
+      const masterEnabled = localStorage.getItem('master-translation-enabled') !== 'false';
+      setMasterTranslationEnabled(masterEnabled);
+      
       const savedCache = localStorage.getItem('translation-cache');
       if (savedCache) {
         translationCache.current = JSON.parse(savedCache);
       }
       
-      const autoEnabled = localStorage.getItem('auto-translate-enabled') === 'true';
+      const autoEnabled = localStorage.getItem('auto-translate-enabled') !== 'false';
       setAutoTranslateEnabled(autoEnabled);
       
-      const mode = localStorage.getItem('translation-mode') as 'auto' | 'manual' || 'manual';
+      const mode = localStorage.getItem('translation-mode') as 'auto' | 'manual' || 'auto';
       setTranslationMode(mode);
-      
-      const warningDismissed = localStorage.getItem('cost-warning-dismissed') === 'true';
-      setShowCostWarning(!warningDismissed);
     } catch (error) {
-      console.error('Error loading translation cache:', error);
+      console.error('Error loading translation settings:', error);
     }
   }, []);
 
@@ -173,13 +174,40 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     });
   };
 
+  // Master translation function - handles everything with one click
+  const handleMasterTranslation = async () => {
+    if (!masterTranslationEnabled) {
+      // Enable the entire system
+      setMasterTranslationEnabled(true);
+      setAutoTranslateEnabled(true);
+      setTranslationMode('auto');
+      localStorage.setItem('master-translation-enabled', 'true');
+      localStorage.setItem('auto-translate-enabled', 'true');
+      localStorage.setItem('translation-mode', 'auto');
+      
+      showTranslationStatus("Translation system activated", "success");
+      
+      // Auto-translate current language if not English
+      if (language !== 'en') {
+        setTimeout(() => translatePage(language, true), 500);
+      }
+    } else {
+      // Force translate current language
+      if (language !== 'en') {
+        await translatePage(language, true);
+      } else {
+        showTranslationStatus("Switch to Armenian or Russian to translate", "info");
+      }
+    }
+  };
+
   const translatePage = async (targetLang: string, force = false) => {
     // Prevent multiple simultaneous translations
     if (translationInProgress.current && !force) {
       return;
     }
 
-    if (!autoTranslateEnabled && !force) return;
+    if (!masterTranslationEnabled && !force) return;
     
     if (targetLang === 'en') {
       restoreOriginalContent();
@@ -288,8 +316,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
-    // Auto-translate when language changes (smart mode)
-    if (!autoTranslateEnabled || translationMode !== 'auto') {
+    // Auto-translate when language changes (if master system is enabled)
+    if (!masterTranslationEnabled || !autoTranslateEnabled || translationMode !== 'auto') {
       previousLanguage.current = language;
       return;
     }
@@ -304,10 +332,10 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     const timer = setTimeout(() => {
       translatePage(language);
       previousLanguage.current = language;
-    }, 500); // Slightly longer delay for better UX
+    }, 500);
 
     return () => clearTimeout(timer);
-  }, [language, autoTranslateEnabled, translationMode]);
+  }, [language, masterTranslationEnabled, autoTranslateEnabled, translationMode]);
 
   const enableAutoTranslate = () => {
     setAutoTranslateEnabled(true);
@@ -366,59 +394,45 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Enhanced Translation Controls */}
-      {(translationMode === 'manual' || !autoTranslateEnabled) && language !== 'en' && (
-        <div className="fixed top-20 right-4 z-40">
-          <div className="flex flex-col gap-2">
-            <Button 
-              onClick={() => translatePage(language, true)}
-              disabled={isTranslating || translationInProgress.current}
-              size="sm"
-              className="w-12 h-12 p-0 rounded-full bg-gradient-to-br from-primary to-primary-foreground backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
-              title={`Translate to ${language === 'hy' ? 'Armenian' : language === 'ru' ? 'Russian' : language}`}
-            >
-              {isTranslating ? (
-                <div className="animate-spin text-lg">🔄</div>
-              ) : (
-                <div className="text-lg">🌐</div>
-              )}
-            </Button>
-            {/* Quick language preview */}
-            <div className="text-xs text-center text-muted-foreground font-medium">
+      {/* ONE MASTER TRANSLATION ICON - Controls Everything */}
+      <div className="fixed top-20 right-4 z-50">
+        <div className="flex flex-col items-center gap-2">
+          <Button 
+            onClick={handleMasterTranslation}
+            disabled={isTranslating || translationInProgress.current}
+            size="lg"
+            className={`
+              w-14 h-14 p-0 rounded-full backdrop-blur-sm shadow-xl border-2 transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed
+              ${masterTranslationEnabled 
+                ? 'bg-gradient-to-br from-green-500 to-green-600 border-green-400 text-white hover:shadow-green-500/50' 
+                : 'bg-gradient-to-br from-primary to-primary-foreground border-primary text-primary-foreground hover:shadow-primary/50'
+              }
+            `}
+            title="Master Translation Control - One click translates everything"
+          >
+            {isTranslating ? (
+              <div className="animate-spin text-xl">🔄</div>
+            ) : masterTranslationEnabled ? (
+              <div className="text-xl">✨</div>
+            ) : (
+              <div className="text-xl">🌐</div>
+            )}
+          </Button>
+          
+          {/* Status indicator */}
+          <div className="text-xs text-center text-muted-foreground font-medium">
+            {isTranslating ? 'Working...' : 
+             masterTranslationEnabled ? 'Active' : 'Click to Start'}
+          </div>
+          
+          {/* Current language indicator */}
+          {language !== 'en' && (
+            <div className="px-2 py-1 bg-background/80 backdrop-blur-sm rounded text-xs font-medium border">
               {language.toUpperCase()}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Auto-translate status - Enhanced */}
-      {autoTranslateEnabled && translationMode === 'auto' && (
-        <div className="fixed top-20 right-4 z-40 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 text-xs shadow-lg">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span>Auto-translate: ON</span>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="h-4 w-4 p-0"
-              onClick={() => {
-                setAutoTranslateEnabled(false);
-                setTranslationMode('manual');
-                localStorage.setItem('auto-translate-enabled', 'false');
-                localStorage.setItem('translation-mode', 'manual');
-              }}
-              title="Disable auto-translate"
-            >
-              ×
-            </Button>
-          </div>
-          {hasTranslatedOnce && (
-            <div className="text-[10px] text-muted-foreground mt-1">
-              Page translated automatically
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* Compact Translation Status - Much Smaller & Comfortable */}
       {translationStatus && (
