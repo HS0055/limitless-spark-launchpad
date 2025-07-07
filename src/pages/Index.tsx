@@ -9,6 +9,7 @@ import { Target, Users, Star, CheckCircle, ArrowRight, Zap, BarChart3, Briefcase
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import InteractiveCompounding from "@/components/InteractiveCompounding";
+import { useTranslation, T } from "@/contexts/TranslationContext";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -149,14 +150,14 @@ const Index = () => {
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-black leading-tight">
-              Think Like a <span className="text-gradient bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">CEO</span>
+              <T>Think Like a</T> <span className="text-gradient bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent"><T>CEO</T></span>
               <br />
-              Get Paid Like <span className="text-gradient bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent">One</span>
+              <T>Get Paid Like</T> <span className="text-gradient bg-gradient-to-r from-purple-500 to-indigo-500 bg-clip-text text-transparent"><T>One</T></span>
             </h1>
             
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              While others struggle with basic business concepts, you'll master the 
-              <span className="text-blue-500 font-bold"> strategic frameworks</span> that Fortune 500 executives use to make million-dollar decisions.
+              <T>While others struggle with basic business concepts, you'll master the</T>
+              <span className="text-blue-500 font-bold"> <T>strategic frameworks</T></span> <T>that Fortune 500 executives use to make million-dollar decisions.</T>
             </p>
 
             {/* Psychological Social Proof */}

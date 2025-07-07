@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
+import { TranslationProvider } from "@/contexts/TranslationContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
 import { VisualEditor } from "@/components/visual-editor/VisualEditor";
 import Home from "./pages/Home";
@@ -80,7 +81,9 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <LanguageProvider>
-            <AppContent />
+            <TranslationProvider>
+              <AppContent />
+            </TranslationProvider>
           </LanguageProvider>
         </AuthProvider>
       </TooltipProvider>
