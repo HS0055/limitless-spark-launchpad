@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, Upload, Users, BookOpen, Video, FileText } from 'lucide-react';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { DragDropTextEditor } from '@/components/admin/DragDropTextEditor';
+
 
 interface Course {
   id: string;
@@ -489,9 +489,6 @@ const AdminPanel = () => {
           </TabsContent>
         </Tabs>
       </div>
-      
-      {/* Drag & Drop Text Editor - Always Available for Admins */}
-      {userRole === 'admin' && <DragDropTextEditor />}
     </div>
   );
 };
