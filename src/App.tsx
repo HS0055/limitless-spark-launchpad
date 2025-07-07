@@ -44,12 +44,12 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <LanguageProvider>
-            <AutoTranslateProvider>
-              <div className="min-h-screen bg-background">
-                <Toaster />
-                <Sonner />
-                <PerformanceMonitor />
-                <BrowserRouter>
+            <div className="min-h-screen bg-background">
+              <Toaster />
+              <Sonner />
+              <PerformanceMonitor />
+              <BrowserRouter>
+                <AutoTranslateProvider>
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/business-fundamentals" element={<Index />} />
@@ -65,9 +65,9 @@ const App = () => (
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </BrowserRouter>
-              </div>
-            </AutoTranslateProvider>
+                </AutoTranslateProvider>
+              </BrowserRouter>
+            </div>
           </LanguageProvider>
         </AuthProvider>
       </TooltipProvider>
