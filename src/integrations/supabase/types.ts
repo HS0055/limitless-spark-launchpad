@@ -56,6 +56,153 @@ export type Database = {
         }
         Relationships: []
       }
+      editor_components: {
+        Row: {
+          content: Json | null
+          created_at: string
+          id: string
+          order_index: number | null
+          page_id: string
+          parent_id: string | null
+          position: Json | null
+          properties: Json | null
+          size: Json | null
+          styles: Json | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json | null
+          created_at?: string
+          id?: string
+          order_index?: number | null
+          page_id: string
+          parent_id?: string | null
+          position?: Json | null
+          properties?: Json | null
+          size?: Json | null
+          styles?: Json | null
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json | null
+          created_at?: string
+          id?: string
+          order_index?: number | null
+          page_id?: string
+          parent_id?: string | null
+          position?: Json | null
+          properties?: Json | null
+          size?: Json | null
+          styles?: Json | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "editor_components_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "editor_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "editor_components_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "editor_components"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      editor_pages: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_published: boolean | null
+          is_template: boolean | null
+          meta_data: Json | null
+          name: string
+          settings: Json | null
+          slug: string
+          title: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          is_template?: boolean | null
+          meta_data?: Json | null
+          name: string
+          settings?: Json | null
+          slug: string
+          title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_published?: boolean | null
+          is_template?: boolean | null
+          meta_data?: Json | null
+          name?: string
+          settings?: Json | null
+          slug?: string
+          title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      editor_templates: {
+        Row: {
+          category: string | null
+          components_data: Json
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          page_data: Json
+          thumbnail_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          components_data: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          page_data: Json
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          components_data?: Json
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          page_data?: Json
+          thumbnail_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       enrollments: {
         Row: {
           completed_at: string | null
@@ -401,6 +548,47 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      published_sites: {
+        Row: {
+          build_log: string | null
+          deployment_url: string | null
+          domain: string | null
+          id: string
+          page_id: string
+          published_at: string
+          published_by: string | null
+          status: string | null
+        }
+        Insert: {
+          build_log?: string | null
+          deployment_url?: string | null
+          domain?: string | null
+          id?: string
+          page_id: string
+          published_at?: string
+          published_by?: string | null
+          status?: string | null
+        }
+        Update: {
+          build_log?: string | null
+          deployment_url?: string | null
+          domain?: string | null
+          id?: string
+          page_id?: string
+          published_at?: string
+          published_by?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "published_sites_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "editor_pages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       translation_cache: {
         Row: {
