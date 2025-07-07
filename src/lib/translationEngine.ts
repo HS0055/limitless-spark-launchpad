@@ -21,6 +21,7 @@ class TranslationEngine {
     this.loadCache();
     this.preloadCommonStrings();
     this.setupMutationObserver();
+    this.setupRealtimeSync();
   }
 
   private loadCache() {
@@ -156,16 +157,19 @@ class TranslationEngine {
     this.currentLanguage = targetLang;
     this.abortController = new AbortController();
     
-    // INSTANT translation with cached content - no delays
+    // STEP 1: Load global cache from Supabase first
+    await this.loadGlobalCache(targetLang);
+    
+    // STEP 2: Apply all cached translations immediately
     this.translateCachedContent(targetLang);
     
-    // Only translate new content if absolutely necessary
+    // STEP 3: Only translate truly new content
     const uncachedTexts = this.collectUncachedTexts(targetLang);
     if (uncachedTexts.length > 0) {
-      console.log(`💰 Translating ${uncachedTexts.length} new texts (one-time cost)`);
+      console.log(`💰 Translating ${uncachedTexts.length} new texts (shared globally)`);
       setTimeout(() => this.translateNewContent(uncachedTexts, targetLang), 50);
     } else {
-      console.log('✅ All content already cached - no API costs!');
+      console.log('✅ All content from global cache - instant results!');
     }
   }
 
@@ -197,7 +201,84 @@ class TranslationEngine {
     }
   }
 
-  private translateCachedContent(targetLang: Language) {
+  private async loadGlobalCache(targetLang: Language) {
+    try {
+      // Import supabase client dynamically to avoid issues
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      const { data, error } = await supabase
+        .from('translation_cache')
+        .select('original, translated')
+        .eq('target_lang', targetLang)
+        .limit(1000); // Get most common translations
+      
+      if (error) {
+        console.error('Failed to load global cache:', error);
+        return;
+      }
+      
+      if (data) {
+        let loadedCount = 0;
+        data.forEach(row => {
+          if (!this.cache[row.original]) {
+            this.cache[row.original] = {};
+          }
+          this.cache[row.original][targetLang] = row.translated;
+          loadedCount++;
+        });
+        
+        console.log(`🌍 Loaded ${loadedCount} translations from global cache`);
+        this.saveCache(); // Save to localStorage for offline access
+      }
+    } catch (error) {
+      console.error('Failed to load global translation cache:', error);
+    }
+  }
+
+  private setupRealtimeSync() {
+    // Set up realtime sync for new translations
+    this.syncNewTranslations();
+  }
+
+  private async syncNewTranslations() {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Listen for new translations added by other users
+      const channel = supabase
+        .channel('translation-updates')
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'translation_cache'
+          },
+          (payload) => {
+            console.log('🔄 New translation received:', payload.new);
+            const { original, target_lang, translated } = payload.new as any;
+            
+            // Add to local cache
+            if (!this.cache[original]) {
+              this.cache[original] = {};
+            }
+            this.cache[original][target_lang] = translated;
+            
+            // If this matches current language, apply immediately
+            if (target_lang === this.currentLanguage) {
+              this.translateCachedContent(target_lang);
+            }
+            
+            this.saveCache();
+          }
+        )
+        .subscribe();
+        
+      console.log('🔄 Real-time translation sync enabled');
+    } catch (error) {
+      console.error('Failed to setup realtime sync:', error);
+    }
+  }
     // Translate document title
     const originalTitle = document.title;
     const translatedTitle = this.cache[originalTitle]?.[targetLang];
@@ -357,6 +438,39 @@ class TranslationEngine {
     
     // Apply newly translated content immediately
     this.translateCachedContent(targetLang);
+    
+    // Save to global cache for other users
+    await this.saveToGlobalCache(targetLang);
+  }
+
+  private async saveToGlobalCache(targetLang: Language) {
+    try {
+      const { supabase } = await import('@/integrations/supabase/client');
+      
+      // Get all translations for this language that might be new
+      const translations = Object.entries(this.cache)
+        .filter(([_, translations]) => translations[targetLang])
+        .map(([original, translations]) => ({
+          original,
+          target_lang: targetLang,
+          translated: translations[targetLang]
+        }));
+      
+      if (translations.length > 0) {
+        // Upsert to global cache (will ignore duplicates)
+        const { error } = await supabase
+          .from('translation_cache')
+          .upsert(translations, { onConflict: 'original,target_lang' });
+          
+        if (error) {
+          console.error('Failed to save to global cache:', error);
+        } else {
+          console.log(`🌍 Saved ${translations.length} translations to global cache`);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save to global cache:', error);
+    }
   }
 
   private async translateBatch(texts: string[], targetLang: Language): Promise<void> {
