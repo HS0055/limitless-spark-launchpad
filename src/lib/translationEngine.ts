@@ -8,11 +8,10 @@ interface TranslationCache {
   };
 }
 
-interface TranslatableElement {
-  element: Element;
+interface TranslatableText {
+  textNode: Text;
   originalText: string;
   cacheKey: string;
-  context?: string;
 }
 
 class TranslationEngine {
@@ -73,77 +72,67 @@ class TranslationEngine {
     }, 150);
   }
 
-  private collectTranslatableElements(): TranslatableElement[] {
-    const elements: TranslatableElement[] = [];
+  private collectTranslatables(): TranslatableText[] {
+    const textNodes: TranslatableText[] = [];
     const seenTexts = new Set<string>();
 
-    // Create a tree walker to find all text nodes
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode: (node) => {
-          const parent = node.parentElement;
-          if (!parent) return NodeFilter.FILTER_REJECT;
+    // Recursively walk document.body to find all Text nodes
+    const walkTextNodes = (element: Node) => {
+      if (element.nodeType === Node.TEXT_NODE) {
+        const textNode = element as Text;
+        const text = textNode.nodeValue?.trim();
+        
+        if (text && text.length > 2 && !seenTexts.has(text)) {
+          const parent = textNode.parentElement;
+          if (!parent) return;
 
-          // Skip script, style, and other non-visible elements
-          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE'];
+          // Skip nodes inside excluded tags
+          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAREA', 'INPUT'];
           if (skipTags.includes(parent.tagName)) {
-            return NodeFilter.FILTER_REJECT;
+            return;
+          }
+
+          // Skip elements marked as non-translatable
+          if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
+            return;
           }
 
           // Skip hidden elements
           const style = window.getComputedStyle(parent);
           if (style.display === 'none' || style.visibility === 'hidden') {
-            return NodeFilter.FILTER_REJECT;
-          }
-
-          // Skip elements marked as non-translatable
-          if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
-            return NodeFilter.FILTER_REJECT;
-          }
-
-          const text = node.textContent?.trim();
-          if (!text || text.length < 2) {
-            return NodeFilter.FILTER_REJECT;
+            return;
           }
 
           // Skip pure numbers, URLs, emails, etc.
           if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
               /^https?:\/\//.test(text) || 
               /^[^\s]+@[^\s]+\.[^\s]+$/.test(text)) {
-            return NodeFilter.FILTER_REJECT;
+            return;
           }
 
-          return NodeFilter.FILTER_ACCEPT;
+          seenTexts.add(text);
+          
+          // Store original content for restoration
+          if (!this.originalContent.has(parent)) {
+            this.originalContent.set(parent, parent.innerHTML);
+          }
+
+          textNodes.push({
+            textNode,
+            originalText: text,
+            cacheKey: text
+          });
+        }
+      } else if (element.nodeType === Node.ELEMENT_NODE) {
+        // Recursively process child nodes
+        for (let i = 0; i < element.childNodes.length; i++) {
+          walkTextNodes(element.childNodes[i]);
         }
       }
-    );
+    };
 
-    let node;
-    while (node = walker.nextNode()) {
-      const text = node.textContent?.trim();
-      const parent = node.parentElement;
-      
-      if (text && parent && !seenTexts.has(text)) {
-        seenTexts.add(text);
-        
-        // Store original content
-        if (!this.originalContent.has(parent)) {
-          this.originalContent.set(parent, parent.innerHTML);
-        }
-
-        const context = this.analyzeContext(parent);
-        elements.push({
-          element: parent,
-          originalText: text,
-          cacheKey: `${text}_${context}`,
-          context
-        });
-      }
-    }
-
-    return elements;
+    walkTextNodes(document.body);
+    return textNodes;
   }
 
   private analyzeContext(element: Element): string {
@@ -196,25 +185,25 @@ class TranslationEngine {
     this.currentLanguage = targetLang;
 
     try {
-      const elements = this.collectTranslatableElements();
-      console.log(`📊 Found ${elements.length} translatable elements`);
+      const textNodes = this.collectTranslatables();
+      console.log(`📊 Found ${textNodes.length} text nodes`);
 
-      if (elements.length === 0) {
+      if (textNodes.length === 0) {
         return;
       }
 
       // Check cache first
-      const uncachedElements = elements.filter(({ cacheKey }) => 
+      const uncachedNodes = textNodes.filter(({ cacheKey }) => 
         !this.cache[cacheKey]?.[targetLang]
       );
 
-      if (uncachedElements.length > 0) {
-        console.log(`🔄 Translating ${uncachedElements.length} new texts`);
-        await this.translateBatch(uncachedElements, targetLang);
+      if (uncachedNodes.length > 0) {
+        console.log(`🔄 Translating ${uncachedNodes.length} new texts`);
+        await this.translateBatch(uncachedNodes, targetLang);
       }
 
-      // Apply all translations
-      this.applyTranslations(elements, targetLang);
+      // Apply all translations to text nodes
+      this.applyTranslations(textNodes, targetLang);
 
     } catch (error) {
       console.error('Translation failed:', error);
@@ -223,15 +212,14 @@ class TranslationEngine {
     }
   }
 
-  private async translateBatch(elements: TranslatableElement[], targetLang: Language) {
+  private async translateBatch(textNodes: TranslatableText[], targetLang: Language) {
     const batchSize = 10;
-    const texts = elements.map(el => el.originalText);
-    const context = elements.map(el => el.context).join(', ');
+    const texts = textNodes.map(node => node.originalText);
 
     // Process in batches to avoid rate limits
     for (let i = 0; i < texts.length; i += batchSize) {
       const batch = texts.slice(i, i + batchSize);
-      const batchElements = elements.slice(i, i + batchSize);
+      const batchNodes = textNodes.slice(i, i + batchSize);
       
       try {
         console.log(`📦 Translating batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}`);
@@ -240,7 +228,7 @@ class TranslationEngine {
           body: {
             texts: batch,
             targetLang,
-            context
+            context: 'Web application content'
           }
         });
 
@@ -248,21 +236,21 @@ class TranslationEngine {
           throw new Error(result.error);
         }
 
-        // Update cache
+        // Update cache with translations
         Object.entries(result.data.translations).forEach(([original, translated]) => {
-          const element = batchElements.find(el => el.originalText === original);
-          if (element) {
-            if (!this.cache[element.cacheKey]) {
-              this.cache[element.cacheKey] = {};
+          const textNode = batchNodes.find(node => node.originalText === original);
+          if (textNode) {
+            if (!this.cache[textNode.cacheKey]) {
+              this.cache[textNode.cacheKey] = {};
             }
-            this.cache[element.cacheKey][targetLang] = translated as string;
-            console.log(`✅ Updated: '${original}' → '${translated}'`);
+            this.cache[textNode.cacheKey][targetLang] = translated as string;
+            console.log(`✅ Translated '${original}' → '${translated}'`);
           }
         });
 
         this.saveCache();
 
-        // Rate limiting delay
+        // Rate limiting delay between batches
         if (i + batchSize < texts.length) {
           await new Promise(resolve => setTimeout(resolve, 1300));
         }
@@ -274,17 +262,12 @@ class TranslationEngine {
     }
   }
 
-  private applyTranslations(elements: TranslatableElement[], targetLang: Language) {
-    elements.forEach(({ element, originalText, cacheKey }) => {
+  private applyTranslations(textNodes: TranslatableText[], targetLang: Language) {
+    textNodes.forEach(({ textNode, originalText, cacheKey }) => {
       const translation = this.cache[cacheKey]?.[targetLang];
       if (translation && translation !== originalText) {
-        // Replace text while preserving HTML structure
-        const currentHTML = element.innerHTML;
-        if (currentHTML.includes(originalText)) {
-          element.innerHTML = currentHTML.replace(originalText, translation);
-        } else if (element.textContent === originalText) {
-          element.textContent = translation;
-        }
+        // Directly update the Text node's nodeValue to preserve HTML structure
+        textNode.nodeValue = translation;
       }
     });
   }
