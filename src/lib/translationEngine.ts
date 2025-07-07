@@ -139,8 +139,12 @@ class TranslationEngine {
     
     this.debounceTimer = window.setTimeout(() => {
       console.log('🔄 Dynamic content detected, re-translating…');
-      this.translateAllContent(this.currentLanguage);
-    }, 100);
+      // Prevent layout shifts during translation
+      document.body.style.overflow = 'hidden';
+      this.translateAllContent(this.currentLanguage).finally(() => {
+        document.body.style.overflow = '';
+      });
+    }, 150); // Slightly longer delay for stability
   }
 
   async translateAll(targetLang: Language) {

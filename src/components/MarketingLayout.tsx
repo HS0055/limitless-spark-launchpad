@@ -16,7 +16,7 @@ const MarketingLayout = ({ children }: MarketingLayoutProps) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
       {/* Simplified Marketing Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border/50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <Link to="/" className="flex items-center space-x-3">
@@ -58,7 +58,7 @@ const MarketingLayout = ({ children }: MarketingLayoutProps) => {
       </header>
 
       {/* Main Content */}
-      <main className="pt-16">
+      <main className="relative">
         {children}
       </main>
 

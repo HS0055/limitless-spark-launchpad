@@ -148,6 +148,9 @@
       radial-gradient(circle at 80% 20%, hsl(280 100% 70% / 0.03) 0%, transparent 50%),
       radial-gradient(circle at 40% 80%, hsl(45 100% 65% / 0.02) 0%, transparent 50%),
       radial-gradient(circle at 60% 40%, hsl(160 100% 45% / 0.02) 0%, transparent 70%);
+    /* Prevent layout shifts during translation */
+    min-height: 100vh;
+    position: relative;
   }
 
   h1, h2, h3, h4, h5, h6 {
