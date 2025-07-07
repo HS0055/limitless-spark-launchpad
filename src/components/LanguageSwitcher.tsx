@@ -7,13 +7,69 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Globe, Check, Loader2 } from 'lucide-react';
 import { useDebouncedLanguageSwitch } from '@/hooks/useDebouncedLanguageSwitch';
+import { useSeamlessTranslation } from '@/hooks/useSeamlessTranslation';
+import { TranslationLoader, useTranslationLoader } from '@/components/TranslationLoader';
+import { useEffect } from 'react';
 
 const LanguageSwitcher = () => {
   const { switchLanguage, currentLanguage, isTranslating, availableLanguages } = useDebouncedLanguageSwitch();
+  const { translatePage, isTranslating: isSeamlessTranslating, progress, error } = useSeamlessTranslation();
+  const { loaderState, showLoader, updateProgress, hideLoader, setError } = useTranslationLoader();
 
   const currentLang = availableLanguages.find(lang => lang.code === currentLanguage);
 
+  // Enhanced language switching with seamless translation
+  const handleLanguageSwitch = async (langCode: string) => {
+    if (langCode === currentLanguage) return;
+    
+    try {
+      showLoader(currentLanguage, langCode);
+      
+      // Switch language in contexts first
+      switchLanguage(langCode);
+      
+      // Then apply seamless translation
+      if (langCode !== 'en') {
+        updateProgress(20, 'detecting');
+        await translatePage(langCode);
+        updateProgress(100, 'complete');
+      } else {
+        updateProgress(100, 'complete');
+      }
+      
+      hideLoader(1500);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Translation failed';
+      setError(errorMessage);
+      hideLoader(3000);
+    }
+  };
+
+  // Update loader progress when seamless translation progresses
+  useEffect(() => {
+    if (isSeamlessTranslating) {
+      if (progress < 20) {
+        updateProgress(20, 'detecting');
+      } else if (progress < 80) {
+        updateProgress(progress, 'translating');
+      } else {
+        updateProgress(progress, 'applying');
+      }
+    }
+  }, [isSeamlessTranslating, progress, updateProgress]);
+
   return (
+    <>
+      <TranslationLoader
+        isVisible={loaderState.isVisible}
+        progress={loaderState.progress}
+        currentLanguage={currentLanguage}
+        targetLanguage={currentLanguage} // This would be the target in actual implementation
+        phase={loaderState.phase}
+        translatedCount={loaderState.translatedCount}
+        totalCount={loaderState.totalCount}
+        error={loaderState.error}
+      />
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
@@ -39,7 +95,7 @@ const LanguageSwitcher = () => {
         {availableLanguages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => switchLanguage(lang.code)}
+            onClick={() => handleLanguageSwitch(lang.code)}
             className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-muted/80 transition-colors"
           >
             <div className="flex items-center gap-3">
@@ -53,6 +109,7 @@ const LanguageSwitcher = () => {
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+    </>
   );
 };
 

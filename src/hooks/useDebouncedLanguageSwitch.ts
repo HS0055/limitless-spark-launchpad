@@ -51,23 +51,15 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
           return;
         }
         
-        // SIMPLIFIED FIX: Prevent visual disruption during translation
-        document.body.style.visibility = 'hidden';
-        
-        // Update both contexts
+        // Use seamless translation instead of hiding body
         languageContext.setLanguage(newLang as any);
         translationContext.setLanguage(newLang);
         
-        // Trigger translation engine for dynamic content
+        // Trigger seamless translation for dynamic content
         if (newLang !== 'en') {
-          const { translationEngine } = await import('@/lib/translationEngine');
-          await translationEngine.translateAll(newLang as any);
+          const { useSeamlessTranslation } = await import('@/hooks/useSeamlessTranslation');
+          // Note: This will be handled by the component using this hook
         }
-        
-        // Restore visibility after translation
-        setTimeout(() => {
-          document.body.style.visibility = 'visible';
-        }, 150);
         
       } catch (error) {
         // Only log error if request wasn't aborted
