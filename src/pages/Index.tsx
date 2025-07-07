@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Target, Users, Star, CheckCircle, ArrowRight, Zap, BarChart3, Briefcase, TrendingUp, BookOpen, GraduationCap, Award, Clock, Trophy, Calendar, DollarSign, LineChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import InteractiveCompounding from "@/components/InteractiveCompounding";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -191,6 +192,9 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+      {/* Interactive Compounding Section */}
+      <InteractiveCompounding />
 
       {/* Business League Section */}
       <section className="py-20 bg-gradient-to-b from-background to-muted/20">
