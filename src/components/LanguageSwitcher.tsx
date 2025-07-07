@@ -72,12 +72,12 @@ const LanguageSwitcher = () => {
           >
             <div className="flex items-center gap-2">
               {isTranslating ? (
-                <Languages className="w-4 h-4 animate-spin text-primary" />
+                <Languages className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
               ) : (
-                <Globe className="w-4 h-4 text-foreground group-hover:text-primary transition-colors" />
+                <Globe className="w-4 h-4 text-foreground group-hover:text-primary transition-colors flex-shrink-0" />
               )}
               
-              <span className="text-base" aria-hidden="true">
+              <span className="text-base flex-shrink-0" aria-hidden="true">
                 {currentLanguage?.flag}
               </span>
               
