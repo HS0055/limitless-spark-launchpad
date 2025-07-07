@@ -2,6 +2,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import TranslationMetricsDisplay from "@/components/TranslationMetricsDisplay";
 import TranslationManagementDashboard from "@/components/TranslationManagementDashboard";
+import IntelligentTranslationDashboard from "@/components/IntelligentTranslationDashboard";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +12,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import LanguageAdaptiveLayout from "@/components/LanguageAdaptiveLayout";
 import AITranslationEngine from "@/components/AITranslationEngine";
+import IntelligentTranslationSystem from "@/components/IntelligentTranslationSystem";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -48,12 +50,14 @@ const App = () => (
           <LanguageProvider>
             <LanguageAdaptiveLayout>
               <AITranslationEngine />
+              <IntelligentTranslationSystem />
               <div className="min-h-screen bg-background">
                 <Toaster />
                 <Sonner />
                 <PerformanceMonitor />
                 <TranslationMetricsDisplay />
                 <TranslationManagementDashboard />
+                <IntelligentTranslationDashboard />
                 <BrowserRouter>
                   <Routes>
                     <Route path="/" element={<Home />} />
