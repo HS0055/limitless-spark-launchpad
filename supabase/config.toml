@@ -1,1 +1,4 @@
 project_id = "mbwieegglyprxoncckdj"
+
+[functions.armenian-content-optimizer]
+verify_jwt = false

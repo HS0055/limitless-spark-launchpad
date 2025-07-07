@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
+import ArmenianUIEnhancer from "@/components/ArmenianUIEnhancer";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -45,6 +46,7 @@ const App = () => (
           <LanguageProvider>
             <AutoTranslateProvider>
               <div className="min-h-screen bg-background">
+                <ArmenianUIEnhancer />
                 <Toaster />
                 <Sonner />
                 <PerformanceMonitor />

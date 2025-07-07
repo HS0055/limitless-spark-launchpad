@@ -95,10 +95,10 @@
   --text-5xl: 3rem;       /* 48px */
   --text-6xl: 3.75rem;    /* 60px */
 
-  /* Language-specific font stacks */
+  /* Language-specific font stacks - Enhanced for Armenian */
   --font-latin: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-cyrillic: 'Inter', 'PT Sans', 'Roboto', system-ui, sans-serif;
-  --font-armenian: 'Inter', 'Noto Sans Armenian', 'Arial Unicode MS', sans-serif;
+  --font-armenian: 'Inter', 'Noto Sans Armenian', 'Arial Armenian', 'Sylfaen', 'Arial Unicode MS', sans-serif;
 
   /* Enhanced spacing scale */
   --space-1: 0.25rem;     /* 4px */
@@ -197,14 +197,34 @@
 
   .font-armenian {
     font-family: var(--font-armenian);
-    letter-spacing: 0.01em;
-    line-height: 1.6;
+    letter-spacing: 0.015em;
+    line-height: 1.65;
+    font-feature-settings: "kern" 1, "liga" 1;
+    text-rendering: optimizeLegibility;
   }
 
-  /* Language-adaptive text sizing */
+  /* Enhanced language-adaptive text sizing */
   [lang="hy"] {
+    font-size: 1.08em;
+    line-height: 1.65;
+    letter-spacing: 0.01em;
+  }
+
+  [lang="hy"] h1, [lang="hy"] h2, [lang="hy"] h3 {
     font-size: 1.05em;
-    line-height: 1.6;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  [lang="hy"] .btn, [lang="hy"] button {
+    font-size: 0.95em;
+    padding: 0.6rem 1.2rem;
+    font-weight: 500;
+  }
+
+  [lang="hy"] p {
+    line-height: 1.7;
+    margin-bottom: 1.2em;
   }
 
   [lang="ru"] {
