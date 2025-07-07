@@ -11,6 +11,7 @@ import UpcomingLeagues from "@/components/UpcomingLeagues";
 import TestimonialsSection from "@/components/TestimonialsSection";
 import Footer from "@/components/Footer";
 import FAQ from "@/components/FAQ";
+import MarketingLayout from '@/components/MarketingLayout';
 
 const Home = () => {
   const { user, loading } = useAuth();
@@ -20,7 +21,8 @@ const Home = () => {
   // Redirect authenticated users to dashboard
   useEffect(() => {
     if (!loading && user) {
-      navigate('/dashboard');
+      // Don't redirect from home - let users see landing page
+      // navigate('/dashboard');
     }
   }, [user, loading, navigate]);
 
@@ -37,9 +39,9 @@ const Home = () => {
   }
 
   // Don't render home content if user is authenticated (will redirect)
-  if (user) {
-    return null;
-  }
+  // if (user) {
+  //   return null;
+  // }
 
   const stats = [
     { number: "5+", label: "Learning Leagues", icon: Trophy, color: "text-accent-secondary" },
@@ -79,32 +81,7 @@ const Home = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
-      {/* Simplified Marketing Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-primary to-accent-secondary rounded-xl flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-primary-foreground" />
-              </div>
-              <div>
-                <span className="text-xl font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
-                  TopOne <span className="text-primary">Academy</span>
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <LanguageSwitcher />
-              <Button className="btn-hero font-semibold px-6" asChild>
-                <a href="#get-started">{t('nav.getStarted')}</a>
-              </Button>
-            </div>
-          </div>
-        </div>
-      </header>
-      
+    <MarketingLayout>
       {/* Enhanced Hero Section */}
       <section className="content-section pt-24 relative">
         {/* Background decoration */}
@@ -271,8 +248,7 @@ const Home = () => {
 
       <TestimonialsSection />
       <FAQ />
-      <Footer />
-    </div>
+    </MarketingLayout>
   );
 };
 
