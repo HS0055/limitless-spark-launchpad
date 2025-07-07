@@ -235,53 +235,67 @@ class TranslationEngine {
   }
 
   private async translateBatch(textNodes: TranslatableText[], targetLang: Language) {
-    const batchSize = 10;
+    const batchSize = 25; // Increased batch size for better performance
     const texts = textNodes.map(node => node.originalText);
 
-    // Process in batches to avoid rate limits
+    // Process in batches with parallel execution
+    const batchPromises = [];
     for (let i = 0; i < texts.length; i += batchSize) {
       const batch = texts.slice(i, i + batchSize);
       const batchNodes = textNodes.slice(i, i + batchSize);
       
-      try {
-        console.log(`📦 Translating batch ${Math.floor(i / batchSize) + 1}/${Math.ceil(texts.length / batchSize)}`);
-        
-        const result = await apiClient.invoke('batch-translate', {
-          body: {
-            texts: batch,
-            targetLang,
-            context: 'Web application content'
-          }
-        });
-
-        if (result.error) {
-          throw new Error(result.error);
-        }
-
-        // Update cache with translations
-        console.log(`🗺️ Translations map:`, result.data.translations);
-        Object.entries(result.data.translations).forEach(([original, translated]) => {
-          const textNode = batchNodes.find(node => node.originalText === original);
-          if (textNode) {
-            if (!this.cache[textNode.cacheKey]) {
-              this.cache[textNode.cacheKey] = {};
-            }
-            this.cache[textNode.cacheKey][targetLang] = translated as string;
-            console.log(`✅ Translated '${original}' → '${translated}'`);
-          }
-        });
-
-        this.saveCache();
-
-        // Rate limiting delay between batches
-        if (i + batchSize < texts.length) {
-          await new Promise(resolve => setTimeout(resolve, 1300));
-        }
-
-      } catch (error) {
-        console.error(`❌ Batch translation failed:`, error);
-        // Continue with next batch
+      const batchPromise = this.processBatch(batch, batchNodes, targetLang, i, texts.length, batchSize);
+      batchPromises.push(batchPromise);
+      
+      // Add small delay between starting batches to avoid overwhelming the API
+      if (i + batchSize < texts.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
+    }
+
+    // Wait for all batches to complete
+    await Promise.allSettled(batchPromises);
+    this.saveCache();
+  }
+
+  private async processBatch(
+    batch: string[], 
+    batchNodes: TranslatableText[], 
+    targetLang: Language, 
+    startIndex: number, 
+    totalLength: number, 
+    batchSize: number
+  ) {
+    try {
+      console.log(`📦 Translating batch ${Math.floor(startIndex / batchSize) + 1}/${Math.ceil(totalLength / batchSize)}`);
+      
+      const result = await apiClient.invoke('batch-translate', {
+        body: {
+          texts: batch,
+          targetLang,
+          context: 'Web application content'
+        }
+      });
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Update cache with translations
+      Object.entries(result.data.translations).forEach(([original, translated]) => {
+        const textNode = batchNodes.find(node => node.originalText === original);
+        if (textNode) {
+          if (!this.cache[textNode.cacheKey]) {
+            this.cache[textNode.cacheKey] = {};
+          }
+          this.cache[textNode.cacheKey][targetLang] = translated as string;
+        }
+      });
+
+      console.log(`✅ Batch ${Math.floor(startIndex / batchSize) + 1} completed`);
+
+    } catch (error) {
+      console.error(`❌ Batch ${Math.floor(startIndex / batchSize) + 1} failed:`, error);
     }
   }
 
