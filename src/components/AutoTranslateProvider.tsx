@@ -411,6 +411,66 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     return textElements;
   };
 
+  // Rate limiting and queue system to prevent API overload
+  const translationQueue = useRef<Array<{
+    text: string;
+    targetLang: string;
+    context?: string;
+    resolve: (value: string) => void;
+    reject: (error: Error) => void;
+    retryCount: number;
+  }>>([]);
+  const isProcessingQueue = useRef(false);
+  const lastRequestTime = useRef(0);
+  const RATE_LIMIT_DELAY = 1300; // 1.3 seconds between requests (50 requests/minute = 1.2s minimum)
+  const MAX_RETRIES = 3;
+
+  const processTranslationQueue = async () => {
+    if (isProcessingQueue.current || translationQueue.current.length === 0) {
+      return;
+    }
+
+    isProcessingQueue.current = true;
+    
+    while (translationQueue.current.length > 0) {
+      const request = translationQueue.current.shift()!;
+      
+      try {
+        // Ensure proper rate limiting
+        const timeSinceLastRequest = Date.now() - lastRequestTime.current;
+        if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
+          const delay = RATE_LIMIT_DELAY - timeSinceLastRequest;
+          console.log(`⏱️ Rate limiting: waiting ${delay}ms`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+        }
+
+        const result = await translateTextDirect(request.text, request.targetLang, request.context);
+        lastRequestTime.current = Date.now();
+        request.resolve(result);
+        
+      } catch (error) {
+        // Retry logic with exponential backoff for rate limit errors
+        if (request.retryCount < MAX_RETRIES && error instanceof Error && 
+            (error.message.includes('429') || error.message.includes('rate limit') || 
+             error.message.includes('exceed'))) {
+          request.retryCount++;
+          const backoffDelay = Math.pow(2, request.retryCount) * 2000; // 2s, 4s, 8s
+          console.log(`🔄 Rate limit hit - retrying translation (attempt ${request.retryCount}/${MAX_RETRIES}) in ${backoffDelay}ms`);
+          
+          setTimeout(() => {
+            translationQueue.current.unshift(request); // Add back to front of queue
+            processTranslationQueue();
+          }, backoffDelay);
+        } else {
+          console.error('Translation failed after retries:', error);
+          request.reject(error instanceof Error ? error : new Error('Translation failed'));
+        }
+      }
+    }
+    
+    isProcessingQueue.current = false;
+  };
+
   const translateText = async (text: string, targetLang: string, context?: string): Promise<string> => {
     const cleanText = text.trim();
     if (!cleanText) return text;
@@ -440,54 +500,29 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         });
         return translationCache.current[cacheKey][targetLang];
       }
-
-      console.log('🔄 Translating new text:', cleanText.substring(0, 50) + '...');
+      
+      // Add to queue for rate-limited processing
+      console.log(`🔄 Queuing translation: ${cleanText.substring(0, 50)}...`);
       cacheManager.trackInteraction('translation_api_call', {
         sourceLength: cleanText.length,
         targetLang,
         context
       });
-
-      // Translate with AI only if not found in any cache
-      const result = await apiClient.invoke('ai-translate', {
-        body: {
+      
+      return new Promise((resolve, reject) => {
+        translationQueue.current.push({
           text: cleanText,
-          sourceLang: 'en',
-          targetLang: targetLang,
-          context: context,
-          visionMode: true
-        }
-      }, {
-        ttl: 300000,
-        skipCache: false
+          targetLang,
+          context,
+          resolve,
+          reject,
+          retryCount: 0
+        });
+        
+        // Start processing queue
+        processTranslationQueue();
       });
-
-      if (result.error) {
-        cacheManager.trackError('AI translation API error', { error: result.error, text: cleanText });
-        throw result.error;
-      }
-
-      const translatedText = result.data.translatedText;
-
-      // Save to advanced cache system
-      await cacheManager.setTranslation(cleanText, 'en', targetLang, translatedText, user?.id);
-
-      // Also cache in memory for immediate access
-      if (!translationCache.current[cacheKey]) {
-        translationCache.current[cacheKey] = {};
-      }
-      translationCache.current[cacheKey][targetLang] = translatedText;
-      saveCache();
-
-      // Track successful translation
-      cacheManager.trackTranslation();
-      cacheManager.trackInteraction('translation_completed', {
-        sourceLength: cleanText.length,
-        targetLength: translatedText.length,
-        targetLang
-      });
-
-      return translatedText;
+      
     } catch (error) {
       cacheManager.trackError('Translation failed', { 
         text: cleanText, 
@@ -501,6 +536,53 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       }
       return text; // Fallback to original text
     }
+  };
+
+  const translateTextDirect = async (text: string, targetLang: string, context?: string): Promise<string> => {
+    const cleanText = text.trim();
+    if (!cleanText) return text;
+
+    // Translate with AI only if not found in any cache
+    const result = await apiClient.invoke('ai-translate', {
+      body: {
+        text: cleanText,
+        sourceLang: 'en',
+        targetLang: targetLang,
+        context: context,
+        visionMode: true
+      }
+    }, {
+      ttl: 300000,
+      skipCache: false
+    });
+
+    if (result.error) {
+      cacheManager.trackError('AI translation API error', { error: result.error, text: cleanText });
+      throw new Error(result.error);
+    }
+
+    const translatedText = result.data.translatedText;
+
+    // Save to advanced cache system
+    await cacheManager.setTranslation(cleanText, 'en', targetLang, translatedText, user?.id);
+
+    // Also cache in memory for immediate access
+    const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
+    if (!translationCache.current[cacheKey]) {
+      translationCache.current[cacheKey] = {};
+    }
+    translationCache.current[cacheKey][targetLang] = translatedText;
+    saveCache();
+
+    // Track successful translation
+    cacheManager.trackTranslation();
+    cacheManager.trackInteraction('translation_completed', {
+      sourceLength: cleanText.length,
+      targetLength: translatedText.length,
+      targetLang
+    });
+
+    return translatedText;
   };
 
   const restoreOriginalContent = () => {
@@ -599,28 +681,52 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return;
       }
 
-      // Check database for existing translations to avoid unnecessary API calls
+      // Batch check database for existing translations to avoid unnecessary API calls
+      const textsToCheck = textElements.map(({ text }) => text.trim()).filter(Boolean);
+      
+      // Get all existing translations in one query instead of individual queries
+      const existingTranslations = new Map();
+      if (textsToCheck.length > 0) {
+        try {
+          const { data: translations } = await supabase
+            .from('translations')
+            .select('source_text, translated_text')
+            .eq('source_language', 'en')
+            .eq('target_language', targetLang)
+            .in('source_text', textsToCheck);
+          
+          // Build a map of existing translations
+          if (translations) {
+            translations.forEach(t => {
+              existingTranslations.set(t.source_text, t.translated_text);
+            });
+          }
+        } catch (error) {
+          console.warn('Batch translation lookup failed:', error);
+        }
+      }
+
+      // Determine which texts actually need translation
       const textsToTranslate = [];
       for (const { text, context } of textElements) {
         const cleanText = text.trim();
         if (!cleanText) continue;
 
-        // Check database first
-        const { data: existingTranslation } = await supabase
-          .from('translations')
-          .select('translated_text')
-          .eq('source_text', cleanText)
-          .eq('source_language', 'en')
-          .eq('target_language', targetLang)
-          .limit(1)
-          .single();
-
-        if (!existingTranslation) {
-          // Check memory cache
+        // Check if translation exists in database
+        if (existingTranslations.has(cleanText)) {
+          // Store in memory cache for faster future access
           const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
-          if (!translationCache.current[cacheKey]?.[targetLang]) {
-            textsToTranslate.push({ text, context });
+          if (!translationCache.current[cacheKey]) {
+            translationCache.current[cacheKey] = {};
           }
+          translationCache.current[cacheKey][targetLang] = existingTranslations.get(cleanText);
+          continue;
+        }
+
+        // Check memory cache
+        const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
+        if (!translationCache.current[cacheKey]?.[targetLang]) {
+          textsToTranslate.push({ text, context });
         }
       }
 
@@ -636,130 +742,119 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         console.log(`🔄 Processing ${textsToTranslate.length} new translations in batches of ${batchSize}...`);
       }
       
-      // Process all elements (mix of cached and new translations)
-      for (let i = 0; i < textElements.length; i += batchSize) {
-        const batch = textElements.slice(i, i + batchSize);
-        console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(textElements.length/batchSize)}`);
-        
-        const batchPromises = batch.map(async ({ element, text, context }, index) => {
-          // Stagger requests within batch to respect rate limits
-          const delay = index * 150; // 150ms delay between each request
-          if (delay > 0) {
-            await new Promise(resolve => setTimeout(resolve, delay));
-          }
-          
-          try {
-            const translatedText = await translateText(text, targetLang, context);
-              
-            // Ultra-robust element update system
-            if (element) {
-              try {
-                // Check if this is an attribute translation
-                if (context.includes('attribute')) {
-                  const attrMatch = context.match(/(title|alt|placeholder|aria-label|aria-description|data-tooltip|data-title|label|value) attribute/);
-                  if (attrMatch) {
-                    const attrName = attrMatch[1];
-                    element.setAttribute(attrName, translatedText);
-                  }
-                } else {
-                  // Text content translation with comprehensive strategies
-                  const originalText = text.trim();
-                  let updated = false;
+      // Process all elements efficiently using the rate-limited queue
+      console.log(`🔄 Processing ${textElements.length} elements through rate-limited queue...`);
+      
+      const translationPromises = textElements.map(async ({ element, text, context }) => {
+        try {
+          const translatedText = await translateText(text, targetLang, context);
+            
+          // Ultra-robust element update system
+          if (element) {
+            try {
+              // Check if this is an attribute translation
+              if (context.includes('attribute')) {
+                const attrMatch = context.match(/(title|alt|placeholder|aria-label|aria-description|data-tooltip|data-title|label|value) attribute/);
+                if (attrMatch) {
+                  const attrName = attrMatch[1];
+                  element.setAttribute(attrName, translatedText);
+                }
+              } else {
+                // Text content translation with comprehensive strategies
+                const originalText = text.trim();
+                let updated = false;
+                
+                // Strategy 1: Direct textContent match
+                if (element.textContent?.trim() === originalText) {
+                  element.textContent = translatedText;
+                  updated = true;
+                }
+                // Strategy 2: Partial textContent match
+                else if (element.textContent?.includes(originalText)) {
+                  element.textContent = element.textContent.replace(originalText, translatedText);
+                  updated = true;
+                }
+                // Strategy 3: innerHTML replacement (preserve HTML structure)
+                else if (element.innerHTML.includes(originalText)) {
+                  element.innerHTML = element.innerHTML.replace(originalText, translatedText);
+                  updated = true;
+                }
+                // Strategy 4: Deep text node search and replace
+                else {
+                  const walker = document.createTreeWalker(
+                    element,
+                    NodeFilter.SHOW_TEXT,
+                    null
+                  );
                   
-                  // Strategy 1: Direct textContent match
-                  if (element.textContent?.trim() === originalText) {
-                    element.textContent = translatedText;
-                    updated = true;
-                  }
-                  // Strategy 2: Partial textContent match
-                  else if (element.textContent?.includes(originalText)) {
-                    element.textContent = element.textContent.replace(originalText, translatedText);
-                    updated = true;
-                  }
-                  // Strategy 3: innerHTML replacement (preserve HTML structure)
-                  else if (element.innerHTML.includes(originalText)) {
-                    element.innerHTML = element.innerHTML.replace(originalText, translatedText);
-                    updated = true;
-                  }
-                  // Strategy 4: Deep text node search and replace
-                  else {
-                    const walker = document.createTreeWalker(
-                      element,
-                      NodeFilter.SHOW_TEXT,
-                      null
-                    );
-                    
-                    let textNode;
-                    while (textNode = walker.nextNode()) {
-                      const nodeText = textNode.textContent?.trim();
-                      if (nodeText === originalText) {
-                        textNode.textContent = translatedText;
-                        updated = true;
-                        break;
-                      } else if (textNode.textContent?.includes(originalText)) {
-                        textNode.textContent = textNode.textContent.replace(originalText, translatedText);
-                        updated = true;
-                        break;
-                      }
-                    }
-                  }
-                  
-                  // Strategy 5: Force update if we have the element but couldn't match text
-                  if (!updated && element.textContent) {
-                    // Last resort: replace entire content if it's the only text
-                    const elementTextNodes = [];
-                    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
-                    let textNode;
-                    while (textNode = walker.nextNode()) {
-                      if (textNode.textContent?.trim()) {
-                        elementTextNodes.push(textNode);
-                      }
-                    }
-                    
-                    // If element has only one meaningful text node, replace it
-                    if (elementTextNodes.length === 1) {
-                      elementTextNodes[0].textContent = translatedText;
+                  let textNode;
+                  while (textNode = walker.nextNode()) {
+                    const nodeText = textNode.textContent?.trim();
+                    if (nodeText === originalText) {
+                      textNode.textContent = translatedText;
                       updated = true;
+                      break;
+                    } else if (textNode.textContent?.includes(originalText)) {
+                      textNode.textContent = textNode.textContent.replace(originalText, translatedText);
+                      updated = true;
+                      break;
                     }
-                  }
-                  
-                  // Mark as translated to prevent re-translation loops
-                  if (updated && element instanceof HTMLElement) {
-                    element.setAttribute('data-translated', targetLang);
-                    element.style.opacity = '0.98';
-                    setTimeout(() => {
-                      element.style.opacity = '';
-                    }, 50);
                   }
                 }
-              } catch (error) {
-                console.warn('Translation update failed for element:', error);
+                
+                // Strategy 5: Force update if we have the element but couldn't match text
+                if (!updated && element.textContent) {
+                  // Last resort: replace entire content if it's the only text
+                  const elementTextNodes = [];
+                  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+                  let textNode;
+                  while (textNode = walker.nextNode()) {
+                    if (textNode.textContent?.trim()) {
+                      elementTextNodes.push(textNode);
+                    }
+                  }
+                  
+                  // If element has only one meaningful text node, replace it
+                  if (elementTextNodes.length === 1) {
+                    elementTextNodes[0].textContent = translatedText;
+                    updated = true;
+                  }
+                }
+                
+                // Mark as translated to prevent re-translation loops
+                if (updated && element instanceof HTMLElement) {
+                  element.setAttribute('data-translated', targetLang);
+                  element.style.opacity = '0.98';
+                  setTimeout(() => {
+                    element.style.opacity = '';
+                  }, 50);
+                }
               }
+              
+              // Update progress
+              const completed = textElements.filter(({ element: el }) => 
+                el && (el.hasAttribute('data-translated') || el.getAttribute('data-translated') === targetLang)
+              ).length;
+              const progress = (completed / textElements.length) * 100;
+              setTranslationProgress(Math.min(progress, 100));
+              
+            } catch (error) {
+              console.warn('Translation update failed for element:', error);
             }
-            
-            return { success: true, text, translatedText, context };
-          } catch (error) {
-            // Send error to admin logging only
-            if (hasAdminRole) {
-              logToAdmin('AI Vision translation failed', { text, context, error });
-            }
-            return { success: false, text, error, context };
           }
-        });
-
-        // Wait for all batch promises to complete
-        await Promise.allSettled(batchPromises);
-
-        completed += batch.length;
-        const progress = (completed / textElements.length) * 100;
-        setTranslationProgress(progress);
-        
-        // Add delay between batches to respect rate limits
-        if (i + batchSize < textElements.length) {
-          console.log('⏱️ Waiting 2s before next batch...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          return { success: true, text, translatedText, context };
+        } catch (error) {
+          // Send error to admin logging only
+          if (hasAdminRole) {
+            logToAdmin('AI Vision translation failed', { text, context, error });
+          }
+          return { success: false, text, error, context };
         }
-      }
+      });
+
+      // Wait for all translations to complete (rate-limited through queue)
+      await Promise.allSettled(translationPromises);
 
       // Mark page as translated to prevent duplicate translations
       sessionStorage.setItem(sessionKey, 'true');
