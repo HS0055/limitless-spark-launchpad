@@ -1,6 +1,7 @@
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { PerformanceMonitor } from "@/components/PerformanceMonitor";
 import TranslationMetricsDisplay from "@/components/TranslationMetricsDisplay";
+import TranslationManagementDashboard from "@/components/TranslationManagementDashboard";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -52,6 +53,7 @@ const App = () => (
                   <Sonner />
                   <PerformanceMonitor />
                   <TranslationMetricsDisplay />
+                  <TranslationManagementDashboard />
                   <BrowserRouter>
                     <Routes>
                       <Route path="/" element={<Home />} />
