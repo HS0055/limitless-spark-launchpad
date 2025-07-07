@@ -15,7 +15,6 @@ import Settings from "./pages/Settings";
 import League from "./pages/League";
 import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
-import Translator from "./pages/Translator";
 import AITools from "./pages/AITools";
 import NotFound from "./pages/NotFound";
 
@@ -37,7 +36,6 @@ const App = () => (
                   <Route path="/league" element={<League />} />
                   <Route path="/meme-coins" element={<MemeCoins />} />
                   <Route path="/visual-business" element={<VisualBusiness />} />
-                  <Route path="/translator" element={<Translator />} />
                   <Route path="/ai-tools" element={<AITools />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/admin" element={<AdminPanel />} />

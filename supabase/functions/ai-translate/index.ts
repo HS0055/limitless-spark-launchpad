@@ -15,7 +15,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, sourceLang, targetLang, detectOnly, context, enhancedMode } = await req.json();
+    const { text, sourceLang, targetLang, detectOnly, context, visionMode } = await req.json();
 
     if (!text) {
       return new Response(
@@ -118,20 +118,28 @@ Text: "${text}"`
         messages: [
           {
             role: 'user',
-            content: enhancedMode ? 
-              `You are a professional translator specializing in ${sourceLanguage} to ${targetLanguage} translation.
-              
-${context ? `CONTEXT: ${context}` : ''}
+            content: visionMode ? 
+              `You are an expert AI translator with vision capabilities for comprehensive website translation.
 
-Translate this text with maximum accuracy and cultural appropriateness. Consider:
-- Cultural nuances and idiomatic expressions
-- Professional terminology if applicable
-- Tone and register of the original text
-- Technical accuracy for specialized content
+CONTEXT ANALYSIS: ${context || 'general web content'}
+ELEMENT TYPE: Web page element requiring maximum accuracy
+SOURCE: ${sourceLanguage} → TARGET: ${targetLanguage}
 
-Return ONLY the best translation.
+CRITICAL REQUIREMENTS:
+- Analyze the complete semantic context of this web element
+- Detect UI patterns, navigation elements, business content, and user interface text
+- Preserve exact formatting, spacing, and special characters
+- Use culturally appropriate expressions for the target language
+- Maintain consistency with web conventions and user expectations
+- For buttons/CTAs: use action-oriented language appropriate for the target culture
+- For headings: preserve hierarchy and impact
+- For navigation: use standard web terminology
+- For content: maintain tone and register
 
-Text: "${text}"` 
+Web Element Context: ${context}
+Text to translate: "${text}"
+
+Return ONLY the precise translation that fits this web context.` 
               : 
               `Translate from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, nothing else.
 
@@ -162,8 +170,8 @@ Text to translate: "${text}"`
         translatedText,
         sourceLang,
         targetLang,
-        confidence: enhancedMode ? confidence : null,
-        alternatives: enhancedMode ? [] : null // Could be expanded with multiple translations
+        confidence: visionMode ? confidence : null,
+        visionAnalysis: visionMode ? context : null
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -18,7 +18,7 @@ const Header = () => {
     { name: t('nav.business'), href: "/business-fundamentals", icon: Target },
     { name: t('nav.memeCoins'), href: "/meme-coins", icon: TrendingUp },
     { name: t('nav.visual'), href: "/visual-business", icon: Image },
-    { name: t('nav.translator'), href: "/translator", icon: BookOpen },
+    { name: t('nav.aiTools'), href: "/ai-tools", icon: BookOpen },
   ];
 
   const secondaryNavItems = [

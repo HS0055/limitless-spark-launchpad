@@ -56,8 +56,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     }
   };
 
-  const extractTextContent = (element: Element): Array<{ element: Element; text: string }> => {
-    const textElements: Array<{ element: Element; text: string }> = [];
+  const extractTextContent = (element: Element): Array<{ element: Element; text: string; context: string }> => {
+    const textElements: Array<{ element: Element; text: string; context: string }> = [];
     const walker = document.createTreeWalker(
       element,
       NodeFilter.SHOW_TEXT,
@@ -66,13 +66,13 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           const parent = node.parentElement;
           if (!parent) return NodeFilter.FILTER_REJECT;
           
-          // Comprehensive skip logic for real-time website detection
-          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'SVG', 'PATH'];
+          // AI Vision-enhanced detection - capture ALL meaningful content
+          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'SVG', 'PATH'];
           if (skipTags.includes(parent.tagName)) {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Skip hidden elements but be more selective
+          // Only skip truly hidden elements, not opacity/transform effects
           const style = window.getComputedStyle(parent);
           if (style.display === 'none' || style.visibility === 'hidden') {
             return NodeFilter.FILTER_REJECT;
@@ -88,8 +88,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             return NodeFilter.FILTER_REJECT;
           }
           
-          // More intelligent filtering - detect UI text, navigation, content
-          // Allow more text types for comprehensive translation
+          // Enhanced filtering - preserve MORE content for comprehensive translation
+          // Only reject pure technical/code content
           if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
               /^https?:\/\//.test(text) || 
               /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
@@ -108,7 +108,10 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     while (node = walker.nextNode()) {
       const text = node.textContent?.trim();
       const parent = node.parentElement;
-      if (text && text.length > 1 && parent) {
+      if (text && text.length > 0 && parent) {
+        // AI Vision Context Detection - Enhanced element analysis
+        const elementContext = analyzeElementContext(parent);
+        
         // Group consecutive text nodes from the same parent
         const existingEntry = textElements.find(entry => entry.element === parent);
         if (existingEntry) {
@@ -116,7 +119,11 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             existingEntry.text += ' ' + text;
           }
         } else {
-          textElements.push({ element: parent, text });
+          textElements.push({ 
+            element: parent, 
+            text,
+            context: elementContext
+          });
           // Store original content if not already stored
           if (!originalContent.current.has(parent)) {
             originalContent.current.set(parent, text);
@@ -128,20 +135,98 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     return textElements;
   };
 
-  const translateText = async (text: string, targetLang: string): Promise<string> => {
+  // AI Vision Context Analysis for better translation accuracy
+  const analyzeElementContext = (element: Element): string => {
+    const contexts = [];
+    
+    // Analyze semantic HTML tags
+    const tagName = element.tagName.toLowerCase();
+    const semanticTags = {
+      'h1': 'main heading',
+      'h2': 'section heading', 
+      'h3': 'subsection heading',
+      'h4': 'minor heading',
+      'h5': 'small heading',
+      'h6': 'tiny heading',
+      'p': 'paragraph text',
+      'button': 'interactive button',
+      'a': 'navigation link',
+      'nav': 'navigation menu',
+      'header': 'page header',
+      'footer': 'page footer',
+      'main': 'main content',
+      'aside': 'sidebar content',
+      'article': 'article content',
+      'section': 'content section',
+      'span': 'inline text',
+      'div': 'content block',
+      'li': 'list item',
+      'td': 'table data',
+      'th': 'table header',
+      'label': 'form label',
+      'title': 'page title'
+    };
+    
+    if (semanticTags[tagName]) {
+      contexts.push(semanticTags[tagName]);
+    }
+    
+    // Analyze CSS classes for context clues
+    const className = element.className || '';
+    if (className.includes('nav')) contexts.push('navigation');
+    if (className.includes('menu')) contexts.push('menu');
+    if (className.includes('button') || className.includes('btn')) contexts.push('button');
+    if (className.includes('title') || className.includes('heading')) contexts.push('title');
+    if (className.includes('desc') || className.includes('text')) contexts.push('description');
+    if (className.includes('card')) contexts.push('card content');
+    if (className.includes('hero')) contexts.push('hero section');
+    if (className.includes('footer')) contexts.push('footer');
+    if (className.includes('header')) contexts.push('header');
+    if (className.includes('price')) contexts.push('pricing');
+    if (className.includes('cta')) contexts.push('call to action');
+    
+    // Analyze element position and hierarchy
+    try {
+      const rect = element.getBoundingClientRect();
+      if (rect.top < 200) contexts.push('top section');
+      if (rect.bottom > window.innerHeight - 200) contexts.push('bottom section');
+    } catch (e) {
+      // Skip if getBoundingClientRect fails
+    }
+    
+    // Analyze parent context for better understanding
+    let parent = element.parentElement;
+    let depth = 0;
+    while (parent && parent !== document.body && depth < 5) {
+      const parentTag = parent.tagName.toLowerCase();
+      if (parentTag === 'nav') contexts.push('navigation area');
+      if (parentTag === 'header') contexts.push('header area');
+      if (parentTag === 'footer') contexts.push('footer area');
+      if (parentTag === 'main') contexts.push('main content area');
+      if (parent.className && parent.className.includes('hero')) contexts.push('hero section');
+      parent = parent.parentElement;
+      depth++;
+    }
+    
+    return contexts.length > 0 ? contexts.join(', ') : 'general content';
+  };
+
+  const translateText = async (text: string, targetLang: string, context?: string): Promise<string> => {
     // Check cache first for ultra-fast retrieval
-    const cacheKey = text.toLowerCase().trim();
+    const cacheKey = `${text.toLowerCase().trim()}_${context || ''}`;
     if (translationCache.current[cacheKey]?.[targetLang]) {
       return translationCache.current[cacheKey][targetLang];
     }
 
     try {
-      // Use Claude 4 for superior translation quality and speed
+      // Use Claude 4 with AI Vision context for maximum accuracy
       const { data, error } = await supabase.functions.invoke('ai-translate', {
         body: {
           text: text,
           sourceLang: 'en',
-          targetLang: targetLang
+          targetLang: targetLang,
+          context: context,
+          visionMode: true
         }
       });
 
@@ -149,7 +234,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
       const translatedText = data.translatedText;
 
-      // Aggressive caching for speed
+      // Enhanced aggressive caching with context
       if (!translationCache.current[cacheKey]) {
         translationCache.current[cacheKey] = {};
       }
@@ -160,7 +245,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
       return translatedText;
     } catch (error) {
-      console.error('Claude translation error:', error);
+      console.error('AI Vision translation error:', error);
       return text; // Fallback to original text
     }
   };
@@ -249,13 +334,13 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         
-        // Parallel processing with Claude's superior speed
+        // AI Vision-Enhanced parallel processing
         const results = await Promise.allSettled(
-          batch.map(async ({ element, text }) => {
+          batch.map(async ({ element, text, context }) => {
             try {
-              const translatedText = await translateText(text, targetLang);
+              const translatedText = await translateText(text, targetLang, context);
               
-              // Intelligent element update - preserve all formatting
+              // Intelligent element update with context awareness
               if (element && element.textContent?.trim() === text.trim()) {
                 const wasHtml = element.innerHTML !== element.textContent;
                 if (wasHtml && element.innerHTML.includes(text)) {
@@ -265,10 +350,10 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
                 }
               }
               
-              return { success: true, text, translatedText };
+              return { success: true, text, translatedText, context };
             } catch (error) {
-              console.warn('Claude translation failed:', text, error);
-              return { success: false, text, error };
+              console.warn('AI Vision translation failed:', text, context, error);
+              return { success: false, text, error, context };
             }
           })
         );
