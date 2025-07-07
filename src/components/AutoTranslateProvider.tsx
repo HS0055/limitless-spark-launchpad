@@ -8,14 +8,14 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
   console.log('🔄 AutoTranslateProvider initialized for:', location.pathname);
 
-  // Hook into route changes to re-translate new content
+  // PERFORMANCE FIX: Optimize route change translations
   useEffect(() => {
     console.log('🌐 Route changed to:', location.pathname, 'Language:', language);
     
-    // Always initialize translation engine on route change
+    // Only translate on route changes for non-English languages
     if (language !== 'en') {
-      // Small delay to let new content load before translating
-      setTimeout(async () => {
+      // Increased delay to reduce rapid re-translations
+      const timer = setTimeout(async () => {
         try {
           const { translationEngine } = await import('@/lib/translationEngine');
           console.log('🔄 Re-translating page content...');
@@ -23,14 +23,16 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         } catch (error) {
           console.error('Failed to translate on route change:', error);
         }
-      }, 300); // Slightly longer delay for better reliability
+      }, 800); // Increased delay to prevent rapid fire translations
+
+      return () => clearTimeout(timer);
     }
   }, [location.pathname, language]);
 
-  // Also trigger translation when language changes
+  // PERFORMANCE FIX: Debounce language changes
   useEffect(() => {
     if (language !== 'en') {
-      setTimeout(async () => {
+      const timer = setTimeout(async () => {
         try {
           const { translationEngine } = await import('@/lib/translationEngine');
           console.log('🌍 Language changed, translating...');
@@ -38,7 +40,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         } catch (error) {
           console.error('Failed to translate on language change:', error);
         }
-      }, 100);
+      }, 500); // Increased delay for language changes
+
+      return () => clearTimeout(timer);
     }
   }, [language]);
 

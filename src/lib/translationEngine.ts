@@ -16,6 +16,8 @@ class TranslationEngine {
   private debounceTimer: number | null = null;
   private translatedElements = new WeakSet<Element>();
   private abortController: AbortController | null = null;
+  private lastTranslatedPath: string = '';
+  private performanceThrottle = 0; // Performance throttling counter
 
   constructor() {
     this.loadCache();
@@ -230,11 +232,17 @@ class TranslationEngine {
   }
 
   private setupMutationObserver() {
-    this.observer = new MutationObserver(() => {
-      // COMPREHENSIVE FIX: Multiple checks to prevent any floating
+    this.observer = new MutationObserver((mutations) => {
+      // PERFORMANCE FIX: Throttle mutations to prevent excessive processing
+      this.performanceThrottle++;
+      if (this.performanceThrottle % 10 !== 0) return; // Only process every 10th mutation
+
+      // Enhanced blocking conditions
       if (this.currentLanguage !== 'en' && 
           !this.isTranslating && 
-          !document.getElementById('translation-freeze-styles')) {
+          !document.getElementById('translation-freeze-styles') &&
+          !document.hidden && // Don't observe when tab not visible
+          mutations.some(m => m.type === 'childList' && m.addedNodes.length > 0)) { // Only on actual content changes
         this.debouncedRetranslate();
       }
     });
@@ -242,7 +250,7 @@ class TranslationEngine {
     this.observer.observe(document.body, {
       childList: true,
       subtree: true,
-      characterData: true
+      characterData: false // Disable character data observation for performance
     });
   }
 
@@ -251,24 +259,22 @@ class TranslationEngine {
       clearTimeout(this.debounceTimer);
     }
     
+    // PERFORMANCE FIX: Dramatically reduce translation frequency
     this.debounceTimer = window.setTimeout(() => {
-      // COMPREHENSIVE CHECK: Prevent ALL possible floating scenarios
+      // Enhanced blocking conditions
       if (this.isTranslating || 
           document.getElementById('translation-freeze-styles') ||
-          document.body.style.overflow === 'hidden') {
+          document.body.style.overflow === 'hidden' ||
+          document.hidden || // Don't translate when tab not visible
+          window.location.pathname !== this.lastTranslatedPath) { // Don't translate if page changed
         console.log('⏳ Translation blocked to prevent floating');
         return;
       }
       
-      console.log('🔄 Dynamic content detected, re-translating…');
-      // Use faster, cached-only translation for dynamic updates
+      // Only use cached translations for dynamic updates to prevent API calls
       this.translateCachedContent(this.currentLanguage);
       
-      // Completely disable random re-translations to prevent floating
-      // if (Math.random() < 0.1) { // DISABLED to prevent floating
-      //   this.translateAllContent(this.currentLanguage);
-      // }
-    }, 1200); // Increased delay even more to prevent any floating
+    }, 3000); // Increased to 3 seconds to reduce frequency
   }
 
   async translateAll(targetLang: Language) {

@@ -50,7 +50,8 @@ const AppContent = () => {
     <div className="min-h-screen bg-background">
       <Toaster />
       <Sonner />
-      <PerformanceMonitor />
+      {/* PerformanceMonitor disabled by default for production performance */}
+      {process.env.NODE_ENV === 'development' && <PerformanceMonitor />}
       <BrowserRouter>
         <AutoTranslateProvider>
           <Routes>

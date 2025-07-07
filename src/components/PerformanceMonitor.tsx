@@ -25,8 +25,8 @@ export const PerformanceMonitor = () => {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Only show in development or when explicitly enabled
-    const showMonitor = localStorage.getItem('show-performance-monitor') === 'true' || 
+    // PERFORMANCE FIX: Only show in development and disable by default
+    const showMonitor = localStorage.getItem('show-performance-monitor') === 'true' && 
                        process.env.NODE_ENV === 'development';
     setIsVisible(showMonitor);
 

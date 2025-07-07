@@ -32,24 +32,37 @@ const Home = () => {
     }
   }, [user, loading, navigate]);
 
-  // Mouse tracking for interactive effects
+  // PERFORMANCE FIX: Throttle mouse tracking and scroll events
   useEffect(() => {
+    let animationFrame: number | null = null;
+
     const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ 
-        x: (e.clientX / window.innerWidth) * 2 - 1,
-        y: (e.clientY / window.innerHeight) * 2 - 1
+      if (animationFrame) return; // Skip if animation frame is pending
+      
+      animationFrame = requestAnimationFrame(() => {
+        setMousePosition({ 
+          x: (e.clientX / window.innerWidth) * 2 - 1,
+          y: (e.clientY / window.innerHeight) * 2 - 1
+        });
+        animationFrame = null;
       });
     };
 
+    let scrollTimeout: number | null = null;
     const handleScroll = () => {
-      setScrollY(window.scrollY);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
+      scrollTimeout = window.setTimeout(() => {
+        setScrollY(window.scrollY);
+      }, 16); // Throttle to ~60fps
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('mousemove', handleMouseMove, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('scroll', handleScroll);
+      if (animationFrame) cancelAnimationFrame(animationFrame);
+      if (scrollTimeout) clearTimeout(scrollTimeout);
     };
   }, []);
 
