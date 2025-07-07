@@ -9,12 +9,15 @@ const Header = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
 
-  const navItems = [
+  const mainNavItems = [
     { name: "Home", href: "/", icon: Home },
-    { name: "League", href: "/league", icon: Trophy },
-    { name: "Business League", href: "/business-fundamentals", icon: Target },
+    { name: "Programs", href: "/league", icon: Trophy },
+    { name: "Business", href: "/business-fundamentals", icon: Target },
     { name: "Meme Coins", href: "/meme-coins", icon: TrendingUp },
-    { name: "Visual Business", href: "/visual-business", icon: Image },
+    { name: "Visual", href: "/visual-business", icon: Image },
+  ];
+
+  const secondaryNavItems = [
     { name: "Community", href: "#testimonials", icon: Users },
     { name: "Pricing", href: "#pricing", icon: DollarSign },
   ];
@@ -36,62 +39,86 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navItems.map((item) => {
-              const isExternal = item.href.startsWith('#');
-              const isActive = !isExternal && location.pathname === item.href;
-              
-              if (isExternal) {
+          <div className="hidden lg:flex items-center space-x-1">
+            {/* Main Navigation */}
+            <div className="flex items-center space-x-1 mr-6">
+              {mainNavItems.map((item) => {
+                const isActive = location.pathname === item.href;
+                
                 return (
-                  <a
+                  <Link
                     key={item.name}
-                    href={item.href}
-                    className="text-muted-foreground hover:text-foreground transition-colors duration-200 flex items-center space-x-1 group"
+                    to={item.href}
+                    className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 group relative ${
+                      isActive 
+                        ? 'bg-primary/10 text-primary border border-primary/20' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <item.icon className={`w-4 h-4 transition-colors ${
+                      isActive ? 'text-primary' : 'group-hover:text-primary'
+                    }`} />
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Secondary Navigation */}
+            <div className="flex items-center space-x-1 border-l border-border pl-6">
+              {secondaryNavItems.map((item) => {
+                const isExternal = item.href.startsWith('#');
+                
+                if (isExternal) {
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className="px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 flex items-center space-x-2 group"
+                    >
+                      <item.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
+                      <span className="font-medium">{item.name}</span>
+                    </a>
+                  );
+                }
+                
+                return (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200 flex items-center space-x-2 group"
                   >
                     <item.icon className="w-4 h-4 group-hover:text-primary transition-colors" />
-                    <span>{item.name}</span>
-                  </a>
+                    <span className="font-medium">{item.name}</span>
+                  </Link>
                 );
-              }
-              
-              return (
-                <Link
-                  key={item.name}
-                  to={item.href}
-                  className={`transition-colors duration-200 flex items-center space-x-1 group ${
-                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <item.icon className={`w-4 h-4 transition-colors ${
-                    isActive ? 'text-primary' : 'group-hover:text-primary'
-                  }`} />
-                  <span>{item.name}</span>
-                </Link>
-              );
-            })}
+              })}
+            </div>
           </div>
 
           {/* CTA Button */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden lg:flex items-center space-x-3">
             {user ? (
               <>
                 <Link
                   to="/settings"
-                  className={`transition-colors duration-200 flex items-center space-x-1 group ${
-                    location.pathname === '/settings' ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
+                  className={`p-2 rounded-lg transition-all duration-200 flex items-center space-x-2 group ${
+                    location.pathname === '/settings' 
+                      ? 'bg-primary/10 text-primary border border-primary/20' 
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
                   }`}
                 >
                   <Settings className={`w-4 h-4 transition-colors ${
                     location.pathname === '/settings' ? 'text-primary' : 'group-hover:text-primary'
                   }`} />
-                  <span>Settings</span>
+                  <span className="font-medium">Settings</span>
                 </Link>
-                <Button variant="outline" onClick={signOut}>
+                <Button variant="outline" onClick={signOut} className="font-medium">
                   Sign Out
                 </Button>
               </>
             ) : (
-              <Button className="btn-hero" asChild>
+              <Button className="btn-hero font-semibold px-6" asChild>
                 <Link to="/dashboard">
                   Get Started
                 </Link>
@@ -102,77 +129,109 @@ const Header = () => {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+            className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors border border-border"
           >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+            {isMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden absolute top-16 left-0 right-0 bg-background/95 backdrop-blur-lg border-b border-border">
-            <div className="p-4 space-y-4">
-              {navItems.map((item) => {
-                const isExternal = item.href.startsWith('#');
-                const isActive = !isExternal && location.pathname === item.href;
-                
-                if (isExternal) {
+          <div className="lg:hidden absolute top-16 left-0 right-0 bg-background/98 backdrop-blur-xl border-b border-border shadow-2xl">
+            <div className="p-6 space-y-2">
+              {/* Main Navigation */}
+              <div className="space-y-1 mb-6">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-3">Navigation</h3>
+                {mainNavItems.map((item) => {
+                  const isActive = location.pathname === item.href;
+                  
                   return (
-                    <a
+                    <Link
                       key={item.name}
-                      href={item.href}
-                      className="flex items-center space-x-3 p-3 rounded-lg hover:bg-muted transition-colors"
+                      to={item.href}
+                      className={`flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 ${
+                        isActive 
+                          ? 'bg-primary/10 text-primary border border-primary/20' 
+                          : 'hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                      }`}
                       onClick={() => setIsMenuOpen(false)}
                     >
-                      <item.icon className="w-5 h-5 text-primary" />
-                      <span>{item.name}</span>
-                    </a>
+                      <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
                   );
-                }
-                
-                return (
-                  <Link
-                    key={item.name}
-                    to={item.href}
-                    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                      isActive ? 'bg-muted text-primary' : 'hover:bg-muted'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <item.icon className={`w-5 h-5 ${isActive ? 'text-primary' : 'text-primary'}`} />
-                    <span>{item.name}</span>
-                  </Link>
-                );
-              })}
-              <Button className="w-full btn-hero mt-4" asChild>
-                <Link to="/dashboard">
-                  Get Started
-                </Link>
-              </Button>
-              {user && (
-                <>
-                  <Link
-                    to="/settings"
-                    className={`flex items-center space-x-3 p-3 rounded-lg transition-colors ${
-                      location.pathname === '/settings' ? 'bg-muted text-primary' : 'hover:bg-muted'
-                    }`}
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    <Settings className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-primary' : 'text-primary'}`} />
-                    <span>Settings</span>
-                  </Link>
-                  <Button 
-                    variant="outline" 
-                    className="w-full mt-2" 
-                    onClick={() => {
-                      signOut();
-                      setIsMenuOpen(false);
-                    }}
-                  >
-                    Sign Out
+                })}
+              </div>
+
+              {/* Secondary Navigation */}
+              <div className="space-y-1 mb-6 pt-4 border-t border-border">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-3">More</h3>
+                {secondaryNavItems.map((item) => {
+                  const isExternal = item.href.startsWith('#');
+                  
+                  if (isExternal) {
+                    return (
+                      <a
+                        key={item.name}
+                        href={item.href}
+                        className="flex items-center space-x-3 p-4 rounded-xl hover:bg-muted/80 transition-all duration-200 text-muted-foreground hover:text-foreground"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <item.icon className="w-5 h-5" />
+                        <span className="font-medium">{item.name}</span>
+                      </a>
+                    );
+                  }
+                  
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className="flex items-center space-x-3 p-4 rounded-xl hover:bg-muted/80 transition-all duration-200 text-muted-foreground hover:text-foreground"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span className="font-medium">{item.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Actions */}
+              <div className="pt-4 border-t border-border space-y-3">
+                {!user ? (
+                  <Button className="w-full btn-hero font-semibold py-3" asChild>
+                    <Link to="/dashboard">
+                      Get Started
+                    </Link>
                   </Button>
-                </>
-              )}
+                ) : (
+                  <>
+                    <Link
+                      to="/settings"
+                      className={`flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 ${
+                        location.pathname === '/settings' 
+                          ? 'bg-primary/10 text-primary border border-primary/20' 
+                          : 'hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                      }`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <Settings className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-primary' : ''}`} />
+                      <span className="font-medium">Settings</span>
+                    </Link>
+                    <Button 
+                      variant="outline" 
+                      className="w-full font-medium py-3" 
+                      onClick={() => {
+                        signOut();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      Sign Out
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}
