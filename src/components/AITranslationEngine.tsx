@@ -299,7 +299,7 @@ export const AITranslationEngine = () => {
     return Math.max(0, Math.min(200, priority));
   };
 
-  // Enhanced multi-model translation with error learning
+  // Enhanced multi-model translation with better error handling
   const translateWithAI = useCallback(async (
     text: string, 
     targetLang: string, 
@@ -313,148 +313,164 @@ export const AITranslationEngine = () => {
       return translationCache.current.get(cacheKey)!;
     }
     
-    // Error pattern detection
+    // Skip problematic patterns to prevent chaos
     const errorPattern = `${text.substring(0, 20)}_${context}`;
-    if (errorPatterns.current.has(errorPattern) && retryCount < 2) {
-      // Use alternative model if this pattern has failed before
-      const models = ['claude', 'openai', 'perplexity'];
-      const alternativeModel = models[(retryCount + 1) % models.length];
-      
-      try {
-        const result = await apiClient.invoke('ai-translate', {
-          body: {
-            text,
-            sourceLang: 'en',
-            targetLang,
-            context,
-            visionMode: true,
-            preferredModel: alternativeModel
-          }
-        }, {
-          ttl: 300000,
-          skipCache: retryCount > 0
-        });
-        
-        if (!result.error && result.data?.translatedText) {
-          const translated = result.data.translatedText;
-          translationCache.current.set(cacheKey, translated);
-          
-          // Remove from error patterns if successful
-          errorPatterns.current.delete(errorPattern);
-          
-          return translated;
-        }
-      } catch (error) {
-        console.warn(`Alternative model ${alternativeModel} failed:`, error);
-      }
+    if (errorPatterns.current.has(errorPattern) && retryCount === 0) {
+      // Return original text immediately for known problematic patterns
+      return text;
     }
     
-    // Standard translation attempt
+    // Use simpler, more reliable approach
     try {
       const result = await apiClient.invoke('ai-translate', {
         body: {
-          text,
+          text: text.trim(),
           sourceLang: 'en',
           targetLang,
-          context,
-          visionMode: true
+          context: context.substring(0, 100), // Limit context length
+          visionMode: false // Disable vision mode for stability
         }
       }, {
-        ttl: 300000,
+        ttl: 60000, // Shorter TTL for faster failover
         skipCache: retryCount > 0
       });
       
-      if (!result.error && result.data?.translatedText) {
-        const translated = result.data.translatedText;
-        translationCache.current.set(cacheKey, translated);
-        return translated;
-      } else {
-        throw new Error(result.error || 'Translation failed');
+      if (result.data?.translatedText && result.data.translatedText.trim()) {
+        const translated = result.data.translatedText.trim();
+        
+        // Validate translation quality
+        if (translated.length > 0 && translated !== text) {
+          translationCache.current.set(cacheKey, translated);
+          // Clear error pattern on success
+          errorPatterns.current.delete(errorPattern);
+          return translated;
+        }
       }
+      
+      throw new Error('Invalid translation response');
     } catch (error) {
-      // Learn from errors
+      console.warn(`Translation attempt ${retryCount + 1} failed:`, error);
+      
+      // Mark as problematic
       errorPatterns.current.add(errorPattern);
       
-      if (retryCount < 2) {
-        // Exponential backoff retry
-        await new Promise(resolve => setTimeout(resolve, Math.pow(2, retryCount) * 1000));
-        return translateWithAI(text, targetLang, context, retryCount + 1);
+      // Single retry with different approach
+      if (retryCount === 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        try {
+          const simpleResult = await apiClient.invoke('ai-translate', {
+            body: {
+              text: text.trim(),
+              sourceLang: 'en',
+              targetLang,
+              detectOnly: false
+            }
+          }, {
+            ttl: 30000,
+            skipCache: true
+          });
+          
+          if (simpleResult.data?.translatedText?.trim()) {
+            const translated = simpleResult.data.translatedText.trim();
+            translationCache.current.set(cacheKey, translated);
+            return translated;
+          }
+        } catch (retryError) {
+          console.warn('Retry also failed:', retryError);
+        }
       }
       
-      console.error('Translation failed after retries:', error);
-      return text; // Fallback to original text
+      // Return original text to maintain consistency
+      return text;
     }
   }, []);
 
-  // Process translation queue with intelligent batching
+  // Process translation queue with stable batching
   const processTranslationQueue = useCallback(async () => {
     if (processingQueue.current.length === 0 || engine.isProcessing) return;
     
     setEngine(prev => ({ ...prev, isProcessing: true }));
     
     const startTime = Date.now();
-    const batchSize = 8; // Optimal batch size for Claude
+    const batchSize = 3; // Smaller, more stable batch size
     let processed = 0;
     let errors = 0;
     
     while (processingQueue.current.length > 0) {
       const batch = processingQueue.current.splice(0, batchSize);
       
-      await Promise.allSettled(
-        batch.map(async (item) => {
-          try {
-            const translated = await translateWithAI(
-              item.originalText,
-              language,
-              item.context,
-              item.retryCount
-            );
-            
+      // Process sequentially to avoid overwhelming the API
+      for (const item of batch) {
+        try {
+          // Skip if already processed or problematic
+          if (item.element.hasAttribute('data-translated') || item.retryCount > 2) {
+            continue;
+          }
+          
+          const translated = await translateWithAI(
+            item.originalText,
+            language,
+            item.context,
+            item.retryCount
+          );
+          
+          // Only apply if translation is different and valid
+          if (translated && translated !== item.originalText && translated.trim().length > 0) {
             item.translatedText = translated;
             
-            // Apply translation to DOM
-            if (item.context.includes('attribute')) {
-              const attrMatch = item.context.match(/(title|alt|placeholder|aria-label|aria-description) attribute/);
-              if (attrMatch) {
-                const attrName = attrMatch[1];
-                if (item.element.getAttribute(attrName) === item.originalText) {
-                  item.element.setAttribute(attrName, translated);
+            // Apply translation to DOM safely
+            try {
+              if (item.context.includes('attribute')) {
+                const attrMatch = item.context.match(/(title|alt|placeholder|aria-label|aria-description) attribute/);
+                if (attrMatch) {
+                  const attrName = attrMatch[1];
+                  if (item.element.getAttribute(attrName) === item.originalText) {
+                    item.element.setAttribute(attrName, translated);
+                    item.element.setAttribute('data-translated', 'true');
+                  }
+                }
+              } else {
+                // Only update if content still matches original
+                const currentText = item.element.textContent?.trim();
+                if (currentText === item.originalText.trim()) {
+                  item.element.textContent = translated;
                   item.element.setAttribute('data-translated', 'true');
                 }
               }
-            } else if (item.element.textContent?.trim() === item.originalText.trim()) {
-              const wasHtml = item.element.innerHTML !== item.element.textContent;
-              if (wasHtml && item.element.innerHTML.includes(item.originalText)) {
-                item.element.innerHTML = item.element.innerHTML.replace(item.originalText, translated);
-              } else {
-                item.element.textContent = translated;
-              }
-              item.element.setAttribute('data-translated', 'true');
-            }
-            
-            processed++;
-          } catch (error) {
-            errors++;
-            item.retryCount++;
-            
-            if (item.retryCount < 3) {
-              // Re-queue for retry
-              processingQueue.current.push(item);
+              
+              processed++;
+            } catch (domError) {
+              console.warn('DOM update failed:', domError);
+              errors++;
             }
           }
-        })
-      );
+          
+          // Small delay between translations
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
+        } catch (error) {
+          console.warn('Translation error:', error);
+          errors++;
+          item.retryCount++;
+          
+          // Only retry high-priority items once
+          if (item.retryCount === 1 && item.priority > 80) {
+            processingQueue.current.push(item);
+          }
+        }
+      }
       
       // Update metrics
       setEngine(prev => ({
         ...prev,
-        processedElements: prev.processedElements + batch.filter(item => item.translatedText).length,
+        processedElements: prev.processedElements + processed,
         errorCount: prev.errorCount + errors
       }));
       
-      // Small delay to prevent overwhelming the API
+      // Longer delay between batches for stability
       if (processingQueue.current.length > 0) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
     }
     
