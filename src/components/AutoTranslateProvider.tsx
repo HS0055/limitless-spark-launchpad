@@ -431,11 +431,15 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   const restoreOriginalContent = () => {
+    console.log('🔄 Restoring original content');
+    let restored = 0;
     originalContent.current.forEach((originalText, element) => {
       if (element && element.textContent !== originalText) {
         element.textContent = originalText;
+        restored++;
       }
     });
+    console.log(`✅ Restored ${restored} elements to original English`);
   };
 
   // Master translation function - handles everything with one click
@@ -671,26 +675,29 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
-    // Force translation when language changes - simplified logic
+    // Force translation when language changes - simplified and aggressive
     if (language === 'en') {
       restoreOriginalContent();
       previousLanguage.current = language;
       return;
     }
 
-    // Skip if same language to avoid unnecessary translation
+    // Skip if same language
     if (previousLanguage.current === language) {
       return;
     }
 
-    // Always translate when language changes (simplified - no complex conditions)
+    console.log(`🌐 Language changed: ${previousLanguage.current} → ${language}`);
+
+    // Force immediate translation with short delay
     const timer = setTimeout(() => {
+      console.log(`🚀 Starting translation to ${language}`);
       translatePage(language, true);
       previousLanguage.current = language;
-    }, 300);
+    }, 100); // Reduced delay for faster response
 
     return () => clearTimeout(timer);
-  }, [language]); // Only depend on language change
+  }, [language]);
 
   const enableAutoTranslate = () => {
     setAutoTranslateEnabled(true);
