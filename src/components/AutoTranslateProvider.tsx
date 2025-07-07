@@ -63,18 +63,18 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     
     checkAdminRole();
     
-    // Load master translation settings - Auto-enable everything by default
+    // Force enable translation system immediately
+    setMasterTranslationEnabled(true);
+    setAutoTranslateEnabled(true);
+    setTranslationMode('auto');
+    
     try {
-      setMasterTranslationEnabled(true);
-      setAutoTranslateEnabled(true);
-      setTranslationMode('auto');
-      
       const savedCache = localStorage.getItem('translation-cache');
       if (savedCache) {
         translationCache.current = JSON.parse(savedCache);
       }
       
-      // Force enable auto-translation for seamless experience
+      // Ensure settings are saved
       localStorage.setItem('master-translation-enabled', 'true');
       localStorage.setItem('auto-translate-enabled', 'true');
       localStorage.setItem('translation-mode', 'auto');
@@ -487,13 +487,13 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return;
     }
 
-    // Check if this specific language was already translated for this session
-    const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
-    const alreadyTranslated = sessionStorage.getItem(sessionKey);
+    // Skip session check for more reliable translation
+    // const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
+    // const alreadyTranslated = sessionStorage.getItem(sessionKey);
     
-    if (alreadyTranslated && !force && hasTranslatedOnce) {
-      return; // Silent return, no notification for auto-mode
-    }
+    // if (alreadyTranslated && !force && hasTranslatedOnce) {
+    //   return; // Silent return, no notification for auto-mode
+    // }
 
     translationInProgress.current = true;
     setIsTranslating(true);
@@ -622,8 +622,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         }
       }
 
-      // Mark page as translated for this session
-      sessionStorage.setItem(sessionKey, 'true');
+      // Skip session tracking for immediate translation
       setHasTranslatedOnce(true);
 
       // Show success only on manual trigger (admin-only logging)
@@ -665,26 +664,26 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
-    // Auto-translate when language changes (if master system is enabled)
-    if (!masterTranslationEnabled || !autoTranslateEnabled || translationMode !== 'auto') {
+    // Force translation when language changes - simplified logic
+    if (language === 'en') {
+      restoreOriginalContent();
       previousLanguage.current = language;
       return;
     }
 
-    // Don't translate on initial load or same language
+    // Skip if same language to avoid unnecessary translation
     if (previousLanguage.current === language) {
-      previousLanguage.current = language;
       return;
     }
 
-    // Intelligent auto-translation with delay
+    // Always translate when language changes (simplified - no complex conditions)
     const timer = setTimeout(() => {
-      translatePage(language);
+      translatePage(language, true);
       previousLanguage.current = language;
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timer);
-  }, [language, masterTranslationEnabled, autoTranslateEnabled, translationMode]);
+  }, [language]); // Only depend on language change
 
   const enableAutoTranslate = () => {
     setAutoTranslateEnabled(true);
