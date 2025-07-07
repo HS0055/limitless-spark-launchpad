@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Trophy, Clock, Users, BookOpen, Star, Play, ChevronRight, Target } from "lucide-react";
+import { CulturalLeagueHero, CulturalLeagueStats, CulturalProgramsHeader } from "@/components/CulturalLeagueContent";
 
 const League = () => {
   const programs = [
@@ -11,7 +12,7 @@ const League = () => {
       title: "Business Fundamentals League",
       description: "Master the core principles of business including marketing, finance, operations, and strategy.",
       level: "Beginner",
-      duration: "8 weeks",
+      duration: "8 weeks",  
       students: 650,
       rating: 4.97,
       price: "$99",
@@ -50,13 +51,6 @@ const League = () => {
     }
   ];
 
-  const stats = [
-    { number: "3", label: "Active Programs", icon: Trophy, color: "text-primary" },
-    { number: "1,350+", label: "Students Enrolled", icon: Users, color: "text-accent-secondary" },
-    { number: "92+", label: "Total Lessons", icon: BookOpen, color: "text-accent-tertiary" },
-    { number: "4.95", label: "Average Rating", icon: Star, color: "text-primary" }
-  ];
-
   return (
     <SectionLayout 
       sectionName="Learning Leagues" 
@@ -72,54 +66,15 @@ const League = () => {
         </div>
         
         <div className="content-container">
-          <div className="section-header">
-            <div className="inline-flex items-center bg-gradient-to-r from-primary/10 to-accent-secondary/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-primary/20 shadow-lg animate-scale-in">
-              <Target className="w-4 h-4 text-primary mr-2" />
-              <span className="text-sm font-semibold text-gradient">🏆 Learning Programs</span>
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-8 leading-[1.1] tracking-tight animate-slide-up">
-              Choose Your
-              <br />
-              <span className="text-gradient">Learning League</span>
-            </h1>
-            
-            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium max-w-4xl mx-auto mb-12 animate-fade-in">
-              Join specialized programs designed to accelerate your business knowledge through 
-              <span className="text-primary font-bold"> visual learning</span> and practical application.
-            </p>
-
-            {/* Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-20">
-              {stats.map((stat, index) => (
-                <div 
-                  key={index} 
-                  className="text-center p-6 rounded-2xl card-glass hover-lift hover-glow group animate-scale-in"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
-                  <div className={`w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br from-primary/20 to-accent-secondary/10 flex items-center justify-center group-hover:scale-110 transition-transform`}>
-                    <stat.icon className={`w-6 h-6 ${stat.color}`} />
-                  </div>
-                  <div className="text-3xl font-bold text-gradient mb-2">{stat.number}</div>
-                  <div className="text-sm text-muted-foreground font-medium">{stat.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <CulturalLeagueHero />
+          <CulturalLeagueStats />
         </div>
       </section>
 
       {/* Programs Section */}
       <section className="content-section bg-gradient-to-b from-background via-muted/5 to-background">
         <div className="content-container">
-          <div className="section-header mb-16">
-            <h2 className="section-title animate-slide-up">
-              Available <span className="text-gradient">Programs</span>
-            </h2>
-            <p className="section-subtitle animate-fade-in">
-              Choose from our carefully crafted learning programs, each designed to build specific business skills
-            </p>
-          </div>
+          <CulturalProgramsHeader />
 
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {programs.map((program, index) => (
