@@ -15,6 +15,7 @@ const Header = () => {
     { name: "Business", href: "/business-fundamentals", icon: Target },
     { name: "Meme Coins", href: "/meme-coins", icon: TrendingUp },
     { name: "Visual", href: "/visual-business", icon: Image },
+    { name: "Translator", href: "/translator", icon: BookOpen },
   ];
 
   const secondaryNavItems = [

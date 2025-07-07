@@ -59,17 +59,21 @@ const Translator = () => {
     if (!user) return;
     
     try {
-      const { data, error } = await supabase
-        .from('translations')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      setHistory(data || []);
+      const response = await fetch('https://a048e3e6-89eb-49f4-9bfe-b3a6341ee7d3.supabase.co/functions/v1/translations', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setHistory(data || []);
+      }
     } catch (error) {
       console.error('Error loading translation history:', error);
+      // For now, we'll disable history if there's an error
+      setHistory([]);
     }
   };
 
@@ -77,20 +81,26 @@ const Translator = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('translations')
-        .insert({
-          user_id: user.id,
+      const response = await fetch('https://a048e3e6-89eb-49f4-9bfe-b3a6341ee7d3.supabase.co/functions/v1/translations', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
           source_text: sourceText,
           translated_text: translatedText,
           source_language: sourceLang,
           target_language: targetLang
-        });
-
-      if (error) throw error;
-      loadTranslationHistory();
+        }),
+      });
+      
+      if (response.ok) {
+        loadTranslationHistory();
+      }
     } catch (error) {
       console.error('Error saving translation:', error);
+      // We'll continue without saving if there's an error
     }
   };
 

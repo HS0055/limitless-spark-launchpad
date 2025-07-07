@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import League from "./pages/League";
 import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
+import Translator from "./pages/Translator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/league" element={<League />} />
               <Route path="/meme-coins" element={<MemeCoins />} />
               <Route path="/visual-business" element={<VisualBusiness />} />
+              <Route path="/translator" element={<Translator />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/community" element={<Community />} />
