@@ -5,12 +5,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Languages, Copy, History, Search, Zap, RotateCw, Sparkles } from 'lucide-react';
+import { Loader2, Languages, Copy, History, Search, Zap, RotateCw, Sparkles, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
 import MarketingLayout from '@/components/MarketingLayout';
 import AIContentAnalyzer from '@/components/AIContentAnalyzer';
 import BatchTranslator from '@/components/BatchTranslator';
+import TranslationManagementDashboard from '@/components/TranslationManagementDashboard';
 
 interface Translation {
   id: string;
@@ -238,10 +239,14 @@ const Translator = () => {
           </div>
 
           <Tabs defaultValue="translate" className="w-full">
-            <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsList className="grid w-full grid-cols-5 mb-8">
               <TabsTrigger value="translate" className="flex items-center gap-2">
                 <Languages className="w-4 h-4" />
                 Translate
+              </TabsTrigger>
+              <TabsTrigger value="manage" className="flex items-center gap-2">
+                <Edit className="w-4 h-4" />
+                Manage
               </TabsTrigger>
               <TabsTrigger value="analyze" className="flex items-center gap-2">
                 <Search className="w-4 h-4" />
@@ -347,13 +352,13 @@ const Translator = () => {
                            )}
                          </Button>
                        </div>
-                       <Textarea
-                         value={sourceText}
-                         onChange={(e) => setSourceText(e.target.value)}
-                         placeholder="Enter text to translate..."
-                         rows={6}
-                         className="resize-none"
-                       />
+                        <Textarea
+                          value={sourceText}
+                          onChange={(e) => setSourceText(e.target.value)}
+                          placeholder="Enter text to translate... (supports long texts)"
+                          rows={12}
+                          className="resize-vertical min-h-[200px] max-h-[400px] font-mono text-sm leading-relaxed"
+                        />
                      </div>
 
                     <Button 
@@ -387,9 +392,9 @@ const Translator = () => {
                             Copy
                           </Button>
                         </div>
-                        <div className="p-4 bg-muted rounded-lg">
-                          <p className="text-sm leading-relaxed">{translatedText}</p>
-                        </div>
+                         <div className="p-4 bg-muted rounded-lg max-h-[400px] overflow-y-auto">
+                           <p className="text-sm leading-relaxed font-mono whitespace-pre-wrap">{translatedText}</p>
+                         </div>
                       </div>
                     )}
                   </CardContent>
@@ -419,6 +424,10 @@ const Translator = () => {
                   </CardContent>
                 </Card>
               </div>
+            </TabsContent>
+
+            <TabsContent value="manage">
+              <TranslationManagementDashboard />
             </TabsContent>
 
             <TabsContent value="analyze">

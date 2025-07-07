@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -51,7 +52,6 @@ serve(async (req) => {
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
-        .limit(10)
 
       if (error) {
         return new Response(
@@ -95,6 +95,47 @@ serve(async (req) => {
           source_language,
           target_language
         })
+        .select()
+        .single()
+
+      if (error) {
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      return new Response(
+        JSON.stringify(data),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    if (req.method === 'PUT') {
+      // Update existing translation
+      const body = await req.json()
+      const { id, translated_text } = body
+
+      if (!id || !translated_text) {
+        return new Response(
+          JSON.stringify({ error: 'Missing required fields' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      const { data, error } = await supabaseClient
+        .from('translations')
+        .update({ translated_text })
+        .eq('id', id)
+        .eq('user_id', user.id) // Ensure user can only update their own translations
         .select()
         .single()
 
