@@ -444,47 +444,13 @@ class TranslationEngine {
   }
 
   private translateCachedContent(targetLang: Language) {
-    // ULTIMATE FLOATING PREVENTION: Most comprehensive solution
-    const body = document.body;
-    const html = document.documentElement;
-    
     // Set translation flag immediately to prevent conflicts
     this.isTranslating = true;
     
-    // Disconnect mutation observer completely during translation
+    // Disconnect mutation observer during translation
     if (this.observer) {
       this.observer.disconnect();
     }
-    
-    // Create the most comprehensive freeze possible
-    const styleBlock = document.createElement('style');
-    styleBlock.id = 'translation-freeze-styles';
-    styleBlock.textContent = `
-      *, *::before, *::after {
-        transition: none !important;
-        animation: none !important;
-        transform: none !important;
-      }
-      body {
-        overflow: hidden !important;
-        overflow-anchor: none !important;
-      }
-    `;
-    document.head.appendChild(styleBlock);
-    
-    // Freeze scroll and dimensions completely
-    const originalScrollTop = window.scrollY;
-    const originalScrollLeft = window.scrollX;
-    const originalOverflow = body.style.overflow;
-    const originalHeight = body.style.height;
-    const originalPosition = body.style.position;
-    
-    body.style.overflow = 'hidden';
-    body.style.height = body.scrollHeight + 'px';
-    body.style.position = 'fixed';
-    body.style.top = `-${originalScrollTop}px`;
-    body.style.left = `-${originalScrollLeft}px`;
-    body.style.width = '100%';
     
     // Translate document title first
     const originalTitle = document.title;
@@ -535,34 +501,11 @@ class TranslationEngine {
     this.translateAttributes(targetLang);
     this.translateDataI18nElements(targetLang);
     
-    // Restore everything after translation is complete
-    requestAnimationFrame(() => {
-      // Remove the freeze styles
-      const freezeStyles = document.getElementById('translation-freeze-styles');
-      if (freezeStyles) {
-        freezeStyles.remove();
-      }
-      
-      // Restore all original styles and scroll position
-      body.style.overflow = originalOverflow;
-      body.style.height = originalHeight;
-      body.style.position = originalPosition;
-      body.style.top = '';
-      body.style.left = '';
-      body.style.width = '';
-      
-      // Restore scroll position
-      window.scrollTo(originalScrollLeft, originalScrollTop);
-      
-      // Force a reflow to ensure everything is properly positioned
-      body.offsetHeight;
-      
-      // Re-enable mutation observer after everything is settled
-      setTimeout(() => {
-        this.isTranslating = false;
-        this.setupMutationObserver();
-      }, 200); // Longer delay to ensure complete stability
-    });
+    // Re-enable mutation observer after translation
+    setTimeout(() => {
+      this.isTranslating = false;
+      this.setupMutationObserver();
+    }, 100);
   }
 
   private translateAttributes(targetLang: Language) {
