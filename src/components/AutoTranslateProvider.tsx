@@ -436,12 +436,28 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const restoreOriginalContent = () => {
     console.log('🔄 Restoring original content');
     let restored = 0;
+    
+    // Clear translation markers
+    const translatedElements = document.querySelectorAll('[data-translated]');
+    translatedElements.forEach(element => {
+      element.removeAttribute('data-translated');
+    });
+    
+    // Restore original content
     originalContent.current.forEach((originalText, element) => {
       if (element && element.textContent !== originalText) {
         element.textContent = originalText;
         restored++;
       }
     });
+    
+    // Clear session storage for all languages
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('translated-')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+    
     console.log(`✅ Restored ${restored} elements to original English`);
   };
 
@@ -475,6 +491,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const translatePage = async (targetLang: string, force = false) => {
     // Prevent multiple simultaneous translations
     if (translationInProgress.current && !force) {
+      console.log('⏸️ Translation already in progress, skipping...');
       return;
     }
 
@@ -485,14 +502,16 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return;
     }
 
-    // Skip session check for more reliable translation
-    // const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
-    // const alreadyTranslated = sessionStorage.getItem(sessionKey);
+    // Check if page is already translated to target language
+    const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
+    const alreadyTranslated = sessionStorage.getItem(sessionKey);
     
-    // if (alreadyTranslated && !force && hasTranslatedOnce) {
-    //   return; // Silent return, no notification for auto-mode
-    // }
+    if (alreadyTranslated && !force && hasTranslatedOnce) {
+      console.log('✅ Page already translated, skipping...');
+      return;
+    }
 
+    console.log(`🚀 Starting translation to ${targetLang}...`);
     translationInProgress.current = true;
     setIsTranslating(true);
     setTranslationProgress(0);
@@ -609,8 +628,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
                     }
                   }
                   
-                  // Visual feedback for successful translation
+                  // Mark as translated to prevent re-translation loops
                   if (updated && element instanceof HTMLElement) {
+                    element.setAttribute('data-translated', targetLang);
                     element.style.opacity = '0.98';
                     setTimeout(() => {
                       element.style.opacity = '';
@@ -646,8 +666,11 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         }
       }
 
-      // Skip session tracking for immediate translation
+      // Mark page as translated to prevent duplicate translations
+      sessionStorage.setItem(sessionKey, 'true');
       setHasTranslatedOnce(true);
+
+      console.log(`✅ Page translated successfully (${Date.now() - startTime}ms)`);
 
       // Show success only on manual trigger (admin-only logging)
       if (force && hasAdminRole) {
@@ -687,62 +710,84 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     }
   };
 
-  // React Router-aware route change detection
+  // Fixed route change detection - prevents duplicate translations
   useEffect(() => {
     console.log(`🌐 Route changed → ${location.pathname}`);
     
-    if (language !== 'en') {
+    if (language !== 'en' && !translationInProgress.current) {
       // Clear any previous debounce
       if (debounceId.current) {
         clearTimeout(debounceId.current);
       }
       
-      // Translate immediately on route change (no extra timeout needed)
-      translatePage(language, true);
+      // Add small delay to allow page to settle before translating
+      debounceId.current = setTimeout(() => {
+        if (!translationInProgress.current) {
+          translatePage(language, true);
+        }
+      }, 300);
     }
     
     previousLanguage.current = language;
   }, [location.pathname, language]);
 
-  // Enhanced MutationObserver with debouncing for dynamic content
+  // Fixed MutationObserver - prevents infinite translation loops
   useEffect(() => {
     if (language === 'en') return;
 
     console.log(`🔄 Setting up MutationObserver for ${language} on ${location.pathname}`);
 
     const observer = new MutationObserver((mutations) => {
-      let hasTextChanges = false;
+      // Skip if translation is in progress to prevent infinite loops
+      if (translationInProgress.current) {
+        return;
+      }
+
+      let hasNewContent = false;
       
       mutations.forEach(mutation => {
+        // Only check for genuinely new content, not translation updates
         if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          // Check if added nodes contain text content
           mutation.addedNodes.forEach(node => {
-            if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
-              hasTextChanges = true;
-            } else if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.nodeType === Node.ELEMENT_NODE) {
               const element = node as Element;
-              if (element.textContent?.trim()) {
-                hasTextChanges = true;
+              // Only trigger if element has substantial new content and isn't a translation update
+              if (element.textContent?.trim() && 
+                  element.textContent.trim().length > 10 &&
+                  !element.hasAttribute('data-translated') &&
+                  !element.closest('[data-translated]')) {
+                hasNewContent = true;
               }
             }
           });
-        } else if (mutation.type === 'characterData' && mutation.target.textContent?.trim()) {
-          hasTextChanges = true;
+        }
+        // Skip characterData changes during translation to prevent loops
+        else if (mutation.type === 'characterData' && 
+                 !translationInProgress.current &&
+                 mutation.target.textContent?.trim() &&
+                 mutation.target.textContent.trim().length > 10) {
+          // Only trigger if this isn't a translation update
+          const parent = mutation.target.parentElement;
+          if (parent && !parent.hasAttribute('data-translated') && !parent.closest('[data-translated]')) {
+            hasNewContent = true;
+          }
         }
       });
       
-      if (hasTextChanges) {
-        console.log('🔄 Dynamic content detected, re-translating...');
+      if (hasNewContent) {
+        console.log('🔄 New content detected, scheduling translation...');
         
-        // Debounce to avoid performance hits
+        // Clear previous debounce
         if (debounceId.current) {
           clearTimeout(debounceId.current);
         }
         
+        // Longer debounce to prevent excessive re-translations
         debounceId.current = setTimeout(() => {
-          // Simplified condition to avoid type issues
-          translatePage(language, true);
-        }, 150); // 150ms debounce - instant feel but prevents spam
+          if (!translationInProgress.current) {
+            translatePage(language, true);
+          }
+        }, 1000); // 1 second debounce to prevent spam
       }
     });
 
@@ -759,7 +804,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         debounceId.current = null;
       }
     };
-  }, [language, location.pathname]); // Restart observer on language or route change
+  }, [language, location.pathname]);
 
   const enableAutoTranslate = () => {
     setAutoTranslateEnabled(true);
