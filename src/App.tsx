@@ -7,7 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
-import { AutoTranslateProvider } from "@/components/translation/AutoTranslateProvider";
+import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -19,7 +19,6 @@ import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
 import AITools from "./pages/AITools";
 import NotFound from "./pages/NotFound";
-import { WebScraperTranslator } from "./components/WebScraperTranslator";
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
@@ -44,12 +43,12 @@ const App = () => (
       <TooltipProvider>
         <AuthProvider>
           <LanguageProvider>
-            <div className="min-h-screen bg-background">
-              <Toaster />
-              <Sonner />
-              <PerformanceMonitor />
-              <BrowserRouter>
-                <AutoTranslateProvider>
+            <AutoTranslateProvider>
+              <div className="min-h-screen bg-background">
+                <Toaster />
+                <Sonner />
+                <PerformanceMonitor />
+                <BrowserRouter>
                   <Routes>
                     <Route path="/" element={<Home />} />
                     <Route path="/business-fundamentals" element={<Index />} />
@@ -57,7 +56,6 @@ const App = () => (
                     <Route path="/meme-coins" element={<MemeCoins />} />
                     <Route path="/visual-business" element={<VisualBusiness />} />
                     <Route path="/ai-tools" element={<AITools />} />
-                    <Route path="/web-translator" element={<WebScraperTranslator />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/admin" element={<AdminPanel />} />
                     <Route path="/community" element={<Community />} />
@@ -65,9 +63,9 @@ const App = () => (
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
-                </AutoTranslateProvider>
-              </BrowserRouter>
-            </div>
+                </BrowserRouter>
+              </div>
+            </AutoTranslateProvider>
           </LanguageProvider>
         </AuthProvider>
       </TooltipProvider>

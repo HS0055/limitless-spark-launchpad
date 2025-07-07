@@ -1,12 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-import { useLanguage, Language } from '@/contexts/LanguageContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { supabase } from '@/integrations/supabase/client';
-import { cacheManager } from '@/lib/cacheManager';
 
 interface TranslationCache {
   [key: string]: {
@@ -16,7 +13,6 @@ interface TranslationCache {
 
 export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
   const { language } = useLanguage();
-  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [masterTranslationEnabled, setMasterTranslationEnabled] = useState(true);
@@ -30,9 +26,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const [hasAdminRole, setHasAdminRole] = useState(false);
   const translationCache = useRef<TranslationCache>({});
   const originalContent = useRef<Map<Element, string>>(new Map());
-  const previousLanguage = useRef<Language>('en');
+  const previousLanguage = useRef<string>('en');
   const translationInProgress = useRef<boolean>(false);
-  const debounceId = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Admin-only logging function
   const logToAdmin = async (message: string, data: any) => {
@@ -54,11 +49,6 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
-    // Initialize user session tracking
-    if (user?.id) {
-      cacheManager.updateUserId(user.id);
-    }
-    
     // Check admin role
     const checkAdminRole = async () => {
       if (user) {
@@ -67,225 +57,121 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           setHasAdminRole(data?.isAdmin || false);
         } catch (error) {
           setHasAdminRole(false);
-          cacheManager.trackError('Admin role check failed', { error });
         }
       }
     };
     
     checkAdminRole();
     
-    // Force enable translation system immediately
-    setMasterTranslationEnabled(true);
-    setAutoTranslateEnabled(true);
-    setTranslationMode('auto');
-    
+    // Load master translation settings - Auto-enable everything by default
     try {
-      // Load from advanced cache first
-      const cachedTranslationCache = cacheManager.get<TranslationCache>('translation-memory-cache');
-      if (cachedTranslationCache) {
-        translationCache.current = cachedTranslationCache;
+      setMasterTranslationEnabled(true);
+      setAutoTranslateEnabled(true);
+      setTranslationMode('auto');
+      
+      const savedCache = localStorage.getItem('translation-cache');
+      if (savedCache) {
+        translationCache.current = JSON.parse(savedCache);
       }
       
-      // Ensure settings are saved
-      cacheManager.set('master-translation-enabled', true, 24 * 60 * 60 * 1000); // 24 hours
-      cacheManager.set('auto-translate-enabled', true, 24 * 60 * 60 * 1000);
-      cacheManager.set('translation-mode', 'auto', 24 * 60 * 60 * 1000);
-      
-      cacheManager.trackInteraction('translation_system_initialized', {
-        enabled: true,
-        mode: 'auto'
-      });
+      // Force enable auto-translation for seamless experience
+      localStorage.setItem('master-translation-enabled', 'true');
+      localStorage.setItem('auto-translate-enabled', 'true');
+      localStorage.setItem('translation-mode', 'auto');
     } catch (error) {
       console.error('Error loading translation settings:', error);
-      cacheManager.trackError('Translation settings load failed', { error });
     }
   }, [user]);
 
-  // Enhanced cache saving with error handling
+  // Save cache to localStorage
   const saveCache = () => {
     try {
-      // Save to advanced cache system
-      cacheManager.set('translation-memory-cache', translationCache.current, 7 * 24 * 60 * 60 * 1000); // 7 days
-      
-      // Track cache performance
-      cacheManager.trackInteraction('cache_saved', {
-        size: Object.keys(translationCache.current).length,
-        timestamp: Date.now()
-      });
+      localStorage.setItem('translation-cache', JSON.stringify(translationCache.current));
     } catch (error) {
       console.error('Error saving translation cache:', error);
-      cacheManager.trackError('Cache save failed', { error });
     }
   };
 
-  // Enhanced AI Vision Context Analysis for superior translation accuracy
+  // AI Vision Context Analysis for better translation accuracy
   const analyzeElementContext = (element: Element): string => {
     const contexts = [];
     
-    // Advanced semantic HTML analysis
+    // Analyze semantic HTML tags
     const tagName = element.tagName.toLowerCase();
     const semanticTags: Record<string, string> = {
-      'h1': 'primary page heading',
-      'h2': 'major section heading', 
+      'h1': 'main heading',
+      'h2': 'section heading', 
       'h3': 'subsection heading',
-      'h4': 'minor section heading',
+      'h4': 'minor heading',
       'h5': 'small heading',
-      'h6': 'micro heading',
-      'p': 'paragraph content',
+      'h6': 'tiny heading',
+      'p': 'paragraph text',
       'button': 'interactive button',
-      'a': 'link or navigation',
+      'a': 'navigation link',
       'nav': 'navigation menu',
-      'header': 'page header area',
-      'footer': 'page footer area',
-      'main': 'main page content',
+      'header': 'page header',
+      'footer': 'page footer',
+      'main': 'main content',
       'aside': 'sidebar content',
       'article': 'article content',
       'section': 'content section',
       'span': 'inline text',
-      'div': 'content container',
+      'div': 'content block',
       'li': 'list item',
-      'td': 'table data cell',
-      'th': 'table header cell',
+      'td': 'table data',
+      'th': 'table header',
       'label': 'form label',
-      'title': 'page title',
-      'input': 'form input field',
-      'textarea': 'text area field',
-      'select': 'dropdown selection',
-      'option': 'dropdown option',
-      'legend': 'form section legend',
-      'figcaption': 'image caption',
-      'blockquote': 'quoted content',
-      'cite': 'citation',
-      'time': 'time reference',
-      'address': 'contact information'
+      'title': 'page title'
     };
     
     if (semanticTags[tagName]) {
       contexts.push(semanticTags[tagName]);
     }
     
-    // Advanced CSS class and ID analysis
+    // Analyze CSS classes for context clues
     const className = element.className || '';
-    const id = element.id || '';
-    
-    // UI component detection
-    if (className.includes('nav') || id.includes('nav')) contexts.push('navigation component');
-    if (className.includes('menu') || id.includes('menu')) contexts.push('menu component');
-    if (className.includes('button') || className.includes('btn')) contexts.push('button component');
-    if (className.includes('title') || className.includes('heading')) contexts.push('title component');
-    if (className.includes('desc') || className.includes('description')) contexts.push('description text');
-    if (className.includes('card')) contexts.push('card component');
+    if (className.includes('nav')) contexts.push('navigation');
+    if (className.includes('menu')) contexts.push('menu');
+    if (className.includes('button') || className.includes('btn')) contexts.push('button');
+    if (className.includes('title') || className.includes('heading')) contexts.push('title');
+    if (className.includes('desc') || className.includes('text')) contexts.push('description');
+    if (className.includes('card')) contexts.push('card content');
     if (className.includes('hero')) contexts.push('hero section');
-    if (className.includes('footer')) contexts.push('footer section');
-    if (className.includes('header')) contexts.push('header section');
-    if (className.includes('sidebar')) contexts.push('sidebar section');
-    if (className.includes('price') || className.includes('cost')) contexts.push('pricing information');
-    if (className.includes('cta') || className.includes('call-to-action')) contexts.push('call-to-action');
-    if (className.includes('feature')) contexts.push('feature description');
-    if (className.includes('testimonial')) contexts.push('testimonial content');
-    if (className.includes('benefit')) contexts.push('benefit statement');
-    if (className.includes('service')) contexts.push('service description');
-    if (className.includes('product')) contexts.push('product information');
-    if (className.includes('contact')) contexts.push('contact information');
-    if (className.includes('form')) contexts.push('form element');
-    if (className.includes('modal') || className.includes('popup')) contexts.push('modal content');
-    if (className.includes('tooltip')) contexts.push('tooltip text');
-    if (className.includes('badge') || className.includes('tag')) contexts.push('badge or tag');
-    if (className.includes('alert') || className.includes('notification')) contexts.push('alert message');
-    if (className.includes('error') || className.includes('warning')) contexts.push('error or warning message');
-    if (className.includes('success')) contexts.push('success message');
-    if (className.includes('placeholder')) contexts.push('placeholder text');
-    if (className.includes('caption')) contexts.push('caption text');
-    if (className.includes('copyright')) contexts.push('copyright notice');
-    if (className.includes('legal')) contexts.push('legal text');
-    if (className.includes('policy')) contexts.push('policy text');
-    if (className.includes('terms')) contexts.push('terms text');
+    if (className.includes('footer')) contexts.push('footer');
+    if (className.includes('header')) contexts.push('header');
+    if (className.includes('price')) contexts.push('pricing');
+    if (className.includes('cta')) contexts.push('call to action');
     
-    // Business context detection
-    if (className.includes('business') || id.includes('business')) contexts.push('business content');
-    if (className.includes('marketing') || id.includes('marketing')) contexts.push('marketing content');
-    if (className.includes('finance') || id.includes('finance')) contexts.push('financial content');
-    if (className.includes('education') || id.includes('education')) contexts.push('educational content');
-    if (className.includes('learning') || id.includes('learning')) contexts.push('learning content');
-    if (className.includes('course') || id.includes('course')) contexts.push('course content');
-    if (className.includes('program') || id.includes('program')) contexts.push('program content');
-    if (className.includes('league') || id.includes('league')) contexts.push('league content');
-    
-    // Position-based context analysis
+    // Analyze element position and hierarchy
     try {
       const rect = element.getBoundingClientRect();
-      if (rect.top < 200) contexts.push('above-the-fold content');
-      if (rect.top > window.innerHeight - 200) contexts.push('below-the-fold content');
-      if (rect.left < 100) contexts.push('left-aligned content');
-      if (rect.right > window.innerWidth - 100) contexts.push('right-aligned content');
-      if (rect.width > window.innerWidth * 0.8) contexts.push('full-width content');
+      if (rect.top < 200) contexts.push('top section');
+      if (rect.bottom > window.innerHeight - 200) contexts.push('bottom section');
     } catch (e) {
       // Skip if getBoundingClientRect fails
     }
     
-    // Hierarchical context analysis
+    // Analyze parent context for better understanding
     let parent = element.parentElement;
     let depth = 0;
-    while (parent && parent !== document.body && depth < 8) {
+    while (parent && parent !== document.body && depth < 5) {
       const parentTag = parent.tagName.toLowerCase();
-      const parentClass = parent.className || '';
-      
-      if (parentTag === 'nav') contexts.push('within navigation');
-      if (parentTag === 'header') contexts.push('within header');
-      if (parentTag === 'footer') contexts.push('within footer');
-      if (parentTag === 'main') contexts.push('within main content');
-      if (parentTag === 'aside') contexts.push('within sidebar');
-      if (parentTag === 'article') contexts.push('within article');
-      if (parentTag === 'section') contexts.push('within section');
-      if (parentTag === 'form') contexts.push('within form');
-      if (parentTag === 'table') contexts.push('within table');
-      if (parentTag === 'ul' || parentTag === 'ol') contexts.push('within list');
-      
-      if (parentClass.includes('hero')) contexts.push('within hero section');
-      if (parentClass.includes('features')) contexts.push('within features section');
-      if (parentClass.includes('testimonials')) contexts.push('within testimonials section');
-      if (parentClass.includes('pricing')) contexts.push('within pricing section');
-      if (parentClass.includes('about')) contexts.push('within about section');
-      if (parentClass.includes('contact')) contexts.push('within contact section');
-      if (parentClass.includes('services')) contexts.push('within services section');
-      if (parentClass.includes('products')) contexts.push('within products section');
-      if (parentClass.includes('team')) contexts.push('within team section');
-      if (parentClass.includes('blog')) contexts.push('within blog section');
-      if (parentClass.includes('news')) contexts.push('within news section');
-      if (parentClass.includes('events')) contexts.push('within events section');
-      if (parentClass.includes('gallery')) contexts.push('within gallery section');
-      if (parentClass.includes('portfolio')) contexts.push('within portfolio section');
-      
+      if (parentTag === 'nav') contexts.push('navigation area');
+      if (parentTag === 'header') contexts.push('header area');
+      if (parentTag === 'footer') contexts.push('footer area');
+      if (parentTag === 'main') contexts.push('main content area');
+      if (parent.className && parent.className.includes('hero')) contexts.push('hero section');
       parent = parent.parentElement;
       depth++;
     }
     
-    // ARIA and accessibility context
-    const ariaRole = element.getAttribute('role');
-    if (ariaRole) contexts.push(`${ariaRole} role`);
-    
-    const ariaLabel = element.getAttribute('aria-label');
-    if (ariaLabel) contexts.push('accessibility label');
-    
-    const ariaDescribedBy = element.getAttribute('aria-describedby');
-    if (ariaDescribedBy) contexts.push('accessibility description');
-    
-    // Data attributes for additional context
-    for (const attr of element.attributes) {
-      if (attr.name.startsWith('data-') && attr.value) {
-        if (attr.name.includes('type')) contexts.push(`${attr.value} type`);
-        if (attr.name.includes('category')) contexts.push(`${attr.value} category`);
-        if (attr.name.includes('section')) contexts.push(`${attr.value} section`);
-      }
-    }
-    
-    return contexts.length > 0 ? contexts.join(', ') : 'general web content';
+    return contexts.length > 0 ? contexts.join(', ') : 'general content';
   };
 
   const extractTextContent = (element: Element): Array<{ element: Element; text: string; context: string }> => {
     const textElements: Array<{ element: Element; text: string; context: string }> = [];
     
-    // Ultra-comprehensive content detection system
+    // Enhanced tree walker for comprehensive content detection
     const walker = document.createTreeWalker(
       element,
       NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
@@ -295,15 +181,15 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             const parent = node.parentElement;
             if (!parent) return NodeFilter.FILTER_REJECT;
             
-            // Skip only essential non-translatable content
-            const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE'];
+            // Only skip truly technical content
+            const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT'];
             if (skipTags.includes(parent.tagName)) {
               return NodeFilter.FILTER_REJECT;
             }
             
-            // Skip completely hidden elements
+            // Skip hidden elements only if completely hidden
             const style = window.getComputedStyle(parent);
-            if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+            if (style.display === 'none' || style.visibility === 'hidden') {
               return NodeFilter.FILTER_REJECT;
             }
             
@@ -317,41 +203,29 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               return NodeFilter.FILTER_REJECT;
             }
             
-            // Minimal filtering - allow almost all text content
-            if (/^\s*$/.test(text) || // Empty/whitespace only
-                text.length < 2 || // Too short
-                /^https?:\/\//.test(text) || // URLs
-                /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) || // Emails
-                text.startsWith('//') || text.startsWith('/*') // Comments only
-            ) {
+            // Enhanced filtering - allow MORE content types
+            if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
+                /^https?:\/\//.test(text) || 
+                /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
+                text.startsWith('//') || text.startsWith('/*') ||
+                /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text)) {
               return NodeFilter.FILTER_REJECT;
             }
             
             return NodeFilter.FILTER_ACCEPT;
           }
           
-          // Enhanced element attribute detection
+          // For element nodes, check if they have text content or important attributes
           if (node.nodeType === Node.ELEMENT_NODE) {
             const element = node as Element;
             
-            // Comprehensive translatable attributes
-            const translatableAttrs = [
-              'title', 'alt', 'placeholder', 'aria-label', 'aria-description',
-              'data-tooltip', 'data-title', 'label', 'value'
-            ];
-            
+            // Check for translatable attributes
+            const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
             for (const attr of translatableAttrs) {
               const value = element.getAttribute(attr);
-              if (value && value.trim().length > 1 && !/^[0-9]+$/.test(value)) {
+              if (value && value.trim().length > 1) {
                 return NodeFilter.FILTER_ACCEPT;
               }
-            }
-            
-            // Check for pseudo-elements with content
-            const computedStyle = window.getComputedStyle(element, '::before');
-            const beforeContent = computedStyle.getPropertyValue('content');
-            if (beforeContent && beforeContent !== 'none' && beforeContent !== '""') {
-              return NodeFilter.FILTER_ACCEPT;
             }
           }
           
@@ -365,32 +239,35 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       if (node.nodeType === Node.TEXT_NODE) {
         const text = node.textContent?.trim();
         const parent = node.parentElement;
-        if (text && text.length > 1 && parent) {
+        if (text && text.length > 0 && parent) {
           const elementContext = analyzeElementContext(parent);
           
-          // Process each text node individually - don't group by parent
-          textElements.push({ 
-            element: parent, 
-            text,
-            context: elementContext
-          });
-          
-          // Store original content for restoration
-          if (!originalContent.current.has(parent)) {
-            originalContent.current.set(parent, parent.textContent || '');
+          // Group consecutive text nodes from the same parent
+          const existingEntry = textElements.find(entry => entry.element === parent);
+          if (existingEntry) {
+            if (!existingEntry.text.includes(text)) {
+              existingEntry.text += ' ' + text;
+            }
+          } else {
+            textElements.push({ 
+              element: parent, 
+              text,
+              context: elementContext
+            });
+            // Store original content
+            if (!originalContent.current.has(parent)) {
+              originalContent.current.set(parent, text);
+            }
           }
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
-        // Handle translatable attributes more comprehensively
+        // Handle translatable attributes
         const element = node as Element;
-        const translatableAttrs = [
-          'title', 'alt', 'placeholder', 'aria-label', 'aria-description',
-          'data-tooltip', 'data-title', 'label', 'value'
-        ];
+        const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
         
         for (const attr of translatableAttrs) {
           const value = element.getAttribute(attr);
-          if (value && value.trim().length > 1 && !/^[0-9]+$/.test(value)) {
+          if (value && value.trim().length > 1) {
             const elementContext = analyzeElementContext(element);
             textElements.push({
               element: element,
@@ -399,7 +276,6 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             });
             
             // Store original attribute value
-            const cacheKey = `${element.tagName}-${attr}`;
             if (!originalContent.current.has(element)) {
               originalContent.current.set(element, value);
             }
@@ -411,206 +287,57 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     return textElements;
   };
 
-  // Rate limiting and queue system to prevent API overload
-  const translationQueue = useRef<Array<{
-    text: string;
-    targetLang: string;
-    context?: string;
-    resolve: (value: string) => void;
-    reject: (error: Error) => void;
-    retryCount: number;
-  }>>([]);
-  const isProcessingQueue = useRef(false);
-  const lastRequestTime = useRef(0);
-  const RATE_LIMIT_DELAY = 1300; // 1.3 seconds between requests (50 requests/minute = 1.2s minimum)
-  const MAX_RETRIES = 3;
-
-  const processTranslationQueue = async () => {
-    if (isProcessingQueue.current || translationQueue.current.length === 0) {
-      return;
-    }
-
-    isProcessingQueue.current = true;
-    
-    while (translationQueue.current.length > 0) {
-      const request = translationQueue.current.shift()!;
-      
-      try {
-        // Ensure proper rate limiting
-        const timeSinceLastRequest = Date.now() - lastRequestTime.current;
-        if (timeSinceLastRequest < RATE_LIMIT_DELAY) {
-          const delay = RATE_LIMIT_DELAY - timeSinceLastRequest;
-          console.log(`⏱️ Rate limiting: waiting ${delay}ms`);
-          await new Promise(resolve => setTimeout(resolve, delay));
-        }
-
-        const result = await translateTextDirect(request.text, request.targetLang, request.context);
-        lastRequestTime.current = Date.now();
-        request.resolve(result);
-        
-      } catch (error) {
-        // Retry logic with exponential backoff for rate limit errors
-        if (request.retryCount < MAX_RETRIES && error instanceof Error && 
-            (error.message.includes('429') || error.message.includes('rate limit') || 
-             error.message.includes('exceed'))) {
-          request.retryCount++;
-          const backoffDelay = Math.pow(2, request.retryCount) * 2000; // 2s, 4s, 8s
-          console.log(`🔄 Rate limit hit - retrying translation (attempt ${request.retryCount}/${MAX_RETRIES}) in ${backoffDelay}ms`);
-          
-          setTimeout(() => {
-            translationQueue.current.unshift(request); // Add back to front of queue
-            processTranslationQueue();
-          }, backoffDelay);
-        } else {
-          console.error('Translation failed after retries:', error);
-          request.reject(error instanceof Error ? error : new Error('Translation failed'));
-        }
-      }
-    }
-    
-    isProcessingQueue.current = false;
-  };
-
   const translateText = async (text: string, targetLang: string, context?: string): Promise<string> => {
-    const cleanText = text.trim();
-    if (!cleanText) return text;
-
-    // Update language tracking
-    cacheManager.updateLanguage(targetLang);
+    // Check cache first for ultra-fast retrieval
+    const cacheKey = `${text.toLowerCase().trim()}_${context || ''}`;
+    if (translationCache.current[cacheKey]?.[targetLang]) {
+      return translationCache.current[cacheKey][targetLang];
+    }
 
     try {
-      // Check advanced cache system first
-      const cachedTranslation = await cacheManager.getTranslation(cleanText, 'en', targetLang);
-      if (cachedTranslation) {
-        cacheManager.trackInteraction('translation_cache_hit', {
-          sourceLength: cleanText.length,
-          targetLang,
-          source: 'advanced_cache'
-        });
-        return cachedTranslation;
-      }
+      // Use optimized API client with caching and deduplication
+      const result = await apiClient.invoke('ai-translate', {
+        body: {
+          text: text,
+          sourceLang: 'en',
+          targetLang: targetLang,
+          context: context,
+          visionMode: true
+        }
+      }, {
+        ttl: 300000, // 5 minute cache
+        skipCache: false
+      });
 
-      // Check memory cache
-      const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
-      if (translationCache.current[cacheKey]?.[targetLang]) {
-        cacheManager.trackInteraction('translation_cache_hit', {
-          sourceLength: cleanText.length,
-          targetLang,
-          source: 'memory_cache'
-        });
-        return translationCache.current[cacheKey][targetLang];
+      if (result.error) throw result.error;
+
+      const translatedText = result.data.translatedText;
+
+      // Enhanced aggressive caching with context
+      if (!translationCache.current[cacheKey]) {
+        translationCache.current[cacheKey] = {};
       }
+      translationCache.current[cacheKey][targetLang] = translatedText;
       
-      // Add to queue for rate-limited processing
-      console.log(`🔄 Queuing translation: ${cleanText.substring(0, 50)}...`);
-      cacheManager.trackInteraction('translation_api_call', {
-        sourceLength: cleanText.length,
-        targetLang,
-        context
-      });
-      
-      return new Promise((resolve, reject) => {
-        translationQueue.current.push({
-          text: cleanText,
-          targetLang,
-          context,
-          resolve,
-          reject,
-          retryCount: 0
-        });
-        
-        // Start processing queue
-        processTranslationQueue();
-      });
-      
+      // Batch save to localStorage for performance
+      saveCache();
+
+      return translatedText;
     } catch (error) {
-      cacheManager.trackError('Translation failed', { 
-        text: cleanText, 
-        context, 
-        targetLang,
-        error: error instanceof Error ? error.message : String(error)
-      });
-      
+      // Admin-only error logging
       if (hasAdminRole) {
-        logToAdmin('Translation error', { text: cleanText, context, error });
+        logToAdmin('Translation error', { text, context, error });
       }
       return text; // Fallback to original text
     }
   };
 
-  const translateTextDirect = async (text: string, targetLang: string, context?: string): Promise<string> => {
-    const cleanText = text.trim();
-    if (!cleanText) return text;
-
-    // Translate with AI only if not found in any cache
-    const result = await apiClient.invoke('ai-translate', {
-      body: {
-        text: cleanText,
-        sourceLang: 'en',
-        targetLang: targetLang,
-        context: context,
-        visionMode: true
-      }
-    }, {
-      ttl: 300000,
-      skipCache: false
-    });
-
-    if (result.error) {
-      cacheManager.trackError('AI translation API error', { error: result.error, text: cleanText });
-      throw new Error(result.error);
-    }
-
-    const translatedText = result.data.translatedText;
-
-    // Save to advanced cache system
-    await cacheManager.setTranslation(cleanText, 'en', targetLang, translatedText, user?.id);
-
-    // Also cache in memory for immediate access
-    const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
-    if (!translationCache.current[cacheKey]) {
-      translationCache.current[cacheKey] = {};
-    }
-    translationCache.current[cacheKey][targetLang] = translatedText;
-    saveCache();
-
-    // Track successful translation
-    cacheManager.trackTranslation();
-    cacheManager.trackInteraction('translation_completed', {
-      sourceLength: cleanText.length,
-      targetLength: translatedText.length,
-      targetLang
-    });
-
-    return translatedText;
-  };
-
   const restoreOriginalContent = () => {
-    console.log('🔄 Restoring original content');
-    let restored = 0;
-    
-    // Clear translation markers
-    const translatedElements = document.querySelectorAll('[data-translated]');
-    translatedElements.forEach(element => {
-      element.removeAttribute('data-translated');
-    });
-    
-    // Restore original content
     originalContent.current.forEach((originalText, element) => {
       if (element && element.textContent !== originalText) {
         element.textContent = originalText;
-        restored++;
       }
     });
-    
-    // Clear session storage for all languages
-    Object.keys(sessionStorage).forEach(key => {
-      if (key.startsWith('translated-')) {
-        sessionStorage.removeItem(key);
-      }
-    });
-    
-    console.log(`✅ Restored ${restored} elements to original English`);
   };
 
   // Master translation function - handles everything with one click
@@ -643,7 +370,6 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const translatePage = async (targetLang: string, force = false) => {
     // Prevent multiple simultaneous translations
     if (translationInProgress.current && !force) {
-      console.log('⏸️ Translation already in progress, skipping...');
       return;
     }
 
@@ -654,213 +380,96 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return;
     }
 
-    // Check if page is already translated to target language
+    // Check if this specific language was already translated for this session
     const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
     const alreadyTranslated = sessionStorage.getItem(sessionKey);
     
     if (alreadyTranslated && !force && hasTranslatedOnce) {
-      console.log('✅ Page already translated, skipping...');
-      return;
+      return; // Silent return, no notification for auto-mode
     }
 
-    console.log(`🚀 Starting translation to ${targetLang}...`);
     translationInProgress.current = true;
     setIsTranslating(true);
     setTranslationProgress(0);
-    
+    showTranslationStatus("Translating...", "loading");
+
     const startTime = Date.now();
 
     try {
-      // Extract all text content from the page with aggressive detection
+      // Extract all text content from the page with improved detection
       const textElements = extractTextContent(document.body);
       
-      console.log(`Found ${textElements.length} translatable elements for ${targetLang}`);
-      
       if (textElements.length === 0) {
-        console.warn('No translatable content found');
+        showTranslationStatus("No text found", "warning");
         return;
       }
 
-      // Batch check database for existing translations to avoid unnecessary API calls
-      const textsToCheck = textElements.map(({ text }) => text.trim()).filter(Boolean);
-      
-      // Get all existing translations in one query instead of individual queries
-      const existingTranslations = new Map();
-      if (textsToCheck.length > 0) {
-        try {
-          const { data: translations } = await supabase
-            .from('translations')
-            .select('source_text, translated_text')
-            .eq('source_language', 'en')
-            .eq('target_language', targetLang)
-            .in('source_text', textsToCheck);
-          
-          // Build a map of existing translations
-          if (translations) {
-            translations.forEach(t => {
-              existingTranslations.set(t.source_text, t.translated_text);
-            });
-          }
-        } catch (error) {
-          console.warn('Batch translation lookup failed:', error);
-        }
-      }
+      // Smart caching - prioritize frequently used phrases
+      const uncachedTexts = textElements.filter(({ text, context }) => {
+        const cacheKey = `${text.toLowerCase()}_${context || ''}`;
+        return !translationCache.current[cacheKey]?.[targetLang];
+      });
 
-      // Determine which texts actually need translation
-      const textsToTranslate = [];
-      for (const { text, context } of textElements) {
-        const cleanText = text.trim();
-        if (!cleanText) continue;
-
-        // Check if translation exists in database
-        if (existingTranslations.has(cleanText)) {
-          // Store in memory cache for faster future access
-          const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
-          if (!translationCache.current[cacheKey]) {
-            translationCache.current[cacheKey] = {};
-          }
-          translationCache.current[cacheKey][targetLang] = existingTranslations.get(cleanText);
-          continue;
-        }
-
-        // Check memory cache
-        const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
-        if (!translationCache.current[cacheKey]?.[targetLang]) {
-          textsToTranslate.push({ text, context });
-        }
-      }
-
-      console.log(`📊 Found ${textElements.length} elements, ${textsToTranslate.length} need translation`);
-
-      // Process only texts that need translation
-      const batchSize = textsToTranslate.length > 0 ? 8 : textElements.length;
+      // Ultra-fast parallel processing for Claude 4
+      const batchSize = Math.min(uncachedTexts.length > 100 ? 5 : 8, textElements.length);
       let completed = 0;
       
-      if (textsToTranslate.length === 0) {
-        console.log('✅ All content already translated, using saved translations');
-      } else {
-        console.log(`🔄 Processing ${textsToTranslate.length} new translations in batches of ${batchSize}...`);
-      }
-      
-      // Process all elements efficiently using the rate-limited queue
-      console.log(`🔄 Processing ${textElements.length} elements through rate-limited queue...`);
-      
-      const translationPromises = textElements.map(async ({ element, text, context }) => {
-        try {
-          const translatedText = await translateText(text, targetLang, context);
-            
-          // Ultra-robust element update system
-          if (element) {
+      // Process in optimized parallel batches
+      for (let i = 0; i < textElements.length; i += batchSize) {
+        const batch = textElements.slice(i, i + batchSize);
+        
+        // AI Vision-Enhanced parallel processing with comprehensive updates
+        await Promise.allSettled(
+          batch.map(async ({ element, text, context }) => {
             try {
-              // Check if this is an attribute translation
-              if (context.includes('attribute')) {
-                const attrMatch = context.match(/(title|alt|placeholder|aria-label|aria-description|data-tooltip|data-title|label|value) attribute/);
-                if (attrMatch) {
-                  const attrName = attrMatch[1];
-                  element.setAttribute(attrName, translatedText);
-                }
-              } else {
-                // Text content translation with comprehensive strategies
-                const originalText = text.trim();
-                let updated = false;
-                
-                // Strategy 1: Direct textContent match
-                if (element.textContent?.trim() === originalText) {
-                  element.textContent = translatedText;
-                  updated = true;
-                }
-                // Strategy 2: Partial textContent match
-                else if (element.textContent?.includes(originalText)) {
-                  element.textContent = element.textContent.replace(originalText, translatedText);
-                  updated = true;
-                }
-                // Strategy 3: innerHTML replacement (preserve HTML structure)
-                else if (element.innerHTML.includes(originalText)) {
-                  element.innerHTML = element.innerHTML.replace(originalText, translatedText);
-                  updated = true;
-                }
-                // Strategy 4: Deep text node search and replace
-                else {
-                  const walker = document.createTreeWalker(
-                    element,
-                    NodeFilter.SHOW_TEXT,
-                    null
-                  );
-                  
-                  let textNode;
-                  while (textNode = walker.nextNode()) {
-                    const nodeText = textNode.textContent?.trim();
-                    if (nodeText === originalText) {
-                      textNode.textContent = translatedText;
-                      updated = true;
-                      break;
-                    } else if (textNode.textContent?.includes(originalText)) {
-                      textNode.textContent = textNode.textContent.replace(originalText, translatedText);
-                      updated = true;
-                      break;
+              const translatedText = await translateText(text, targetLang, context);
+              
+              // Enhanced element update - handle both text content and attributes
+              if (element) {
+                // Check if this is an attribute translation
+                if (context.includes('attribute')) {
+                  const attrMatch = context.match(/(title|alt|placeholder|aria-label) attribute/);
+                  if (attrMatch) {
+                    const attrName = attrMatch[1];
+                    if (element.getAttribute(attrName) === text) {
+                      element.setAttribute(attrName, translatedText);
                     }
                   }
-                }
-                
-                // Strategy 5: Force update if we have the element but couldn't match text
-                if (!updated && element.textContent) {
-                  // Last resort: replace entire content if it's the only text
-                  const elementTextNodes = [];
-                  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
-                  let textNode;
-                  while (textNode = walker.nextNode()) {
-                    if (textNode.textContent?.trim()) {
-                      elementTextNodes.push(textNode);
-                    }
+                } else if (element.textContent?.trim() === text.trim()) {
+                  // Handle text content
+                  const wasHtml = element.innerHTML !== element.textContent;
+                  if (wasHtml && element.innerHTML.includes(text)) {
+                    element.innerHTML = element.innerHTML.replace(text, translatedText);
+                  } else {
+                    element.textContent = translatedText;
                   }
-                  
-                  // If element has only one meaningful text node, replace it
-                  if (elementTextNodes.length === 1) {
-                    elementTextNodes[0].textContent = translatedText;
-                    updated = true;
-                  }
-                }
-                
-                // Mark as translated to prevent re-translation loops
-                if (updated && element instanceof HTMLElement) {
-                  element.setAttribute('data-translated', targetLang);
-                  element.style.opacity = '0.98';
-                  setTimeout(() => {
-                    element.style.opacity = '';
-                  }, 50);
                 }
               }
               
-              // Update progress
-              const completed = textElements.filter(({ element: el }) => 
-                el && (el.hasAttribute('data-translated') || el.getAttribute('data-translated') === targetLang)
-              ).length;
-              const progress = (completed / textElements.length) * 100;
-              setTranslationProgress(Math.min(progress, 100));
-              
+              return { success: true, text, translatedText, context };
             } catch (error) {
-              console.warn('Translation update failed for element:', error);
+              // Send error to admin logging only
+              if (hasAdminRole) {
+                logToAdmin('AI Vision translation failed', { text, context, error });
+              }
+              return { success: false, text, error, context };
             }
-          }
-          
-          return { success: true, text, translatedText, context };
-        } catch (error) {
-          // Send error to admin logging only
-          if (hasAdminRole) {
-            logToAdmin('AI Vision translation failed', { text, context, error });
-          }
-          return { success: false, text, error, context };
+          })
+        );
+
+        completed += batch.length;
+        const progress = (completed / textElements.length) * 100;
+        setTranslationProgress(progress);
+        
+        // Minimal delay for Claude's fast processing
+        if (i + batchSize < textElements.length) {
+          await new Promise(resolve => setTimeout(resolve, 25));
         }
-      });
+      }
 
-      // Wait for all translations to complete (rate-limited through queue)
-      await Promise.allSettled(translationPromises);
-
-      // Mark page as translated to prevent duplicate translations
+      // Mark page as translated for this session
       sessionStorage.setItem(sessionKey, 'true');
       setHasTranslatedOnce(true);
-
-      console.log(`✅ Page translated successfully (${Date.now() - startTime}ms)`);
 
       // Show success only on manual trigger (admin-only logging)
       if (force && hasAdminRole) {
@@ -876,12 +485,13 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       if (hasAdminRole) {
         logToAdmin('Translation error', { error: (error as Error).message, targetLang });
       }
+      showTranslationStatus("Failed", "error");
     } finally {
       setIsTranslating(false);
       setTranslationProgress(0);
       translationInProgress.current = false;
-      // Auto-hide status after 1 second
-      setTimeout(() => setTranslationStatus(null), 1000);
+      // Auto-hide status after 2 seconds
+      setTimeout(() => setTranslationStatus(null), 2000);
     }
   };
 
@@ -892,110 +502,30 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   } | null>(null);
 
   const showTranslationStatus = (message: string, type: 'info' | 'loading' | 'success' | 'error' | 'warning') => {
-    // Silent mode - no popups, but still track status for debugging
-    if (hasAdminRole) {
-      setTranslationStatus({ message, type });
-      // Auto-hide after 1 second for admin debugging
-      setTimeout(() => setTranslationStatus(null), 1000);
-    }
+    setTranslationStatus({ message, type });
   };
 
-  // Fixed route change detection - prevents duplicate translations
   useEffect(() => {
-    console.log(`🌐 Route changed → ${location.pathname}`);
-    cacheManager.trackPageView(location.pathname);
-    
-    if (language !== 'en' && !translationInProgress.current) {
-      // Clear any previous debounce
-      if (debounceId.current) {
-        clearTimeout(debounceId.current);
-      }
-      
-      // Add small delay to allow page to settle before translating
-      debounceId.current = setTimeout(() => {
-        if (!translationInProgress.current) {
-          translatePage(language, true);
-        }
-      }, 300);
+    // Auto-translate when language changes (if master system is enabled)
+    if (!masterTranslationEnabled || !autoTranslateEnabled || translationMode !== 'auto') {
+      previousLanguage.current = language;
+      return;
     }
-    
-    previousLanguage.current = language;
-  }, [location.pathname, language]);
 
-  // Fixed MutationObserver - prevents infinite translation loops
-  useEffect(() => {
-    if (language === 'en') return;
+    // Don't translate on initial load or same language
+    if (previousLanguage.current === language) {
+      previousLanguage.current = language;
+      return;
+    }
 
-    console.log(`🔄 Setting up MutationObserver for ${language} on ${location.pathname}`);
+    // Intelligent auto-translation with delay
+    const timer = setTimeout(() => {
+      translatePage(language);
+      previousLanguage.current = language;
+    }, 500);
 
-    const observer = new MutationObserver((mutations) => {
-      // Skip if translation is in progress to prevent infinite loops
-      if (translationInProgress.current) {
-        return;
-      }
-
-      let hasNewContent = false;
-      
-      mutations.forEach(mutation => {
-        // Only check for genuinely new content, not translation updates
-        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-          mutation.addedNodes.forEach(node => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const element = node as Element;
-              // Only trigger if element has substantial new content and isn't a translation update
-              if (element.textContent?.trim() && 
-                  element.textContent.trim().length > 10 &&
-                  !element.hasAttribute('data-translated') &&
-                  !element.closest('[data-translated]')) {
-                hasNewContent = true;
-              }
-            }
-          });
-        }
-        // Skip characterData changes during translation to prevent loops
-        else if (mutation.type === 'characterData' && 
-                 !translationInProgress.current &&
-                 mutation.target.textContent?.trim() &&
-                 mutation.target.textContent.trim().length > 10) {
-          // Only trigger if this isn't a translation update
-          const parent = mutation.target.parentElement;
-          if (parent && !parent.hasAttribute('data-translated') && !parent.closest('[data-translated]')) {
-            hasNewContent = true;
-          }
-        }
-      });
-      
-      if (hasNewContent) {
-        console.log('🔄 New content detected, scheduling translation...');
-        
-        // Clear previous debounce
-        if (debounceId.current) {
-          clearTimeout(debounceId.current);
-        }
-        
-        // Longer debounce to prevent excessive re-translations
-        debounceId.current = setTimeout(() => {
-          if (!translationInProgress.current) {
-            translatePage(language, true);
-          }
-        }, 1000); // 1 second debounce to prevent spam
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-
-    return () => {
-      observer.disconnect();
-      if (debounceId.current) {
-        clearTimeout(debounceId.current);
-        debounceId.current = null;
-      }
-    };
-  }, [language, location.pathname]);
+    return () => clearTimeout(timer);
+  }, [language, masterTranslationEnabled, autoTranslateEnabled, translationMode]);
 
   const enableAutoTranslate = () => {
     setAutoTranslateEnabled(true);
@@ -1054,24 +584,39 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Admin-only debug status */}
-      {hasAdminRole && translationStatus && (
+      {/* Compact Translation Status - Much Smaller & Comfortable */}
+      {translationStatus && (
         <div className="fixed top-16 right-4 z-50 max-w-xs">
           <div className={`
-            px-2 py-1 rounded-md backdrop-blur-sm shadow-md border text-xs transition-all duration-300 transform
-            ${translationStatus.type === 'success' ? 'bg-green-500/60 border-green-400/30 text-white' : ''}
-            ${translationStatus.type === 'error' ? 'bg-red-500/60 border-red-400/30 text-white' : ''}
-            ${translationStatus.type === 'warning' ? 'bg-yellow-500/60 border-yellow-400/30 text-white' : ''}
-            ${translationStatus.type === 'info' ? 'bg-blue-500/60 border-blue-400/30 text-white' : ''}
-            ${translationStatus.type === 'loading' ? 'bg-primary/60 border-primary/30 text-primary-foreground' : ''}
-            animate-slide-in-right opacity-70
+            px-3 py-2 rounded-md backdrop-blur-sm shadow-md border text-xs transition-all duration-300 transform
+            ${translationStatus.type === 'success' ? 'bg-green-500/80 border-green-400/50 text-white' : ''}
+            ${translationStatus.type === 'error' ? 'bg-red-500/80 border-red-400/50 text-white' : ''}
+            ${translationStatus.type === 'warning' ? 'bg-yellow-500/80 border-yellow-400/50 text-white' : ''}
+            ${translationStatus.type === 'info' ? 'bg-blue-500/80 border-blue-400/50 text-white' : ''}
+            ${translationStatus.type === 'loading' ? 'bg-primary/80 border-primary/50 text-primary-foreground' : ''}
+            animate-slide-in-right
           `}>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {translationStatus.type === 'loading' && (
-                <div className="animate-spin w-2 h-2 border border-current border-t-transparent rounded-full"></div>
+                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
               )}
-              <span className="text-[10px] font-medium">{translationStatus.message}</span>
+              {translationStatus.type === 'success' && <span className="text-xs">✓</span>}
+              {translationStatus.type === 'error' && <span className="text-xs">✗</span>}
+              {translationStatus.type === 'warning' && <span className="text-xs">⚠</span>}
+              {translationStatus.type === 'info' && <span className="text-xs">i</span>}
+              <span className="font-medium leading-tight">{translationStatus.message}</span>
             </div>
+            {isTranslating && translationProgress > 0 && (
+              <div className="mt-1">
+                <div className="h-0.5 bg-white/30 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-white transition-all duration-200"
+                    style={{ width: `${translationProgress}%` }}
+                  />
+                </div>
+                <div className="text-[10px] mt-0.5 opacity-90">{Math.round(translationProgress)}%</div>
+              </div>
+            )}
           </div>
         </div>
       )}

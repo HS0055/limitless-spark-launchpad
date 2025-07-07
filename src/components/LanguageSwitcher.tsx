@@ -35,9 +35,8 @@ const LanguageSwitcher = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent 
         align="end" 
-        className="w-48 bg-background backdrop-blur-md border-border shadow-xl z-50"
+        className="w-48 bg-background/95 backdrop-blur-md border-border/50 shadow-xl"
         sideOffset={5}
-        data-no-translate
       >
         {languages.map((lang) => (
           <DropdownMenuItem
