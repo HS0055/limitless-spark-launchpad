@@ -289,9 +289,24 @@ class TranslationEngine {
             }
             this.cache[original][target_lang] = translated;
             
-            // If this matches current language, apply immediately
-            if (target_lang === this.currentLanguage) {
+            // FIXED: Only apply translation if it matches current language AND we're not already translating
+            // This prevents the infinite loop with mutation observer
+            if (target_lang === this.currentLanguage && !this.isTranslating) {
+              // Temporarily disable mutation observer to prevent loop
+              const wasObserving = !!this.observer;
+              if (wasObserving) {
+                this.observer?.disconnect();
+              }
+              
+              // Apply translation
               this.translateCachedContent(target_lang);
+              
+              // Re-enable mutation observer after a delay
+              if (wasObserving) {
+                setTimeout(() => {
+                  this.setupMutationObserver();
+                }, 100);
+              }
             }
             
             this.saveCache();
