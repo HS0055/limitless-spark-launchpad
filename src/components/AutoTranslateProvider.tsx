@@ -291,15 +291,12 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               return NodeFilter.FILTER_REJECT;
             }
             
-            // More comprehensive filtering - capture almost all text content
+            // Minimal filtering - allow almost all text content
             if (/^\s*$/.test(text) || // Empty/whitespace only
-                /^[\d\s\.,\-\+\(\)\[\]%]*$/.test(text) && text.length < 3 || // Short numbers/symbols only
+                text.length < 2 || // Too short
                 /^https?:\/\//.test(text) || // URLs
                 /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) || // Emails
-                /^[A-Z_][A-Z0-9_]*$/.test(text) && text.length > 8 || // Long constants only
-                text.startsWith('//') || text.startsWith('/*') || // Comments
-                /^\$\{/.test(text) || // Template literals
-                /^[{}[\]()<>/\\]+$/.test(text) // Pure brackets/symbols
+                text.startsWith('//') || text.startsWith('/*') // Comments only
             ) {
               return NodeFilter.FILTER_REJECT;
             }
@@ -342,25 +339,19 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       if (node.nodeType === Node.TEXT_NODE) {
         const text = node.textContent?.trim();
         const parent = node.parentElement;
-        if (text && text.length > 0 && parent) {
+        if (text && text.length > 1 && parent) {
           const elementContext = analyzeElementContext(parent);
           
-          // Always add text nodes - let the translation API decide if it's translatable
-          const existingEntry = textElements.find(entry => entry.element === parent);
-          if (existingEntry) {
-            if (!existingEntry.text.includes(text)) {
-              existingEntry.text += ' ' + text;
-            }
-          } else {
-            textElements.push({ 
-              element: parent, 
-              text,
-              context: elementContext
-            });
-            // Store original content for restoration
-            if (!originalContent.current.has(parent)) {
-              originalContent.current.set(parent, parent.textContent || '');
-            }
+          // Process each text node individually - don't group by parent
+          textElements.push({ 
+            element: parent, 
+            text,
+            context: elementContext
+          });
+          
+          // Store original content for restoration
+          if (!originalContent.current.has(parent)) {
+            originalContent.current.set(parent, parent.textContent || '');
           }
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
@@ -373,7 +364,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         
         for (const attr of translatableAttrs) {
           const value = element.getAttribute(attr);
-          if (value && value.trim().length > 0 && !/^[0-9]+$/.test(value)) {
+          if (value && value.trim().length > 1 && !/^[0-9]+$/.test(value)) {
             const elementContext = analyzeElementContext(element);
             textElements.push({
               element: element,
@@ -502,10 +493,13 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     const startTime = Date.now();
 
     try {
-      // Extract all text content from the page with improved detection
+      // Extract all text content from the page with aggressive detection
       const textElements = extractTextContent(document.body);
       
+      console.log(`Found ${textElements.length} translatable elements for ${targetLang}`);
+      
       if (textElements.length === 0) {
+        console.warn('No translatable content found');
         return;
       }
 
@@ -529,7 +523,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             try {
               const translatedText = await translateText(text, targetLang, context);
               
-                // Robust element update with multiple fallback strategies
+                // Ultra-robust element update system
                 if (element) {
                   try {
                     // Check if this is an attribute translation
@@ -540,18 +534,26 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
                         element.setAttribute(attrName, translatedText);
                       }
                     } else {
-                      // Force DOM update with multiple strategies
+                      // Text content translation with comprehensive strategies
                       const originalText = text.trim();
+                      let updated = false;
                       
-                      // Strategy 1: Direct textContent replacement
+                      // Strategy 1: Direct textContent match
                       if (element.textContent?.trim() === originalText) {
                         element.textContent = translatedText;
+                        updated = true;
                       }
-                      // Strategy 2: innerHTML replacement while preserving structure
+                      // Strategy 2: Partial textContent match
+                      else if (element.textContent?.includes(originalText)) {
+                        element.textContent = element.textContent.replace(originalText, translatedText);
+                        updated = true;
+                      }
+                      // Strategy 3: innerHTML replacement (preserve HTML structure)
                       else if (element.innerHTML.includes(originalText)) {
                         element.innerHTML = element.innerHTML.replace(originalText, translatedText);
+                        updated = true;
                       }
-                      // Strategy 3: Find and replace in child text nodes
+                      // Strategy 4: Deep text node search and replace
                       else {
                         const walker = document.createTreeWalker(
                           element,
@@ -561,22 +563,44 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
                         
                         let textNode;
                         while (textNode = walker.nextNode()) {
-                          if (textNode.textContent?.trim() === originalText) {
+                          const nodeText = textNode.textContent?.trim();
+                          if (nodeText === originalText) {
                             textNode.textContent = translatedText;
+                            updated = true;
                             break;
                           } else if (textNode.textContent?.includes(originalText)) {
                             textNode.textContent = textNode.textContent.replace(originalText, translatedText);
+                            updated = true;
                             break;
                           }
                         }
                       }
                       
-                      // Force browser repaint
-                      if (element instanceof HTMLElement) {
-                        element.style.opacity = '0.999';
+                      // Strategy 5: Force update if we have the element but couldn't match text
+                      if (!updated && element.textContent) {
+                        // Last resort: replace entire content if it's the only text
+                        const elementTextNodes = [];
+                        const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT, null);
+                        let textNode;
+                        while (textNode = walker.nextNode()) {
+                          if (textNode.textContent?.trim()) {
+                            elementTextNodes.push(textNode);
+                          }
+                        }
+                        
+                        // If element has only one meaningful text node, replace it
+                        if (elementTextNodes.length === 1) {
+                          elementTextNodes[0].textContent = translatedText;
+                          updated = true;
+                        }
+                      }
+                      
+                      // Visual feedback for successful translation
+                      if (updated && element instanceof HTMLElement) {
+                        element.style.opacity = '0.98';
                         setTimeout(() => {
                           element.style.opacity = '';
-                        }, 1);
+                        }, 50);
                       }
                     }
                   } catch (error) {
