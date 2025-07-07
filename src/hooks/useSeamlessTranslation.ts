@@ -67,7 +67,15 @@ export const useSeamlessTranslation = (): SeamlessTranslationHook => {
 
   // Generate content fingerprint
   const generateFingerprint = useCallback((text: string, context: string): string => {
-    return btoa(text + context).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
+    // Use a simple hash instead of btoa to handle Unicode characters
+    const input = text + context;
+    let hash = 0;
+    for (let i = 0; i < input.length; i++) {
+      const char = input.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // Convert to 32bit integer
+    }
+    return Math.abs(hash).toString(36).substring(0, 16);
   }, []);
 
   // Extract all translatable content
