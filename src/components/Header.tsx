@@ -10,7 +10,7 @@ import NavItem from "@/components/NavItem";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, userRole, signOut } = useAuth();
   const { t } = useLanguage();
 
   const mainNavItems = [
@@ -83,6 +83,21 @@ const Header = () => {
             <LanguageSwitcher />
             {user ? (
               <>
+                {userRole === 'admin' && (
+                  <Link
+                    to="/editor"
+                    className={`p-2 rounded-lg transition-all duration-200 flex items-center space-x-2 group ${
+                      location.pathname === '/editor' 
+                        ? 'bg-primary/10 text-primary border border-primary/20' 
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <Icon name="Layout" className={`w-4 h-4 transition-colors ${
+                      location.pathname === '/editor' ? 'text-primary' : 'group-hover:text-primary'
+                    }`} />
+                    <span className="font-medium">Editor</span>
+                  </Link>
+                )}
                 <Link
                   to="/settings"
                   className={`p-2 rounded-lg transition-all duration-200 flex items-center space-x-2 group ${
@@ -191,8 +206,22 @@ const Header = () => {
                       {t('nav.getStarted')}
                     </Link>
                   </Button>
-                ) : (
+                 ) : (
                   <>
+                    {userRole === 'admin' && (
+                      <Link
+                        to="/editor"
+                        className={`flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 ${
+                          location.pathname === '/editor' 
+                            ? 'bg-primary/10 text-primary border border-primary/20' 
+                            : 'hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+                        }`}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <Icon name="Layout" className={`w-5 h-5 ${location.pathname === '/editor' ? 'text-primary' : ''}`} />
+                        <span className="font-medium">Visual Editor</span>
+                      </Link>
+                    )}
                     <Link
                       to="/settings"
                       className={`flex items-center space-x-3 p-4 rounded-xl transition-all duration-200 ${

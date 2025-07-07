@@ -22,9 +22,13 @@ export const LoginForm = ({ onSuccess }: LoginFormProps) => {
 
     try {
       if (isSignUp) {
+        const redirectUrl = `${window.location.origin}/dashboard`;
         const { error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: redirectUrl
+          }
         });
 
         if (error) throw error;
