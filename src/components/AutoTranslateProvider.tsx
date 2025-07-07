@@ -13,15 +13,17 @@ interface TranslationCache {
 export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(false);
-  const [showCostWarning, setShowCostWarning] = useState(false); // Disabled by default
+  const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true); // Enable by default
+  const [showCostWarning, setShowCostWarning] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationProgress, setTranslationProgress] = useState(0);
-  const [translationMode, setTranslationMode] = useState<'auto' | 'manual'>('manual');
+  const [translationMode, setTranslationMode] = useState<'auto' | 'manual'>('auto'); // Auto by default
   const [translatedLanguages, setTranslatedLanguages] = useState<Set<string>>(new Set());
+  const [hasTranslatedOnce, setHasTranslatedOnce] = useState(false);
   const translationCache = useRef<TranslationCache>({});
   const originalContent = useRef<Map<Element, string>>(new Map());
   const previousLanguage = useRef<string>('en');
+  const translationInProgress = useRef<boolean>(false);
 
   // Load cache from localStorage
   useEffect(() => {
@@ -172,6 +174,11 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   const translatePage = async (targetLang: string, force = false) => {
+    // Prevent multiple simultaneous translations
+    if (translationInProgress.current && !force) {
+      return;
+    }
+
     if (!autoTranslateEnabled && !force) return;
     
     if (targetLang === 'en') {
@@ -179,16 +186,15 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       return;
     }
 
-    // Check if page was already translated for this session
+    // Check if this specific language was already translated for this session
     const sessionKey = `translated-${targetLang}-${window.location.pathname}`;
     const alreadyTranslated = sessionStorage.getItem(sessionKey);
     
-    if (alreadyTranslated && !force) {
-      // Show minimal notification instead of popup
-      showTranslationStatus("Already translated", "info");
-      return;
+    if (alreadyTranslated && !force && hasTranslatedOnce) {
+      return; // Silent return, no notification for auto-mode
     }
 
+    translationInProgress.current = true;
     setIsTranslating(true);
     setTranslationProgress(0);
     showTranslationStatus("Translating...", "loading");
@@ -208,18 +214,16 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      showTranslationStatus(`Translating...`, "loading");
-
       // Optimized batch processing with adaptive sizing
-      const batchSize = uncachedTexts.length > 50 ? 3 : 5; // Smaller batches for large pages
+      const batchSize = uncachedTexts.length > 50 ? 2 : 3; // Smaller batches for reliability
       let completed = 0;
       
-      // Process in smart batches - group similar content together
+      // Process in smart batches
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         
-        // Process batch with improved error handling and retry logic
-        const results = await Promise.allSettled(
+        // Process batch with improved error handling
+        await Promise.allSettled(
           batch.map(async ({ element, text }) => {
             try {
               const translatedText = await translateText(text, targetLang);
@@ -246,20 +250,20 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         const progress = (completed / textElements.length) * 100;
         setTranslationProgress(progress);
         
-      showTranslationStatus(`${completed}/${textElements.length}`, "loading");
-        
         // Small delay to prevent API rate limiting
         if (i + batchSize < textElements.length) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 50));
         }
       }
 
       // Mark page as translated for this session
       sessionStorage.setItem(sessionKey, 'true');
+      setHasTranslatedOnce(true);
 
-      // Enhanced completion notification - much more subtle
-      const successCount = textElements.length - uncachedTexts.length;
-      showTranslationStatus("Done", "success");
+      // Show success only on manual trigger
+      if (force) {
+        showTranslationStatus("Done", "success");
+      }
 
     } catch (error) {
       console.error('Translation error:', error);
@@ -267,6 +271,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     } finally {
       setIsTranslating(false);
       setTranslationProgress(0);
+      translationInProgress.current = false;
       // Auto-hide status after 2 seconds
       setTimeout(() => setTranslationStatus(null), 2000);
     }
@@ -283,23 +288,23 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
-    // Only auto-translate if enabled and mode is auto
+    // Auto-translate when language changes (smart mode)
     if (!autoTranslateEnabled || translationMode !== 'auto') {
       previousLanguage.current = language;
       return;
     }
 
-    // Don't translate on initial load
+    // Don't translate on initial load or same language
     if (previousLanguage.current === language) {
       previousLanguage.current = language;
       return;
     }
 
-    // Reduced delay for faster response
+    // Intelligent auto-translation with delay
     const timer = setTimeout(() => {
       translatePage(language);
       previousLanguage.current = language;
-    }, 300);
+    }, 500); // Slightly longer delay for better UX
 
     return () => clearTimeout(timer);
   }, [language, autoTranslateEnabled, translationMode]);
@@ -367,9 +372,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           <div className="flex flex-col gap-2">
             <Button 
               onClick={() => translatePage(language, true)}
-              disabled={isTranslating}
+              disabled={isTranslating || translationInProgress.current}
               size="sm"
-              className="w-12 h-12 p-0 rounded-full bg-gradient-to-br from-primary to-primary-foreground backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-110"
+              className="w-12 h-12 p-0 rounded-full bg-gradient-to-br from-primary to-primary-foreground backdrop-blur-sm shadow-lg border-0 hover:shadow-xl transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
               title={`Translate to ${language === 'hy' ? 'Armenian' : language === 'ru' ? 'Russian' : language}`}
             >
               {isTranslating ? (
@@ -386,7 +391,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Auto-translate status */}
+      {/* Auto-translate status - Enhanced */}
       {autoTranslateEnabled && translationMode === 'auto' && (
         <div className="fixed top-20 right-4 z-40 bg-background/95 backdrop-blur-sm border border-border rounded-lg px-3 py-2 text-xs shadow-lg">
           <div className="flex items-center gap-2">
@@ -402,10 +407,16 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
                 localStorage.setItem('auto-translate-enabled', 'false');
                 localStorage.setItem('translation-mode', 'manual');
               }}
+              title="Disable auto-translate"
             >
               ×
             </Button>
           </div>
+          {hasTranslatedOnce && (
+            <div className="text-[10px] text-muted-foreground mt-1">
+              Page translated automatically
+            </div>
+          )}
         </div>
       )}
 

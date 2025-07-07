@@ -38,22 +38,30 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-        model: 'gpt-4.1-mini-2025-04-14',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a language detection expert. Analyze the given text and determine its language. 
-              Return ONLY the language code from these options: 'en' for English, 'hy' for Armenian, 'ru' for Russian.
-              If the language is not one of these three, return the closest match or 'en' as default.
-              Return only the language code, nothing else.`
-            },
-            {
-              role: 'user',
-              content: text
-            }
-          ],
-          max_tokens: 10,
-          temperature: 0.1,
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a professional translator specializing in accurate, contextual translations. 
+            Analyze the given text and determine its language from these options: 'en' (English), 'hy' (Armenian), 'ru' (Russian).
+            
+            Rules:
+            - Return ONLY the 2-letter language code
+            - If uncertain, analyze context clues and grammar patterns
+            - Armenian text uses Armenian script (Հայերեն)
+            - Russian text uses Cyrillic script (Русский)
+            - English text uses Latin script
+            - For mixed content, identify the dominant language
+            
+            Return only the language code, nothing else.`
+          },
+          {
+            role: 'user',
+            content: text
+          }
+        ],
+        max_tokens: 5,
+        temperature: 0,
         }),
       });
 
@@ -108,21 +116,34 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini-2025-04-14',
+        model: 'gpt-4o-mini',
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator. Translate the given text from ${sourceLanguage} to ${targetLanguage}. 
-            Maintain the original meaning, tone, and context. For business or technical terms, use appropriate professional terminology.
-            Only return the translated text, nothing else.`
+            content: `You are an expert translator with deep knowledge of ${sourceLanguage}, ${targetLanguage}, and cultural context.
+
+            Translation Guidelines:
+            - Maintain the original meaning, tone, and intent
+            - Preserve formatting, punctuation, and structure
+            - Use natural, fluent expressions in the target language
+            - For technical terms, use standard professional terminology
+            - For cultural references, provide appropriate cultural equivalents
+            - Keep proper nouns (names, brands) unchanged unless they have standard translations
+            - Maintain consistency in terminology throughout
+            - For business/academic content, use formal register
+            - For casual content, use appropriate informal register
+            
+            Context: This is for a multilingual education platform (TopOne Academy) focused on business skills and visual learning.
+            
+            Translate the following text from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translation, no explanations.`
           },
           {
             role: 'user',
             content: text
           }
         ],
-        max_tokens: 2000,
-        temperature: 0.3,
+        max_tokens: 4000,
+        temperature: 0.1,
       }),
     });
 
