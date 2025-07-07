@@ -184,21 +184,21 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     const alreadyTranslated = sessionStorage.getItem(sessionKey);
     
     if (alreadyTranslated && !force) {
-      // Show subtle notification instead of intrusive popup
-      showTranslationStatus("Page already translated", "info");
+      // Show minimal notification instead of popup
+      showTranslationStatus("Already translated", "info");
       return;
     }
 
     setIsTranslating(true);
     setTranslationProgress(0);
-    showTranslationStatus("Analyzing page content...", "loading");
+    showTranslationStatus("Translating...", "loading");
 
     try {
       // Extract all text content from the page with improved detection
       const textElements = extractTextContent(document.body);
       
       if (textElements.length === 0) {
-        showTranslationStatus("No translatable content found", "warning");
+        showTranslationStatus("No text found", "warning");
         return;
       }
 
@@ -208,7 +208,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
-      showTranslationStatus(`Translating ${textElements.length} elements...`, "loading");
+      showTranslationStatus(`Translating...`, "loading");
 
       // Optimized batch processing with adaptive sizing
       const batchSize = uncachedTexts.length > 50 ? 3 : 5; // Smaller batches for large pages
@@ -246,8 +246,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         const progress = (completed / textElements.length) * 100;
         setTranslationProgress(progress);
         
-        // Update status with progress
-        showTranslationStatus(`Translated ${completed}/${textElements.length} elements`, "loading");
+      showTranslationStatus(`${completed}/${textElements.length}`, "loading");
         
         // Small delay to prevent API rate limiting
         if (i + batchSize < textElements.length) {
@@ -258,21 +257,18 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       // Mark page as translated for this session
       sessionStorage.setItem(sessionKey, 'true');
 
-      // Enhanced completion notification
+      // Enhanced completion notification - much more subtle
       const successCount = textElements.length - uncachedTexts.length;
-      showTranslationStatus(
-        `Translation complete! ${uncachedTexts.length} new, ${successCount} from cache`, 
-        "success"
-      );
+      showTranslationStatus("Done", "success");
 
     } catch (error) {
       console.error('Translation error:', error);
-      showTranslationStatus("Translation failed. Please try again.", "error");
+      showTranslationStatus("Failed", "error");
     } finally {
       setIsTranslating(false);
       setTranslationProgress(0);
-      // Hide status after delay
-      setTimeout(() => setTranslationStatus(null), 3000);
+      // Auto-hide status after 2 seconds
+      setTimeout(() => setTranslationStatus(null), 2000);
     }
   };
 
@@ -413,37 +409,37 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         </div>
       )}
 
-      {/* Enhanced Translation Status - Non-intrusive */}
+      {/* Compact Translation Status - Much Smaller & Comfortable */}
       {translationStatus && (
-        <div className="fixed top-4 right-4 z-50 max-w-sm">
+        <div className="fixed top-16 right-4 z-50 max-w-xs">
           <div className={`
-            px-4 py-3 rounded-lg backdrop-blur-md shadow-xl border transition-all duration-500 transform
-            ${translationStatus.type === 'success' ? 'bg-green-500/90 border-green-400 text-white' : ''}
-            ${translationStatus.type === 'error' ? 'bg-red-500/90 border-red-400 text-white' : ''}
-            ${translationStatus.type === 'warning' ? 'bg-yellow-500/90 border-yellow-400 text-white' : ''}
-            ${translationStatus.type === 'info' ? 'bg-blue-500/90 border-blue-400 text-white' : ''}
-            ${translationStatus.type === 'loading' ? 'bg-primary/90 border-primary text-primary-foreground' : ''}
+            px-3 py-2 rounded-md backdrop-blur-sm shadow-md border text-xs transition-all duration-300 transform
+            ${translationStatus.type === 'success' ? 'bg-green-500/80 border-green-400/50 text-white' : ''}
+            ${translationStatus.type === 'error' ? 'bg-red-500/80 border-red-400/50 text-white' : ''}
+            ${translationStatus.type === 'warning' ? 'bg-yellow-500/80 border-yellow-400/50 text-white' : ''}
+            ${translationStatus.type === 'info' ? 'bg-blue-500/80 border-blue-400/50 text-white' : ''}
+            ${translationStatus.type === 'loading' ? 'bg-primary/80 border-primary/50 text-primary-foreground' : ''}
             animate-slide-in-right
           `}>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               {translationStatus.type === 'loading' && (
-                <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
+                <div className="animate-spin w-3 h-3 border border-current border-t-transparent rounded-full"></div>
               )}
-              {translationStatus.type === 'success' && <span className="text-lg">✅</span>}
-              {translationStatus.type === 'error' && <span className="text-lg">❌</span>}
-              {translationStatus.type === 'warning' && <span className="text-lg">⚠️</span>}
-              {translationStatus.type === 'info' && <span className="text-lg">ℹ️</span>}
-              <span className="text-sm font-medium">{translationStatus.message}</span>
+              {translationStatus.type === 'success' && <span className="text-xs">✓</span>}
+              {translationStatus.type === 'error' && <span className="text-xs">✗</span>}
+              {translationStatus.type === 'warning' && <span className="text-xs">⚠</span>}
+              {translationStatus.type === 'info' && <span className="text-xs">i</span>}
+              <span className="font-medium leading-tight">{translationStatus.message}</span>
             </div>
-            {isTranslating && (
-              <div className="mt-2">
-                <div className="h-1 bg-white/30 rounded-full overflow-hidden">
+            {isTranslating && translationProgress > 0 && (
+              <div className="mt-1">
+                <div className="h-0.5 bg-white/30 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-white transition-all duration-300"
+                    className="h-full bg-white transition-all duration-200"
                     style={{ width: `${translationProgress}%` }}
                   />
                 </div>
-                <div className="text-xs mt-1 opacity-90">{Math.round(translationProgress)}% complete</div>
+                <div className="text-[10px] mt-0.5 opacity-90">{Math.round(translationProgress)}%</div>
               </div>
             )}
           </div>
