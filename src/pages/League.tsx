@@ -1,4 +1,4 @@
-import SectionLayout from "@/components/SectionLayout";
+import PublicLayout from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -126,7 +126,7 @@ const League = () => {
   ];
 
   return (
-    <SectionLayout 
+    <PublicLayout 
       sectionName="Business Learning Leagues" 
       sectionIcon={Trophy}
       sectionColor="from-primary to-accent-secondary"
@@ -460,7 +460,7 @@ const League = () => {
           </div>
         </div>
       </section>
-    </SectionLayout>
+    </PublicLayout>
   );
 };
 

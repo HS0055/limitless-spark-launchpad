@@ -1,4 +1,4 @@
-import SectionLayout from "@/components/SectionLayout";
+import PublicLayout from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -76,7 +76,7 @@ const MemeCoins = () => {
   ];
 
   return (
-    <SectionLayout 
+    <PublicLayout 
       sectionName="Meme Coin Mastery" 
       sectionIcon={TrendingUp}
       sectionColor="from-accent-secondary to-accent-tertiary"
@@ -335,7 +335,7 @@ const MemeCoins = () => {
           </div>
         </div>
       </section>
-    </SectionLayout>
+    </PublicLayout>
   );
 };
 

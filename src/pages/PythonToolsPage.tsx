@@ -1,4 +1,4 @@
-import SectionLayout from '@/components/SectionLayout';
+import PublicLayout from '@/components/PublicLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -107,7 +107,7 @@ const PythonToolsPage = () => {
   ];
 
   return (
-    <SectionLayout 
+    <PublicLayout 
       sectionName="Python Computing Platform" 
       sectionIcon={Calculator}
       sectionColor="from-primary to-accent-secondary"
@@ -409,7 +409,7 @@ const PythonToolsPage = () => {
           </div>
         </div>
       </section>
-    </SectionLayout>
+    </PublicLayout>
   );
 };
 
