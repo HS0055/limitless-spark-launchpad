@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { supabase } from '@/integrations/supabase/client';
 
 interface TranslationCache {
   [key: string]: {
@@ -389,24 +390,44 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   const translateText = async (text: string, targetLang: string, context?: string): Promise<string> => {
-    // Check cache first for ultra-fast retrieval
-    const cacheKey = `${text.toLowerCase().trim()}_${context || ''}`;
-    if (translationCache.current[cacheKey]?.[targetLang]) {
-      return translationCache.current[cacheKey][targetLang];
-    }
+    const cleanText = text.trim();
+    if (!cleanText) return text;
 
     try {
-      // Use optimized API client with caching and deduplication
+      // Check database first for persistent translations
+      const { data: existingTranslation } = await supabase
+        .from('translations')
+        .select('translated_text')
+        .eq('source_text', cleanText)
+        .eq('source_language', 'en')
+        .eq('target_language', targetLang)
+        .limit(1)
+        .single();
+
+      if (existingTranslation) {
+        console.log('📦 Using saved translation from database');
+        return existingTranslation.translated_text;
+      }
+
+      // Check memory cache
+      const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
+      if (translationCache.current[cacheKey]?.[targetLang]) {
+        return translationCache.current[cacheKey][targetLang];
+      }
+
+      console.log('🔄 Translating new text:', cleanText.substring(0, 50) + '...');
+
+      // Translate with AI only if not found in database
       const result = await apiClient.invoke('ai-translate', {
         body: {
-          text: text,
+          text: cleanText,
           sourceLang: 'en',
           targetLang: targetLang,
           context: context,
           visionMode: true
         }
       }, {
-        ttl: 300000, // 5 minute cache
+        ttl: 300000,
         skipCache: false
       });
 
@@ -414,20 +435,35 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
       const translatedText = result.data.translatedText;
 
-      // Enhanced aggressive caching with context
+      // Save to database for future use
+      if (user?.id) {
+        try {
+          await supabase
+            .from('translations')
+            .insert({
+              source_text: cleanText,
+              source_language: 'en',
+              target_language: targetLang,
+              translated_text: translatedText,
+              user_id: user.id
+            });
+          console.log('💾 Saved translation to database');
+        } catch (dbError) {
+          console.warn('Failed to save translation to database:', dbError);
+        }
+      }
+
+      // Also cache in memory
       if (!translationCache.current[cacheKey]) {
         translationCache.current[cacheKey] = {};
       }
       translationCache.current[cacheKey][targetLang] = translatedText;
-      
-      // Batch save to localStorage for performance
       saveCache();
 
       return translatedText;
     } catch (error) {
-      // Admin-only error logging
       if (hasAdminRole) {
-        logToAdmin('Translation error', { text, context, error });
+        logToAdmin('Translation error', { text: cleanText, context, error });
       }
       return text; // Fallback to original text
     }
@@ -529,19 +565,44 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         return;
       }
 
-      // Smart caching - prioritize frequently used phrases
-      const uncachedTexts = textElements.filter(({ text, context }) => {
-        const cacheKey = `${text.toLowerCase()}_${context || ''}`;
-        return !translationCache.current[cacheKey]?.[targetLang];
-      });
+      // Check database for existing translations to avoid unnecessary API calls
+      const textsToTranslate = [];
+      for (const { text, context } of textElements) {
+        const cleanText = text.trim();
+        if (!cleanText) continue;
 
-      // Rate-limited processing to avoid API limits
-      const batchSize = 8; // Smaller batches for better rate limiting
+        // Check database first
+        const { data: existingTranslation } = await supabase
+          .from('translations')
+          .select('translated_text')
+          .eq('source_text', cleanText)
+          .eq('source_language', 'en')
+          .eq('target_language', targetLang)
+          .limit(1)
+          .single();
+
+        if (!existingTranslation) {
+          // Check memory cache
+          const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
+          if (!translationCache.current[cacheKey]?.[targetLang]) {
+            textsToTranslate.push({ text, context });
+          }
+        }
+      }
+
+      console.log(`📊 Found ${textElements.length} elements, ${textsToTranslate.length} need translation`);
+
+      // Process only texts that need translation
+      const batchSize = textsToTranslate.length > 0 ? 8 : textElements.length;
       let completed = 0;
       
-      console.log(`🔄 Processing ${textElements.length} elements in batches of ${batchSize} with rate limiting...`);
+      if (textsToTranslate.length === 0) {
+        console.log('✅ All content already translated, using saved translations');
+      } else {
+        console.log(`🔄 Processing ${textsToTranslate.length} new translations in batches of ${batchSize}...`);
+      }
       
-      // Process in rate-limited parallel batches
+      // Process all elements (mix of cached and new translations)
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         console.log(`Processing batch ${Math.floor(i/batchSize) + 1}/${Math.ceil(textElements.length/batchSize)}`);
