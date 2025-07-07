@@ -143,8 +143,8 @@ const WebsiteTranslationManager = () => {
       const { data: visionData, error: visionError } = await supabase.functions.invoke('vision-ai-website-scan', {
         body: {
           baseUrl,
-          targetLanguages: languages.map(l => l.code),
-          pages: pages.map(p => p.path)
+          targetLanguages: languages.map(l => l.code)
+          // No pages parameter - will auto-discover all pages
         }
       });
 

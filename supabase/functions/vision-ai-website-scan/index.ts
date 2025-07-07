@@ -7,20 +7,67 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Website pages to scan
-const WEBSITE_PAGES = [
-  '/',
-  '/business-fundamentals', 
-  '/dashboard',
-  '/admin',
-  '/community',
-  '/settings',
-  '/league',
-  '/python-tools',
-  '/meme-coins',
-  '/visual-business',
-  '/ai-tools'
-];
+// Function to discover all pages by crawling the website
+async function discoverAllPages(baseUrl: string): Promise<string[]> {
+  const discoveredPages = new Set<string>();
+  const toVisit = new Set(['/']);
+  const visited = new Set<string>();
+  
+  // Add known routes from React Router
+  const knownRoutes = [
+    '/',
+    '/business-fundamentals', 
+    '/dashboard',
+    '/admin',
+    '/community',
+    '/settings',
+    '/league',
+    '/python-tools',
+    '/meme-coins',
+    '/visual-business',
+    '/ai-tools'
+  ];
+  
+  knownRoutes.forEach(route => {
+    discoveredPages.add(route);
+    toVisit.add(route);
+  });
+  
+  // Try to discover more pages by fetching and parsing HTML
+  while (toVisit.size > 0 && visited.size < 50) { // Limit to prevent infinite loops
+    const currentPage = Array.from(toVisit)[0];
+    toVisit.delete(currentPage);
+    visited.add(currentPage);
+    
+    try {
+      console.log(`🔍 Discovering links on: ${currentPage}`);
+      const response = await fetch(`${baseUrl}${currentPage}`);
+      if (response.ok) {
+        const html = await response.text();
+        
+        // Extract links from HTML using regex
+        const linkMatches = html.match(/href=["']([^"']+)["']/g) || [];
+        
+        linkMatches.forEach(match => {
+          const href = match.match(/href=["']([^"']+)["']/)?.[1];
+          if (href && href.startsWith('/') && !href.includes('#') && !href.includes('?')) {
+            // Only add internal routes
+            if (!visited.has(href) && href.length < 50) {
+              discoveredPages.add(href);
+              if (visited.size + toVisit.size < 30) { // Don't overwhelm
+                toVisit.add(href);
+              }
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to discover links on ${currentPage}:`, error);
+    }
+  }
+  
+  return Array.from(discoveredPages);
+}
 
 // Languages to translate to
 const TARGET_LANGUAGES = [
@@ -58,13 +105,27 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
     const body = await req.json();
-    const { baseUrl, targetLanguages = TARGET_LANGUAGES, pages = WEBSITE_PAGES } = body;
+    const { baseUrl, targetLanguages = TARGET_LANGUAGES, pages: requestedPages } = body;
     
     if (!baseUrl) {
       return new Response(
         JSON.stringify({ error: 'baseUrl is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Discover all pages on the website
+    console.log(`🔍 Discovering all pages on website: ${baseUrl}`);
+    let pages: string[];
+    
+    if (requestedPages && requestedPages.length > 0) {
+      // Use specific pages if provided
+      pages = requestedPages;
+      console.log(`📋 Using provided pages: ${pages.length} pages`);
+    } else {
+      // Auto-discover all pages
+      pages = await discoverAllPages(baseUrl);
+      console.log(`🎯 Auto-discovered ${pages.length} pages`);
     }
 
     console.log(`📸 Taking screenshots and analyzing ${pages.length} pages with Vision AI`);
