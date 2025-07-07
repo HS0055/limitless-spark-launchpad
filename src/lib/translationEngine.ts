@@ -138,21 +138,40 @@ class TranslationEngine {
     }
     
     this.debounceTimer = window.setTimeout(() => {
+      // Prevent rapid re-translations that cause floating
+      if (this.isTranslating) {
+        console.log('⏳ Translation already in progress, skipping...');
+        return;
+      }
+      
       console.log('🔄 Dynamic content detected, re-translating…');
       // Use faster, cached-only translation for dynamic updates
       this.translateCachedContent(this.currentLanguage);
       
-      // Only check for new content occasionally
-      if (Math.random() < 0.3) { // 30% chance to check for new content
+      // Only check for new content occasionally to prevent rapid cycles
+      if (Math.random() < 0.1) { // Reduced to 10% chance to prevent excessive API calls
         this.translateAllContent(this.currentLanguage);
       }
-    }, 200); // Longer delay for stability
+    }, 800); // Increased delay to prevent rapid floating
   }
 
   async translateAll(targetLang: Language) {
     // Cancel any ongoing translation
     if (this.abortController) {
       this.abortController.abort();
+    }
+    
+    // Prevent rapid language switching that causes floating
+    if (this.isTranslating) {
+      console.log('⏳ Translation in progress, waiting...');
+      return new Promise((resolve) => {
+        const checkInterval = setInterval(() => {
+          if (!this.isTranslating) {
+            clearInterval(checkInterval);
+            this.translateAll(targetLang).then(resolve);
+          }
+        }, 100);
+      });
     }
     
     if (targetLang === 'en') {
