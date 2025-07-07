@@ -8,43 +8,28 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
   console.log('🔄 AutoTranslateProvider initialized for:', location.pathname);
 
-  // PERFORMANCE FIX: Optimize route change translations
+  // PERFORMANCE FIX: Only trigger on route changes, language changes handled by useDebouncedLanguageSwitch
   useEffect(() => {
-    console.log('🌐 Route changed to:', location.pathname, 'Language:', language);
+    console.log('🌐 Route changed to:', location.pathname);
     
-    // Only translate on route changes for non-English languages
+    // Only translate on route changes if language is not English
     if (language !== 'en') {
-      // Increased delay to reduce rapid re-translations
       const timer = setTimeout(async () => {
         try {
           const { translationEngine } = await import('@/lib/translationEngine');
-          console.log('🔄 Re-translating page content...');
+          console.log('🔄 Re-translating page content for route change...');
           await translationEngine.translateAll(language);
         } catch (error) {
           console.error('Failed to translate on route change:', error);
         }
-      }, 800); // Increased delay to prevent rapid fire translations
+      }, 500); // Reduced delay since language switches are handled separately
 
       return () => clearTimeout(timer);
     }
-  }, [location.pathname, language]);
+  }, [location.pathname]); // REMOVED language dependency to prevent conflicts
 
-  // PERFORMANCE FIX: Debounce language changes
-  useEffect(() => {
-    if (language !== 'en') {
-      const timer = setTimeout(async () => {
-        try {
-          const { translationEngine } = await import('@/lib/translationEngine');
-          console.log('🌍 Language changed, translating...');
-          await translationEngine.translateAll(language);
-        } catch (error) {
-          console.error('Failed to translate on language change:', error);
-        }
-      }, 500); // Increased delay for language changes
-
-      return () => clearTimeout(timer);
-    }
-  }, [language]);
+  // REMOVED: Language change handling is now done by useDebouncedLanguageSwitch
+  // This prevents multiple simultaneous translation triggers
 
   return <>{children}</>;
 };

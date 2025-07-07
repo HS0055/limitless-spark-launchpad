@@ -410,34 +410,14 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
     setLanguageState(lang);
     localStorage.setItem('language', lang);
     
-    // Trigger auto-translation
-    if (lang !== 'en') {
-      triggerAutoTranslation(lang);
-    } else {
-      restoreOriginalContent();
-    }
+    // OPTIMISTIC UPDATE: Don't trigger auto-translation here
+    // Let AutoTranslateProvider handle it to prevent conflicts
     
     // TODO: Save language preference to user profile when available
   };
 
-  const triggerAutoTranslation = async (targetLang: Language) => {
-    setIsTranslating(true);
-    try {
-      const { translationEngine } = await import('@/lib/translationEngine');
-      await translationEngine.translateAll(targetLang);
-    } catch (error) {
-      console.error('Failed to trigger auto-translation:', error);
-    } finally {
-      setIsTranslating(false);
-    }
-  };
-
-  const restoreOriginalContent = () => {
-    import('@/lib/translationEngine').then(({ translationEngine }) => {
-      translationEngine.translateAll('en');
-    });
-    setIsTranslating(false);
-  };
+  // REMOVED: Auto-translation functions moved to useDebouncedLanguageSwitch
+  // This prevents conflicts between multiple translation systems
 
   const t = (key: string): string => {
     // For new languages without translations, return the key as fallback

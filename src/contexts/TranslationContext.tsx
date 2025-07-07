@@ -92,12 +92,8 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     setCurrentLanguage(lang);
     localStorage.setItem('preferred-language', lang);
     
-    // Reload the page to apply translations
-    if (lang !== 'en') {
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-    }
+    // OPTIMISTIC UPDATE: Immediately update UI, no page reload
+    // Background translation will happen via AutoTranslateProvider
   };
 
   const translate = (text: string): string => {

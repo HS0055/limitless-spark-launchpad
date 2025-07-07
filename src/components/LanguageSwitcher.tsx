@@ -6,10 +6,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Globe, Check, Loader2 } from 'lucide-react';
-import { useTranslation } from '@/contexts/TranslationContext';
+import { useDebouncedLanguageSwitch } from '@/hooks/useDebouncedLanguageSwitch';
 
 const LanguageSwitcher = () => {
-  const { currentLanguage, setLanguage, availableLanguages, isLoading } = useTranslation();
+  const { switchLanguage, currentLanguage, isTranslating, availableLanguages } = useDebouncedLanguageSwitch();
 
   const currentLang = availableLanguages.find(lang => lang.code === currentLanguage);
 
@@ -20,9 +20,9 @@ const LanguageSwitcher = () => {
           variant="outline" 
           size="sm" 
           className="hover-glow bg-background/95 backdrop-blur-sm border-border/50"
-          disabled={isLoading}
+          disabled={isTranslating}
         >
-          {isLoading ? (
+          {isTranslating ? (
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
           ) : (
             <Globe className="w-4 h-4 mr-2" />
@@ -39,7 +39,7 @@ const LanguageSwitcher = () => {
         {availableLanguages.map((lang) => (
           <DropdownMenuItem
             key={lang.code}
-            onClick={() => setLanguage(lang.code)}
+            onClick={() => switchLanguage(lang.code)}
             className="flex items-center justify-between py-3 px-4 cursor-pointer hover:bg-muted/80 transition-colors"
           >
             <div className="flex items-center gap-3">
