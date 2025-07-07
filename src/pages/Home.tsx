@@ -1,3 +1,6 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthProvider";
 import Header from "@/components/Header";
 import CompanyLogos from "@/components/CompanyLogos";
 import UpcomingLeagues from "@/components/UpcomingLeagues";
@@ -9,6 +12,33 @@ import { Trophy, Target, Users, BookOpen, Star, Zap, Clock, Award, TrendingUp, C
 import { Card, CardContent } from "@/components/ui/card";
 
 const Home = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (!loading && user) {
+      navigate('/dashboard');
+    }
+  }, [user, loading, navigate]);
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render home content if user is authenticated (will redirect)
+  if (user) {
+    return null;
+  }
+
   const stats = [
     { number: "5+", label: "Learning Leagues", icon: Trophy, color: "text-accent-secondary" },
     { number: "650+", label: "Active Learners", icon: Users, color: "text-primary" },
