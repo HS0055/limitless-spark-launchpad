@@ -291,17 +291,15 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               return NodeFilter.FILTER_REJECT;
             }
             
-            // More precise filtering - catch more translatable content
+            // More comprehensive filtering - capture almost all text content
             if (/^\s*$/.test(text) || // Empty/whitespace only
-                /^[\d\s\.,\-\+\(\)\[\]%]+$/.test(text) || // Numbers/symbols only
+                /^[\d\s\.,\-\+\(\)\[\]%]*$/.test(text) && text.length < 3 || // Short numbers/symbols only
                 /^https?:\/\//.test(text) || // URLs
                 /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) || // Emails
-                /^[A-Z_][A-Z0-9_]*$/.test(text) || // Constants
-                /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text) || // Brackets/symbols
-                /^[0-9]+[px|em|rem|%]?$/.test(text) || // CSS values
+                /^[A-Z_][A-Z0-9_]*$/.test(text) && text.length > 8 || // Long constants only
                 text.startsWith('//') || text.startsWith('/*') || // Comments
                 /^\$\{/.test(text) || // Template literals
-                /^[a-z]+(-[a-z]+)*$/.test(text) && text.length < 4 // Short kebab-case
+                /^[{}[\]()<>/\\]+$/.test(text) // Pure brackets/symbols
             ) {
               return NodeFilter.FILTER_REJECT;
             }
@@ -347,7 +345,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         if (text && text.length > 0 && parent) {
           const elementContext = analyzeElementContext(parent);
           
-          // Group consecutive text nodes from the same parent
+          // Always add text nodes - let the translation API decide if it's translatable
           const existingEntry = textElements.find(entry => entry.element === parent);
           if (existingEntry) {
             if (!existingEntry.text.includes(text)) {
@@ -359,20 +357,23 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
               text,
               context: elementContext
             });
-            // Store original content
+            // Store original content for restoration
             if (!originalContent.current.has(parent)) {
-              originalContent.current.set(parent, text);
+              originalContent.current.set(parent, parent.textContent || '');
             }
           }
         }
       } else if (node.nodeType === Node.ELEMENT_NODE) {
-        // Handle translatable attributes
+        // Handle translatable attributes more comprehensively
         const element = node as Element;
-        const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
+        const translatableAttrs = [
+          'title', 'alt', 'placeholder', 'aria-label', 'aria-description',
+          'data-tooltip', 'data-title', 'label', 'value'
+        ];
         
         for (const attr of translatableAttrs) {
           const value = element.getAttribute(attr);
-          if (value && value.trim().length > 1) {
+          if (value && value.trim().length > 0 && !/^[0-9]+$/.test(value)) {
             const elementContext = analyzeElementContext(element);
             textElements.push({
               element: element,
@@ -381,6 +382,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             });
             
             // Store original attribute value
+            const cacheKey = `${element.tagName}-${attr}`;
             if (!originalContent.current.has(element)) {
               originalContent.current.set(element, value);
             }
@@ -527,45 +529,74 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
             try {
               const translatedText = await translateText(text, targetLang, context);
               
-                // Enhanced element update - handle both text content and attributes
+                // Comprehensive element update system
                 if (element) {
-                  // Check if this is an attribute translation
-                  if (context.includes('attribute')) {
-                    const attrMatch = context.match(/(title|alt|placeholder|aria-label|aria-description|data-tooltip|data-title|label|value) attribute/);
-                    if (attrMatch) {
-                      const attrName = attrMatch[1];
-                      const currentValue = element.getAttribute(attrName);
-                      if (currentValue === text || currentValue?.trim() === text.trim()) {
-                        element.setAttribute(attrName, translatedText);
+                  try {
+                    // Check if this is an attribute translation
+                    if (context.includes('attribute')) {
+                      const attrMatch = context.match(/(title|alt|placeholder|aria-label|aria-description|data-tooltip|data-title|label|value) attribute/);
+                      if (attrMatch) {
+                        const attrName = attrMatch[1];
+                        const currentValue = element.getAttribute(attrName);
+                        if (currentValue && (currentValue === text || currentValue.trim() === text.trim())) {
+                          element.setAttribute(attrName, translatedText);
+                        }
+                      }
+                    } else {
+                      // Handle text content with multiple strategies
+                      const currentText = element.textContent?.trim();
+                      const originalText = text.trim();
+                      
+                      // Strategy 1: Direct text content match
+                      if (currentText === originalText) {
+                        element.textContent = translatedText;
+                      }
+                      // Strategy 2: Partial content match
+                      else if (currentText && currentText.includes(originalText)) {
+                        const newContent = currentText.replace(originalText, translatedText);
+                        element.textContent = newContent;
+                      }
+                      // Strategy 3: HTML content with text preservation
+                      else if (element.innerHTML && element.innerHTML.includes(originalText)) {
+                        // Preserve HTML structure while replacing text
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = element.innerHTML;
+                        const walker = document.createTreeWalker(
+                          tempDiv,
+                          NodeFilter.SHOW_TEXT,
+                          null
+                        );
+                        
+                        let textNode;
+                        while (textNode = walker.nextNode()) {
+                          if (textNode.textContent?.trim() === originalText) {
+                            textNode.textContent = translatedText;
+                            break;
+                          }
+                        }
+                        element.innerHTML = tempDiv.innerHTML;
+                      }
+                      // Strategy 4: Direct text node replacement
+                      else {
+                        const walker = document.createTreeWalker(
+                          element,
+                          NodeFilter.SHOW_TEXT,
+                          null
+                        );
+                        
+                        let textNode;
+                        while (textNode = walker.nextNode()) {
+                          if (textNode.textContent?.trim() === originalText) {
+                            textNode.textContent = translatedText;
+                            break;
+                          }
+                        }
                       }
                     }
-                  } else {
-                    // Handle text content with improved matching
-                    const currentText = element.textContent?.trim();
-                    const originalText = text.trim();
-                    
-                    if (currentText === originalText) {
-                      // Direct match - simple replacement
-                      element.textContent = translatedText;
-                    } else if (currentText && currentText.includes(originalText)) {
-                      // Partial match - replace within existing content
-                      const newContent = currentText.replace(originalText, translatedText);
-                      element.textContent = newContent;
-                    } else if (element.innerHTML && element.innerHTML.includes(originalText)) {
-                      // HTML content match - preserve HTML structure
-                      element.innerHTML = element.innerHTML.replace(originalText, translatedText);
-                    } else {
-                      // Fallback: check if element is a text node container
-                      const textNodes = Array.from(element.childNodes).filter(
-                        node => node.nodeType === Node.TEXT_NODE && node.textContent?.trim() === originalText
-                      );
-                      if (textNodes.length > 0) {
-                        textNodes.forEach(node => {
-                          if (node.textContent) {
-                            node.textContent = translatedText;
-                          }
-                        });
-                      }
+                  } catch (error) {
+                    // Fallback: simple text replacement
+                    if (!context.includes('attribute') && element.textContent?.includes(text)) {
+                      element.textContent = element.textContent.replace(text, translatedText);
                     }
                   }
                 }
