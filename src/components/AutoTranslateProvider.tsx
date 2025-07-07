@@ -3,6 +3,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/components/auth/AuthProvider';
 
 interface TranslationCache {
   [key: string]: {
@@ -13,20 +14,55 @@ interface TranslationCache {
 export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
   const { language } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
   const [masterTranslationEnabled, setMasterTranslationEnabled] = useState(true);
-  const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true); // Enable by default
+  const [autoTranslateEnabled, setAutoTranslateEnabled] = useState(true);
   const [showCostWarning, setShowCostWarning] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
   const [translationProgress, setTranslationProgress] = useState(0);
-  const [translationMode, setTranslationMode] = useState<'auto' | 'manual'>('auto'); // Auto by default
+  const [translationMode, setTranslationMode] = useState<'auto' | 'manual'>('auto');
   const [translatedLanguages, setTranslatedLanguages] = useState<Set<string>>(new Set());
   const [hasTranslatedOnce, setHasTranslatedOnce] = useState(false);
+  const [hasAdminRole, setHasAdminRole] = useState(false);
   const translationCache = useRef<TranslationCache>({});
   const originalContent = useRef<Map<Element, string>>(new Map());
   const previousLanguage = useRef<string>('en');
   const translationInProgress = useRef<boolean>(false);
 
+  // Admin-only logging function
+  const logToAdmin = async (message: string, data: any) => {
+    if (!hasAdminRole) return;
+    
+    try {
+      await apiClient.invoke('admin-log', {
+        body: {
+          level: 'info',
+          message,
+          data,
+          timestamp: new Date().toISOString(),
+          user_id: user?.id
+        }
+      });
+    } catch (error) {
+      // Silent fail for logging
+    }
+  };
+
   useEffect(() => {
+    // Check admin role
+    const checkAdminRole = async () => {
+      if (user) {
+        try {
+          const { data } = await apiClient.invoke('check-admin-role');
+          setHasAdminRole(data?.isAdmin || false);
+        } catch (error) {
+          setHasAdminRole(false);
+        }
+      }
+    };
+    
+    checkAdminRole();
+    
     // Load master translation settings - Auto-enable everything by default
     try {
       setMasterTranslationEnabled(true);
@@ -45,7 +81,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     } catch (error) {
       console.error('Error loading translation settings:', error);
     }
-  }, []);
+  }, [user]);
 
   // Save cache to localStorage
   const saveCache = () => {
@@ -56,92 +92,13 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     }
   };
 
-  const extractTextContent = (element: Element): Array<{ element: Element; text: string; context: string }> => {
-    const textElements: Array<{ element: Element; text: string; context: string }> = [];
-    const walker = document.createTreeWalker(
-      element,
-      NodeFilter.SHOW_TEXT,
-      {
-        acceptNode: (node) => {
-          const parent = node.parentElement;
-          if (!parent) return NodeFilter.FILTER_REJECT;
-          
-          // AI Vision-enhanced detection - capture ALL meaningful content
-          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'SVG', 'PATH'];
-          if (skipTags.includes(parent.tagName)) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          // Only skip truly hidden elements, not opacity/transform effects
-          const style = window.getComputedStyle(parent);
-          if (style.display === 'none' || style.visibility === 'hidden') {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          // Skip elements with data-no-translate attribute
-          if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          const text = node.textContent?.trim();
-          if (!text || text.length < 1) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          // Enhanced filtering - preserve MORE content for comprehensive translation
-          // Only reject pure technical/code content
-          if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
-              /^https?:\/\//.test(text) || 
-              /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
-              /^[0-9]+(\.[0-9]+)*$/.test(text) ||
-              /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text) ||
-              text.startsWith('//') || text.startsWith('/*')) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          return NodeFilter.FILTER_ACCEPT;
-        }
-      }
-    );
-
-    let node;
-    while (node = walker.nextNode()) {
-      const text = node.textContent?.trim();
-      const parent = node.parentElement;
-      if (text && text.length > 0 && parent) {
-        // AI Vision Context Detection - Enhanced element analysis
-        const elementContext = analyzeElementContext(parent);
-        
-        // Group consecutive text nodes from the same parent
-        const existingEntry = textElements.find(entry => entry.element === parent);
-        if (existingEntry) {
-          if (!existingEntry.text.includes(text)) {
-            existingEntry.text += ' ' + text;
-          }
-        } else {
-          textElements.push({ 
-            element: parent, 
-            text,
-            context: elementContext
-          });
-          // Store original content if not already stored
-          if (!originalContent.current.has(parent)) {
-            originalContent.current.set(parent, text);
-          }
-        }
-      }
-    }
-    
-    return textElements;
-  };
-
   // AI Vision Context Analysis for better translation accuracy
   const analyzeElementContext = (element: Element): string => {
     const contexts = [];
     
     // Analyze semantic HTML tags
     const tagName = element.tagName.toLowerCase();
-    const semanticTags = {
+    const semanticTags: Record<string, string> = {
       'h1': 'main heading',
       'h2': 'section heading', 
       'h3': 'subsection heading',
@@ -211,6 +168,125 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     return contexts.length > 0 ? contexts.join(', ') : 'general content';
   };
 
+  const extractTextContent = (element: Element): Array<{ element: Element; text: string; context: string }> => {
+    const textElements: Array<{ element: Element; text: string; context: string }> = [];
+    
+    // Enhanced tree walker for comprehensive content detection
+    const walker = document.createTreeWalker(
+      element,
+      NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT,
+      {
+        acceptNode: (node) => {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const parent = node.parentElement;
+            if (!parent) return NodeFilter.FILTER_REJECT;
+            
+            // Only skip truly technical content
+            const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT'];
+            if (skipTags.includes(parent.tagName)) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            
+            // Skip hidden elements only if completely hidden
+            const style = window.getComputedStyle(parent);
+            if (style.display === 'none' || style.visibility === 'hidden') {
+              return NodeFilter.FILTER_REJECT;
+            }
+            
+            // Skip data-no-translate
+            if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            
+            const text = node.textContent?.trim();
+            if (!text || text.length < 1) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            
+            // Enhanced filtering - allow MORE content types
+            if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
+                /^https?:\/\//.test(text) || 
+                /^[^\s]+@[^\s]+\.[^\s]+$/.test(text) ||
+                text.startsWith('//') || text.startsWith('/*') ||
+                /^[\{\}\[\]\(\)\<\>\/\\]+$/.test(text)) {
+              return NodeFilter.FILTER_REJECT;
+            }
+            
+            return NodeFilter.FILTER_ACCEPT;
+          }
+          
+          // For element nodes, check if they have text content or important attributes
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            
+            // Check for translatable attributes
+            const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
+            for (const attr of translatableAttrs) {
+              const value = element.getAttribute(attr);
+              if (value && value.trim().length > 1) {
+                return NodeFilter.FILTER_ACCEPT;
+              }
+            }
+          }
+          
+          return NodeFilter.FILTER_SKIP;
+        }
+      }
+    );
+
+    let node;
+    while (node = walker.nextNode()) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent?.trim();
+        const parent = node.parentElement;
+        if (text && text.length > 0 && parent) {
+          const elementContext = analyzeElementContext(parent);
+          
+          // Group consecutive text nodes from the same parent
+          const existingEntry = textElements.find(entry => entry.element === parent);
+          if (existingEntry) {
+            if (!existingEntry.text.includes(text)) {
+              existingEntry.text += ' ' + text;
+            }
+          } else {
+            textElements.push({ 
+              element: parent, 
+              text,
+              context: elementContext
+            });
+            // Store original content
+            if (!originalContent.current.has(parent)) {
+              originalContent.current.set(parent, text);
+            }
+          }
+        }
+      } else if (node.nodeType === Node.ELEMENT_NODE) {
+        // Handle translatable attributes
+        const element = node as Element;
+        const translatableAttrs = ['title', 'alt', 'placeholder', 'aria-label'];
+        
+        for (const attr of translatableAttrs) {
+          const value = element.getAttribute(attr);
+          if (value && value.trim().length > 1) {
+            const elementContext = analyzeElementContext(element);
+            textElements.push({
+              element: element,
+              text: value,
+              context: `${elementContext}, ${attr} attribute`
+            });
+            
+            // Store original attribute value
+            if (!originalContent.current.has(element)) {
+              originalContent.current.set(element, value);
+            }
+          }
+        }
+      }
+    }
+    
+    return textElements;
+  };
+
   const translateText = async (text: string, targetLang: string, context?: string): Promise<string> => {
     // Check cache first for ultra-fast retrieval
     const cacheKey = `${text.toLowerCase().trim()}_${context || ''}`;
@@ -248,7 +324,10 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
       return translatedText;
     } catch (error) {
-      console.error('AI Vision translation error:', error);
+      // Admin-only error logging
+      if (hasAdminRole) {
+        logToAdmin('Translation error', { text, context, error });
+      }
       return text; // Fallback to original text
     }
   };
@@ -314,6 +393,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     setTranslationProgress(0);
     showTranslationStatus("Translating...", "loading");
 
+    const startTime = Date.now();
+
     try {
       // Extract all text content from the page with improved detection
       const textElements = extractTextContent(document.body);
@@ -324,38 +405,53 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       }
 
       // Smart caching - prioritize frequently used phrases
-      const uncachedTexts = textElements.filter(({ text }) => {
-        const cacheKey = text.toLowerCase();
+      const uncachedTexts = textElements.filter(({ text, context }) => {
+        const cacheKey = `${text.toLowerCase()}_${context || ''}`;
         return !translationCache.current[cacheKey]?.[targetLang];
       });
 
       // Ultra-fast parallel processing for Claude 4
-      const batchSize = Math.min(uncachedTexts.length > 100 ? 5 : 8, textElements.length); // Larger batches for Claude
+      const batchSize = Math.min(uncachedTexts.length > 100 ? 5 : 8, textElements.length);
       let completed = 0;
       
       // Process in optimized parallel batches
       for (let i = 0; i < textElements.length; i += batchSize) {
         const batch = textElements.slice(i, i + batchSize);
         
-        // AI Vision-Enhanced parallel processing
-        const results = await Promise.allSettled(
+        // AI Vision-Enhanced parallel processing with comprehensive updates
+        await Promise.allSettled(
           batch.map(async ({ element, text, context }) => {
             try {
               const translatedText = await translateText(text, targetLang, context);
               
-              // Intelligent element update with context awareness
-              if (element && element.textContent?.trim() === text.trim()) {
-                const wasHtml = element.innerHTML !== element.textContent;
-                if (wasHtml && element.innerHTML.includes(text)) {
-                  element.innerHTML = element.innerHTML.replace(text, translatedText);
-                } else {
-                  element.textContent = translatedText;
+              // Enhanced element update - handle both text content and attributes
+              if (element) {
+                // Check if this is an attribute translation
+                if (context.includes('attribute')) {
+                  const attrMatch = context.match(/(title|alt|placeholder|aria-label) attribute/);
+                  if (attrMatch) {
+                    const attrName = attrMatch[1];
+                    if (element.getAttribute(attrName) === text) {
+                      element.setAttribute(attrName, translatedText);
+                    }
+                  }
+                } else if (element.textContent?.trim() === text.trim()) {
+                  // Handle text content
+                  const wasHtml = element.innerHTML !== element.textContent;
+                  if (wasHtml && element.innerHTML.includes(text)) {
+                    element.innerHTML = element.innerHTML.replace(text, translatedText);
+                  } else {
+                    element.textContent = translatedText;
+                  }
                 }
               }
               
               return { success: true, text, translatedText, context };
             } catch (error) {
-              console.warn('AI Vision translation failed:', text, context, error);
+              // Send error to admin logging only
+              if (hasAdminRole) {
+                logToAdmin('AI Vision translation failed', { text, context, error });
+              }
               return { success: false, text, error, context };
             }
           })
@@ -375,13 +471,20 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
       sessionStorage.setItem(sessionKey, 'true');
       setHasTranslatedOnce(true);
 
-      // Show success only on manual trigger
-      if (force) {
-        showTranslationStatus("Done", "success");
+      // Show success only on manual trigger (admin-only logging)
+      if (force && hasAdminRole) {
+        logToAdmin('Translation completed', {
+          targetLang,
+          elementsTranslated: textElements.length,
+          duration: Date.now() - startTime
+        });
       }
 
     } catch (error) {
-      console.error('Translation error:', error);
+      // Admin-only error logging
+      if (hasAdminRole) {
+        logToAdmin('Translation error', { error: (error as Error).message, targetLang });
+      }
       showTranslationStatus("Failed", "error");
     } finally {
       setIsTranslating(false);
@@ -480,7 +583,6 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           </div>
         </div>
       )}
-
 
       {/* Compact Translation Status - Much Smaller & Comfortable */}
       {translationStatus && (
