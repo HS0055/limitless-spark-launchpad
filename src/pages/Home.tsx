@@ -13,7 +13,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import MarketingLayout from '@/components/MarketingLayout';
-import { Scene3D } from '@/components/3D/Scene3D';
+// import { Scene3D } from '@/components/3D/Scene3D'; // Temporarily disabled
 import { InteractiveCard } from '@/components/InteractiveCard';
 
 const Home = () => {
@@ -179,9 +179,9 @@ const Home = () => {
           `
         }}
       >
-        {/* 3D Background Elements */}
+        {/* Gradient Background Elements */}
         <div className="absolute inset-0 opacity-30">
-          <Scene3D enableControls={false} />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-secondary/5 animate-pulse" />
         </div>
 
         {/* Floating Elements */}
@@ -399,13 +399,12 @@ const Home = () => {
       <section className="content-section relative">
         <div className="content-container">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            {/* 3D Canvas */}
-            <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden bg-gradient-to-br from-card/50 to-card/20 backdrop-blur-md border border-border/30">
-              <Scene3D enableControls={true} />
-              <div className="absolute bottom-6 left-6 bg-card/80 backdrop-blur-md rounded-2xl px-6 py-3 border border-border/30">
-                <p className="text-sm font-medium text-muted-foreground">
-                  <span className="text-primary font-bold">Interactive:</span> Drag to explore
-                </p>
+            {/* Interactive Visual */}
+            <div className="relative h-96 lg:h-[500px] rounded-3xl overflow-hidden bg-gradient-to-br from-primary/10 via-accent-secondary/5 to-accent-tertiary/10 backdrop-blur-md border border-border/30 flex items-center justify-center">
+              <div className="text-center space-y-4 animate-pulse">
+                <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-primary to-accent-secondary opacity-50" />
+                <p className="text-lg font-bold text-primary">Visual Learning Hub</p>
+                <p className="text-sm text-muted-foreground">Coming Soon</p>
               </div>
             </div>
 
