@@ -39,20 +39,20 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Learning</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Courses</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Community</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Coaching</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Downloads</a></li>
+              <li><button className="hover:text-primary transition-colors text-left">Courses</button></li>
+              <li><button className="hover:text-primary transition-colors text-left">Community</button></li>
+              <li><button className="hover:text-primary transition-colors text-left">Coaching</button></li>
+              <li><button className="hover:text-primary transition-colors text-left">Downloads</button></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-semibold text-foreground mb-4">Support</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Privacy Policy</a></li>
-              <li><a href="#" className="hover:text-primary transition-colors">Terms of Service</a></li>
+              <li><button className="hover:text-primary transition-colors text-left">Help Center</button></li>
+              <li><button className="hover:text-primary transition-colors text-left">Contact Us</button></li>
+              <li><button className="hover:text-primary transition-colors text-left">Privacy Policy</button></li>
+              <li><button className="hover:text-primary transition-colors text-left">Terms of Service</button></li>
             </ul>
           </div>
         </div>

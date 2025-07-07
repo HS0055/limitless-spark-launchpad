@@ -8,23 +8,17 @@ interface TranslationCache {
   };
 }
 
-interface TranslatableText {
-  textNode: Text;
-  originalText: string;
-  cacheKey: string;
-  isTitle?: boolean;
-}
-
 class TranslationEngine {
   private cache: TranslationCache = {};
   private isTranslating = false;
   private currentLanguage: Language = 'en';
   private observer: MutationObserver | null = null;
   private debounceTimer: number | null = null;
-  private originalContent = new Map<Element, string>();
+  private translatedElements = new WeakSet<Element>();
 
   constructor() {
     this.loadCache();
+    this.preloadCommonStrings();
     this.setupMutationObserver();
   }
 
@@ -48,6 +42,53 @@ class TranslationEngine {
     }
   }
 
+  private preloadCommonStrings() {
+    // Pre-populate cache with common UI strings to make translation instant
+    const commonStrings = {
+      // Navigation & buttons
+      'Home': { hy: 'Գլխավոր', ru: 'Главная', es: 'Inicio', fr: 'Accueil', de: 'Startseite' },
+      'Get Started': { hy: 'Սկսել', ru: 'Начать', es: 'Comenzar', fr: 'Commencer', de: 'Loslegen' },
+      'Learn More': { hy: 'Իմանալ ավելին', ru: 'Узнать больше', es: 'Saber más', fr: 'En savoir plus', de: 'Mehr erfahren' },
+      'Sign In': { hy: 'Մուտք գործել', ru: 'Войти', es: 'Iniciar sesión', fr: 'Connexion', de: 'Anmelden' },
+      'Sign Up': { hy: 'Գրանցվել', ru: 'Регистрация', es: 'Registrarse', fr: 'S\'inscrire', de: 'Registrieren' },
+      'Programs': { hy: 'Ծրագրեր', ru: 'Программы', es: 'Programas', fr: 'Programmes', de: 'Programme' },
+      'Business': { hy: 'Բիզնես', ru: 'Бизнес', es: 'Negocio', fr: 'Affaires', de: 'Geschäft' },
+      'Community': { hy: 'Համայնք', ru: 'Сообщество', es: 'Comunidad', fr: 'Communauté', de: 'Gemeinschaft' },
+      'Settings': { hy: 'Կարգավորումներ', ru: 'Настройки', es: 'Configuración', fr: 'Paramètres', de: 'Einstellungen' },
+      'Translator': { hy: 'Թարգմանիչ', ru: 'Переводчик', es: 'Traductor', fr: 'Traducteur', de: 'Übersetzer' },
+      
+      // Common phrases
+      'Loading...': { hy: 'Բեռնվում է...', ru: 'Загрузка...', es: 'Cargando...', fr: 'Chargement...', de: 'Laden...' },
+      'Welcome': { hy: 'Բարի գալուստ', ru: 'Добро пожаловать', es: 'Bienvenido', fr: 'Bienvenue', de: 'Willkommen' },
+      'Learn': { hy: 'Սովորել', ru: 'Изучать', es: 'Aprender', fr: 'Apprendre', de: 'Lernen' },
+      'Continue': { hy: 'Շարունակել', ru: 'Продолжить', es: 'Continuar', fr: 'Continuer', de: 'Weiter' },
+      'Start': { hy: 'Սկսել', ru: 'Начать', es: 'Empezar', fr: 'Commencer', de: 'Beginnen' },
+      'Next': { hy: 'Հաջորդ', ru: 'Следующий', es: 'Siguiente', fr: 'Suivant', de: 'Weiter' },
+      'Previous': { hy: 'Նախորդ', ru: 'Предыдущий', es: 'Anterior', fr: 'Précédent', de: 'Zurück' },
+      'Save': { hy: 'Պահպանել', ru: 'Сохранить', es: 'Guardar', fr: 'Enregistrer', de: 'Speichern' },
+      'Cancel': { hy: 'Չեղարկել', ru: 'Отмена', es: 'Cancelar', fr: 'Annuler', de: 'Abbrechen' },
+      
+      // Hero section
+      'Master business skills with': { hy: 'Տիրապետիր բիզնես հմտություններին', ru: 'Овладей навыками бизнеса с' },
+      'TopOne Academy': { hy: 'TopOne ակադեմիա', ru: 'TopOne Академия' },
+      'visual learning': { hy: 'տեսարան ուսուցման միջոցով', ru: 'визуальное обучение' },
+      'Join Business League': { hy: 'Միանալ բիզնես լիգային', ru: 'Присоединиться к бизнес-лиге' },
+      'Watch Preview': { hy: 'Դիտել նախադիտումը', ru: 'Смотреть превью' },
+      
+      // Stats & features
+      'Learning Leagues': { hy: 'Ուսուցման լիգաներ', ru: 'Лиги обучения' },
+      'Active Learners': { hy: 'Ակտիվ ուսանողներ', ru: 'Активные ученики' },
+      'Average Rating': { hy: 'Միջին գնահատական', ru: 'Средний рейтинг' },
+      'Lesson Length': { hy: 'Դասի տևությունը', ru: 'Длительность урока' },
+      'Still have questions?': { hy: 'Դեռ հարցե՞ր ունեք', ru: 'Есть еще вопросы?' },
+    };
+
+    // Pre-populate cache
+    Object.entries(commonStrings).forEach(([english, translations]) => {
+      this.cache[english] = translations;
+    });
+  }
+
   private setupMutationObserver() {
     this.observer = new MutationObserver(() => {
       if (this.currentLanguage !== 'en' && !this.isTranslating) {
@@ -69,163 +110,41 @@ class TranslationEngine {
     
     this.debounceTimer = window.setTimeout(() => {
       console.log('🔄 Dynamic content detected, re-translating…');
-      this.translateAll(this.currentLanguage);
-    }, 150);
-  }
-
-  private collectTranslatables(): TranslatableText[] {
-    console.log('🔍 collectTranslatables called');
-    const textNodes: TranslatableText[] = [];
-    const seenTexts = new Set<string>();
-
-    // Handle document title separately
-    if (document.title && document.title.trim().length > 2) {
-      const titleText = document.title.trim();
-      if (!seenTexts.has(titleText)) {
-        seenTexts.add(titleText);
-        
-        // Create a virtual text node for the title
-        const titleNode = document.createTextNode(titleText);
-        textNodes.push({
-          textNode: titleNode,
-          originalText: titleText,
-          cacheKey: `title_${titleText}`,
-          isTitle: true
-        });
-      }
-    }
-
-    // Recursively walk document.body to find all Text nodes
-    const walkTextNodes = (element: Node) => {
-      if (element.nodeType === Node.TEXT_NODE) {
-        const textNode = element as Text;
-        const text = textNode.nodeValue?.trim();
-        
-        if (text && text.length > 2 && !seenTexts.has(text)) {
-          const parent = textNode.parentElement;
-          if (!parent) return;
-
-          // Skip nodes inside excluded tags
-          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'TEXTAREA', 'INPUT'];
-          if (skipTags.includes(parent.tagName)) {
-            return;
-          }
-
-          // Skip elements marked as non-translatable
-          if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
-            return;
-          }
-
-          // Skip hidden elements
-          const style = window.getComputedStyle(parent);
-          if (style.display === 'none' || style.visibility === 'hidden') {
-            return;
-          }
-
-          // Skip pure numbers, URLs, emails, etc.
-          if (/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) || 
-              /^https?:\/\//.test(text) || 
-              /^[^\s]+@[^\s]+\.[^\s]+$/.test(text)) {
-            return;
-          }
-
-          seenTexts.add(text);
-          
-          // Store original content for restoration
-          if (!this.originalContent.has(parent)) {
-            this.originalContent.set(parent, parent.innerHTML);
-          }
-
-          textNodes.push({
-            textNode,
-            originalText: text,
-            cacheKey: text
-          });
-        }
-      } else if (element.nodeType === Node.ELEMENT_NODE) {
-        // Recursively process child nodes
-        for (let i = 0; i < element.childNodes.length; i++) {
-          walkTextNodes(element.childNodes[i]);
-        }
-      }
-    };
-
-    walkTextNodes(document.body);
-    
-    console.log(`📊 Found ${textNodes.length} text nodes:`, textNodes.map(n => n.originalText.trim()).slice(0,10));
-    
-    return textNodes;
-  }
-
-  private analyzeContext(element: Element): string {
-    const contexts = [];
-    
-    // Analyze tag name
-    const tagName = element.tagName.toLowerCase();
-    const semanticTags: Record<string, string> = {
-      'h1': 'main heading',
-      'h2': 'section heading',
-      'h3': 'subsection heading',
-      'button': 'button',
-      'a': 'link',
-      'nav': 'navigation',
-      'header': 'header',
-      'footer': 'footer',
-      'p': 'paragraph',
-      'span': 'text',
-      'div': 'content'
-    };
-
-    if (semanticTags[tagName]) {
-      contexts.push(semanticTags[tagName]);
-    }
-
-    // Analyze class names
-    const className = element.className || '';
-    if (className.includes('nav')) contexts.push('navigation');
-    if (className.includes('button') || className.includes('btn')) contexts.push('button');
-    if (className.includes('title') || className.includes('heading')) contexts.push('title');
-    if (className.includes('hero')) contexts.push('hero');
-    if (className.includes('card')) contexts.push('card');
-    if (className.includes('price')) contexts.push('pricing');
-
-    return contexts.join(', ') || 'general';
+      this.translateAllContent(this.currentLanguage);
+    }, 100); // Reduced from 150ms
   }
 
   async translateAll(targetLang: Language) {
+    if (targetLang === 'en') {
+      this.restoreOriginalLanguage();
+      return;
+    }
+
+    this.currentLanguage = targetLang;
+    await this.translateAllContent(targetLang);
+  }
+
+  private async translateAllContent(targetLang: Language) {
     if (this.isTranslating) {
       console.log('⚠️ Translation already in progress');
       return;
     }
 
-    if (targetLang === 'en') {
-      this.restoreOriginalContent();
-      return;
-    }
-
     this.isTranslating = true;
-    this.currentLanguage = targetLang;
 
     try {
-      const textNodes = this.collectTranslatables();
-      console.log(`📊 Found ${textNodes.length} text nodes`);
+      // Step 1: Instantly translate all cached content (should be most UI elements)
+      this.translateCachedContent(targetLang);
 
-      if (textNodes.length === 0) {
-        return;
+      // Step 2: Collect any remaining untranslated content
+      const uncachedTexts = this.collectUncachedTexts(targetLang);
+      
+      if (uncachedTexts.length > 0) {
+        console.log(`🔄 Found ${uncachedTexts.length} new texts to translate`);
+        await this.translateNewContent(uncachedTexts, targetLang);
+        // Apply the newly translated content
+        this.translateCachedContent(targetLang);
       }
-
-      // Check cache first
-      const uncachedNodes = textNodes.filter(({ cacheKey }) => 
-        !this.cache[cacheKey]?.[targetLang]
-      );
-
-      if (uncachedNodes.length > 0) {
-        console.log(`🔄 Translating ${uncachedNodes.length} new texts`);
-        await this.translateBatch(uncachedNodes, targetLang);
-      }
-
-      // Apply all translations to text nodes
-      this.applyTranslations(textNodes, targetLang);
 
     } catch (error) {
       console.error('Translation failed:', error);
@@ -234,44 +153,142 @@ class TranslationEngine {
     }
   }
 
-  private async translateBatch(textNodes: TranslatableText[], targetLang: Language) {
-    const batchSize = 25; // Increased batch size for better performance
-    const texts = textNodes.map(node => node.originalText);
+  private translateCachedContent(targetLang: Language) {
+    // Translate document title
+    const originalTitle = document.title;
+    const translatedTitle = this.cache[originalTitle]?.[targetLang];
+    if (translatedTitle && translatedTitle !== originalTitle) {
+      document.title = translatedTitle;
+    }
 
-    // Process in batches with parallel execution
-    const batchPromises = [];
-    for (let i = 0; i < texts.length; i += batchSize) {
-      const batch = texts.slice(i, i + batchSize);
-      const batchNodes = textNodes.slice(i, i + batchSize);
-      
-      const batchPromise = this.processBatch(batch, batchNodes, targetLang, i, texts.length, batchSize);
-      batchPromises.push(batchPromise);
-      
-      // Add small delay between starting batches to avoid overwhelming the API
-      if (i + batchSize < texts.length) {
-        await new Promise(resolve => setTimeout(resolve, 100));
+    // Fast translation of all text content
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          
+          // Skip excluded elements
+          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE'];
+          if (skipTags.includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+          if (parent.hasAttribute('data-no-translate')) return NodeFilter.FILTER_REJECT;
+          
+          const text = node.textContent?.trim();
+          return (text && text.length > 1) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+
+    const textNodesToTranslate: Text[] = [];
+    let node;
+    while (node = walker.nextNode()) {
+      textNodesToTranslate.push(node as Text);
+    }
+
+    // Batch translate text nodes for better performance
+    textNodesToTranslate.forEach(textNode => {
+      const originalText = textNode.textContent?.trim();
+      if (!originalText) return;
+
+      const translation = this.cache[originalText]?.[targetLang];
+      if (translation && translation !== originalText) {
+        console.log(`🔄 Replacing "${originalText}" → "${translation}"`);
+        textNode.textContent = translation;
+      }
+    });
+
+    // Also translate common attributes
+    this.translateAttributes(targetLang);
+  }
+
+  private translateAttributes(targetLang: Language) {
+    const attributesToTranslate = ['placeholder', 'title', 'aria-label', 'alt'];
+    
+    attributesToTranslate.forEach(attr => {
+      document.querySelectorAll(`[${attr}]`).forEach(element => {
+        const originalValue = element.getAttribute(attr);
+        if (!originalValue || originalValue.trim().length < 2) return;
+        
+        const translation = this.cache[originalValue.trim()]?.[targetLang];
+        if (translation && translation !== originalValue) {
+          element.setAttribute(attr, translation);
+        }
+      });
+    });
+  }
+
+  private collectUncachedTexts(targetLang: Language): string[] {
+    const uncachedTexts: string[] = [];
+    const seenTexts = new Set<string>();
+
+    // Collect all text content that isn't cached
+    const walker = document.createTreeWalker(
+      document.body,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: (node) => {
+          const parent = node.parentElement;
+          if (!parent) return NodeFilter.FILTER_REJECT;
+          
+          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE'];
+          if (skipTags.includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
+          if (parent.hasAttribute('data-no-translate')) return NodeFilter.FILTER_REJECT;
+          
+          const text = node.textContent?.trim();
+          return (text && text.length > 2) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      }
+    );
+
+    let node;
+    while (node = walker.nextNode()) {
+      const text = node.textContent?.trim();
+      if (text && !seenTexts.has(text) && !this.cache[text]?.[targetLang]) {
+        // Skip numbers, URLs, emails
+        if (!/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) && 
+            !/^https?:\/\//.test(text) && 
+            !/^[^\s]+@[^\s]+\.[^\s]+$/.test(text)) {
+          seenTexts.add(text);
+          uncachedTexts.push(text);
+        }
       }
     }
 
-    // Wait for all batches to complete
+    // Also collect attribute values
+    const attributesToTranslate = ['placeholder', 'title', 'aria-label', 'alt'];
+    attributesToTranslate.forEach(attr => {
+      document.querySelectorAll(`[${attr}]`).forEach(element => {
+        const value = element.getAttribute(attr)?.trim();
+        if (value && value.length > 2 && !seenTexts.has(value) && !this.cache[value]?.[targetLang]) {
+          seenTexts.add(value);
+          uncachedTexts.push(value);
+        }
+      });
+    });
+
+    return uncachedTexts;
+  }
+
+  private async translateNewContent(texts: string[], targetLang: Language) {
+    const batchSize = 30; // Larger batches for better performance
+    
+    const batchPromises = [];
+    for (let i = 0; i < texts.length; i += batchSize) {
+      const batch = texts.slice(i, i + batchSize);
+      batchPromises.push(this.translateBatch(batch, targetLang));
+    }
+
     await Promise.allSettled(batchPromises);
     this.saveCache();
   }
 
-  private async processBatch(
-    batch: string[], 
-    batchNodes: TranslatableText[], 
-    targetLang: Language, 
-    startIndex: number, 
-    totalLength: number, 
-    batchSize: number
-  ) {
+  private async translateBatch(texts: string[], targetLang: Language): Promise<void> {
     try {
-      console.log(`📦 Translating batch ${Math.floor(startIndex / batchSize) + 1}/${Math.ceil(totalLength / batchSize)}`);
-      
       const result = await apiClient.invoke('batch-translate', {
         body: {
-          texts: batch,
+          texts,
           targetLang,
           context: 'Web application content'
         }
@@ -281,71 +298,36 @@ class TranslationEngine {
         throw new Error(result.error);
       }
 
-      // Update cache with translations
+      // Update cache with new translations
       Object.entries(result.data.translations).forEach(([original, translated]) => {
-        const textNode = batchNodes.find(node => node.originalText === original);
-        if (textNode) {
-          if (!this.cache[textNode.cacheKey]) {
-            this.cache[textNode.cacheKey] = {};
-          }
-          this.cache[textNode.cacheKey][targetLang] = translated as string;
+        if (!this.cache[original]) {
+          this.cache[original] = {};
         }
+        this.cache[original][targetLang] = translated as string;
       });
 
-      console.log(`✅ Batch ${Math.floor(startIndex / batchSize) + 1} completed`);
-
     } catch (error) {
-      console.error(`❌ Batch ${Math.floor(startIndex / batchSize) + 1} failed:`, error);
+      console.error('❌ Batch translation failed:', error);
     }
   }
 
-  private applyTranslations(textNodes: TranslatableText[], targetLang: Language) {
-    textNodes.forEach(({ textNode, originalText, cacheKey, isTitle }) => {
-      const translation = this.cache[cacheKey]?.[targetLang];
-      if (translation && translation !== originalText) {
-        console.log(`🔄 Replacing "${originalText}" → "${translation}" on`, textNode);
-        if (isTitle) {
-          // Update document title
-          document.title = translation;
-          console.log(`✅ Translated page title: '${originalText}' → '${translation}'`);
-        } else {
-          // Directly update the Text node's nodeValue to preserve HTML structure
-          textNode.nodeValue = translation;
-        }
-      }
-    });
-  }
-
-  private restoreOriginalContent() {
-    // Restore document title
-    const originalTitle = this.originalContent.get(document.head);
-    if (originalTitle && typeof originalTitle === 'string') {
-      document.title = originalTitle;
-    }
-    
-    // Restore page content
-    this.originalContent.forEach((originalHTML, element) => {
-      if (element && element.innerHTML !== originalHTML) {
-        element.innerHTML = originalHTML;
-      }
-    });
+  private restoreOriginalLanguage() {
     this.currentLanguage = 'en';
+    location.reload(); // Simple but effective way to restore original content
   }
 
-  // Hook into language change
+  // Hook methods for external integration
   onLanguageChange(newLanguage: Language) {
     console.log(`🌐 Language changed to: ${newLanguage}`);
     this.translateAll(newLanguage);
   }
 
-  // Hook into route change
   onRouteChange(newPath: string) {
     console.log(`🌐 Route changed → ${newPath}`);
     if (this.currentLanguage !== 'en') {
-      // Small delay to let new content load
       setTimeout(() => {
-        this.translateAll(this.currentLanguage);
-      }, 100);
+        this.translateAllContent(this.currentLanguage);
+      }, 50); // Very fast re-translation for route changes
     }
   }
 
