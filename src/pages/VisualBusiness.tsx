@@ -3,12 +3,15 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, Users, Target, TrendingUp, Lightbulb, Eye, Heart, Share2, BookOpen, Zap, Focus, Scale, Star, MessageCircle, ThumbsUp, Bookmark, Filter, Search, Grid3X3, List, ChevronDown } from "lucide-react";
+import { Brain, Users, Target, TrendingUp, Lightbulb, Eye, Heart, Share2, BookOpen, Zap, Focus, Scale, Star, MessageCircle, ThumbsUp, Bookmark, Filter, Search, Grid3X3, List, ChevronDown, Lock, ArrowRight, CheckCircle, Crown } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { Link } from "react-router-dom";
 
 const VisualBusiness = () => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -23,7 +26,8 @@ const VisualBusiness = () => {
     { name: "Strategic Thinking", count: 38, icon: Lightbulb, color: "text-primary", description: "Long-term planning frameworks" }
   ];
 
-  const mentalModels = [
+  // Show limited content for guests, full content for members
+  const allMentalModels = [
     {
       id: 1,
       title: "Inversion Thinking",
@@ -34,7 +38,8 @@ const VisualBusiness = () => {
       views: 8234,
       likes: 445,
       icon: "🔄",
-      rating: 4.8
+      rating: 4.8,
+      isLocked: false // Always free
     },
     {
       id: 2,
@@ -46,7 +51,8 @@ const VisualBusiness = () => {
       views: 12834,
       likes: 892,
       icon: "🏗️",
-      rating: 4.9
+      rating: 4.9,
+      isLocked: false // Always free
     },
     {
       id: 3,
@@ -58,7 +64,8 @@ const VisualBusiness = () => {
       views: 6412,
       likes: 324,
       icon: "🎯",
-      rating: 4.6
+      rating: 4.6,
+      isLocked: !user // Locked for guests
     },
     {
       id: 4,
@@ -70,7 +77,8 @@ const VisualBusiness = () => {
       views: 15234,
       likes: 967,
       icon: "🔗",
-      rating: 4.7
+      rating: 4.7,
+      isLocked: !user // Locked for guests
     },
     {
       id: 5,
@@ -82,7 +90,8 @@ const VisualBusiness = () => {
       views: 18634,
       likes: 1234,
       icon: "📊",
-      rating: 4.9
+      rating: 4.9,
+      isLocked: !user // Locked for guests
     },
     {
       id: 6,
@@ -94,7 +103,8 @@ const VisualBusiness = () => {
       views: 9812,
       likes: 556,
       icon: "⚖️",
-      rating: 4.5
+      rating: 4.5,
+      isLocked: !user // Locked for guests
     },
     {
       id: 7,
@@ -106,7 +116,8 @@ const VisualBusiness = () => {
       views: 11234,
       likes: 678,
       icon: "🔍",
-      rating: 4.8
+      rating: 4.8,
+      isLocked: !user // Locked for guests
     },
     {
       id: 8,
@@ -118,7 +129,8 @@ const VisualBusiness = () => {
       views: 22456,
       likes: 1567,
       icon: "📈",
-      rating: 4.9
+      rating: 4.9,
+      isLocked: !user // Locked for guests
     }
   ];
 
@@ -190,8 +202,15 @@ const VisualBusiness = () => {
     }
   };
 
+  const formatNumber = (num: number) => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
+
   // Filter mental models based on category and search
-  const filteredModels = mentalModels.filter(model => {
+  const filteredModels = allMentalModels.filter(model => {
     const matchesCategory = selectedCategory === 'all' || model.category.toLowerCase().includes(selectedCategory.toLowerCase());
     const matchesSearch = searchQuery === '' || 
       model.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -199,13 +218,6 @@ const VisualBusiness = () => {
       model.applications.some(app => app.toLowerCase().includes(searchQuery.toLowerCase()));
     return matchesCategory && matchesSearch;
   });
-
-  const formatNumber = (num: number) => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1) + 'K';
-    }
-    return num.toString();
-  };
 
   return (
     <div className="min-h-screen">
@@ -231,10 +243,39 @@ const VisualBusiness = () => {
               <span className="text-gradient">Mind</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium max-w-4xl mx-auto mb-12 animate-fade-in">
+            <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium max-w-4xl mx-auto mb-8 animate-fade-in">
               Unlock a wealth of curated mental models, ideas, and resources to excel in today's complex world.
               <span className="text-accent-tertiary font-bold"> Think better, decide smarter</span>, and upgrade your cognitive toolkit.
             </p>
+
+            {/* Member vs Guest messaging */}
+            {!user && (
+              <div className="bg-gradient-to-r from-primary/10 to-accent-secondary/10 backdrop-blur-sm rounded-2xl p-6 border border-primary/20 shadow-lg mb-12 animate-scale-in">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Crown className="w-6 h-6 text-primary" />
+                  <h3 className="text-lg font-semibold text-gradient">Preview Mode</h3>
+                </div>
+                <p className="text-center text-muted-foreground mb-4">
+                  You're viewing a limited preview. Join TopOne Academy to unlock all 142 mental models and advanced features.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  <Link to="/dashboard">
+                    <Button className="btn-hero">
+                      <span className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        Join Academy - Unlock All
+                      </span>
+                    </Button>
+                  </Link>
+                  <Button variant="outline" className="btn-outline-enhanced">
+                    <span className="flex items-center gap-2">
+                      See What's Included
+                      <ArrowRight className="w-4 h-4" />
+                    </span>
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-5xl mx-auto mb-20">
@@ -358,16 +399,22 @@ const VisualBusiness = () => {
             </div>
           </div>
 
-          {/* Results count */}
-          <div className="mb-6">
+          {/* Results count with membership info */}
+          <div className="mb-6 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredModels.length} of {mentalModels.length} mental models
+              Showing {filteredModels.length} of {allMentalModels.length} mental models
               {searchQuery && (
                 <span className="ml-2 text-primary font-medium">
                   for "{searchQuery}"
                 </span>
               )}
             </p>
+            {!user && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Lock className="w-3 h-3" />
+                <span>{allMentalModels.filter(m => m.isLocked).length} models locked</span>
+              </div>
+            )}
           </div>
 
           {/* Enhanced Mental Models Grid/List */}
@@ -380,10 +427,26 @@ const VisualBusiness = () => {
                 key={model.id} 
                 className={`card-elevated hover-lift group animate-scale-in bg-gradient-to-br from-muted/50 to-muted-dark/50 border-border/50 ${
                   viewMode === 'list' ? 'flex flex-row items-center p-6' : ''
-                }`}
+                } ${model.isLocked ? 'relative overflow-hidden' : ''}`}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
-                <CardContent className={`${viewMode === 'grid' ? 'p-6 h-full flex flex-col' : 'flex-1 p-0'}`}>
+                {/* Lock overlay for non-members */}
+                {model.isLocked && (
+                  <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex items-center justify-center">
+                    <div className="text-center p-6">
+                      <Lock className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                      <p className="text-sm font-semibold mb-2">Premium Content</p>
+                      <p className="text-xs text-muted-foreground mb-4">Join to unlock this mental model</p>
+                      <Link to="/dashboard">
+                        <Button size="sm" className="btn-hero">
+                          Join Academy
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+
+                <CardContent className={`${viewMode === 'grid' ? 'p-6 h-full flex flex-col' : 'flex-1 p-0'} ${model.isLocked ? 'opacity-50' : ''}`}>
                   <div className={`flex items-center justify-between mb-4 ${viewMode === 'list' ? 'mb-0' : ''}`}>
                     <div className="flex items-center gap-3">
                       <div className="text-2xl">{model.icon}</div>
@@ -461,6 +524,7 @@ const VisualBusiness = () => {
                       variant="outline" 
                       className="hover-glow group"
                       onClick={() => handleToggleFavorite(model.id)}
+                      disabled={model.isLocked}
                     >
                       <Bookmark className={`w-4 h-4 ${favorites.has(model.id) ? 'fill-current text-primary' : ''}`} />
                     </Button>
@@ -469,11 +533,16 @@ const VisualBusiness = () => {
                       variant="outline" 
                       className="hover-glow"
                       onClick={() => handleShare(model)}
+                      disabled={model.isLocked}
                     >
                       <Share2 className="w-4 h-4" />
                     </Button>
-                    <Button size="sm" className="hover-glow">
-                      Learn
+                    <Button 
+                      size="sm" 
+                      className="hover-glow"
+                      disabled={model.isLocked}
+                    >
+                      {model.isLocked ? <Lock className="w-4 h-4" /> : 'Learn'}
                     </Button>
                   </div>
                 </CardContent>
