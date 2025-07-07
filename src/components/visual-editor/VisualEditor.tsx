@@ -315,7 +315,9 @@ export const VisualEditor = () => {
         element_type: item.element_type || 'text',
         original_text: item.original_text,
         edited_text: item.edited_text,
-        styles: typeof item.styles === 'object' ? item.styles : {},
+        styles: typeof item.styles === 'object' && item.styles && !Array.isArray(item.styles) 
+          ? Object.fromEntries(Object.entries(item.styles).map(([k, v]) => [k, String(v)])) 
+          : {},
         is_active: item.is_active || false
       }));
       
