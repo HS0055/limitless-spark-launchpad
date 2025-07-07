@@ -333,12 +333,20 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
 
   const triggerAutoTranslation = async (targetLang: Language) => {
     setIsTranslating(true);
-    // Auto-translation logic will be implemented here
-    setTimeout(() => setIsTranslating(false), 2000); // Temporary
+    try {
+      const { translationEngine } = await import('@/lib/translationEngine');
+      await translationEngine.translateAll(targetLang);
+    } catch (error) {
+      console.error('Failed to trigger auto-translation:', error);
+    } finally {
+      setIsTranslating(false);
+    }
   };
 
   const restoreOriginalContent = () => {
-    // Restore original content logic
+    import('@/lib/translationEngine').then(({ translationEngine }) => {
+      translationEngine.translateAll('en');
+    });
     setIsTranslating(false);
   };
 

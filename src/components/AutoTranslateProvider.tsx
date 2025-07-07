@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useLocation } from 'react-router-dom';
-import { translationEngine } from '@/lib/translationEngine';
 
 export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
   const { language } = useLanguage();
@@ -9,33 +8,21 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
 
   console.log('🔄 AutoTranslateProvider initialized');
 
-  // Hook into language changes
-  useEffect(() => {
-    console.log('🌐 Language changed to:', language);
-    translationEngine.onLanguageChange(language);
-  }, [language]);
-
-  // Hook into route changes
+  // Hook into route changes to re-translate new content
   useEffect(() => {
     console.log('🌐 Route changed to:', location.pathname);
-    translationEngine.onRouteChange(location.pathname);
-  }, [location.pathname]);
-
-  // Initialize with current language if not English
-  useEffect(() => {
     if (language !== 'en') {
-      console.log('🚀 Initializing translation for:', language);
-      translationEngine.translateAll(language);
+      // Small delay to let new content load before translating
+      setTimeout(async () => {
+        try {
+          const { translationEngine } = await import('@/lib/translationEngine');
+          await translationEngine.translateAll(language);
+        } catch (error) {
+          console.error('Failed to translate on route change:', error);
+        }
+      }, 200);
     }
-  }, []);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      console.log('🧹 Cleaning up translation engine');
-      translationEngine.destroy();
-    };
-  }, []);
+  }, [location.pathname, language]);
 
   return <>{children}</>;
 };
