@@ -477,15 +477,20 @@ export const AITranslationEngine = () => {
     const endTime = Date.now();
     const duration = endTime - startTime;
     
-    // Update performance metrics
+    // Update performance metrics and signal completion
     setMetrics(prev => ({
       accuracy: Math.max(0, (processed - errors) / Math.max(processed, 1)) * 100,
-      speed: processed / (duration / 1000), // elements per second
+      speed: processed / (duration / 1000),
       coverage: (engine.processedElements / Math.max(engine.totalElements, 1)) * 100,
       errorRate: (errors / Math.max(processed, 1)) * 100
     }));
     
     setEngine(prev => ({ ...prev, isProcessing: false }));
+    
+    // Signal completion to LanguageContext
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('translationComplete'));
+    }, 100);
   }, [language, engine.isProcessing, translateWithAI]);
 
   // Initialize translation engine
@@ -552,32 +557,49 @@ export const AITranslationEngine = () => {
     });
   }, [language, detectAllContent, processTranslationQueue]);
 
-  // Clean up and reset when language changes
+  // Integration with language context
   useEffect(() => {
-    if (language === 'en') {
-      // Restore original content
-      document.querySelectorAll('[data-translated]').forEach(element => {
-        element.removeAttribute('data-translated');
-      });
+    const handleLanguageChange = (event: CustomEvent) => {
+      const { targetLang, source } = event.detail;
       
-      setEngine(prev => ({ ...prev, isActive: false, isProcessing: false }));
-      isInitialized.current = false;
-      
-      if (observer.current) {
-        observer.current.disconnect();
+      if (targetLang === 'en') {
+        // Restore original content
+        document.querySelectorAll('[data-translated]').forEach(element => {
+          element.removeAttribute('data-translated');
+        });
+        
+        setEngine(prev => ({ ...prev, isActive: false, isProcessing: false }));
+        isInitialized.current = false;
+        
+        if (observer.current) {
+          observer.current.disconnect();
+        }
+        
+        return;
       }
       
-      return;
-    }
+      // Only reinitialize if language actually changed
+      if (targetLang !== language) {
+        // Reset state
+        isInitialized.current = false;
+        processingQueue.current = [];
+        
+        // Don't clear cache if restoring from cache
+        if (source !== 'cache') {
+          translationCache.current.clear();
+        }
+        
+        setTimeout(() => {
+          initializeEngine();
+        }, 100);
+      }
+    };
+
+    window.addEventListener('languageChange', handleLanguageChange as EventListener);
     
-    // Reset and reinitialize for new language
-    isInitialized.current = false;
-    processingQueue.current = [];
-    translationCache.current.clear();
-    
-    setTimeout(() => {
-      initializeEngine();
-    }, 500);
+    return () => {
+      window.removeEventListener('languageChange', handleLanguageChange as EventListener);
+    };
   }, [language, initializeEngine]);
 
   // Cleanup on unmount

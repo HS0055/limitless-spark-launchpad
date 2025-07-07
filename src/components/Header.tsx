@@ -210,9 +210,6 @@ const Header = () => {
 
               {/* Actions */}
               <div className="pt-4 border-t border-border space-y-3">
-                <div className="flex justify-center mb-3">
-                  <LanguageSwitcher />
-                </div>
                 {!user ? (
                   <Button className="w-full btn-hero font-semibold py-3" asChild>
                     <Link to="/dashboard">

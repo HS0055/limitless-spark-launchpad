@@ -31,7 +31,6 @@ const MarketingLayout = ({ children }: MarketingLayoutProps) => {
             </Link>
             
             <div className="flex items-center space-x-4">
-              <LanguageSwitcher />
               <nav className="hidden md:flex items-center space-x-4 mr-4">
                 <Link to="/league" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                   {t('nav.programs')}

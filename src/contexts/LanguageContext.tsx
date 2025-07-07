@@ -299,32 +299,48 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   const [language, setLanguageState] = useState<Language>('en');
   const [isTranslating, setIsTranslating] = useState(false);
 
-  // Load language preference on mount
+  // Load language preference on mount with proper restoration
   useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as Language;
+    const browserLang = navigator.language.split('-')[0] as Language;
+    
+    let targetLanguage: Language = 'en';
+    
     if (savedLanguage && ['en', 'hy', 'ru'].includes(savedLanguage)) {
-      setLanguageState(savedLanguage);
-    } else {
-      // Try to detect browser language
-      const browserLang = navigator.language.split('-')[0] as Language;
-      if (['en', 'hy', 'ru'].includes(browserLang)) {
-        setLanguageState(browserLang);
-      }
+      targetLanguage = savedLanguage;
+    } else if (['en', 'hy', 'ru'].includes(browserLang)) {
+      targetLanguage = browserLang;
+    }
+    
+    setLanguageState(targetLanguage);
+    
+    // Apply saved language immediately without triggering translation
+    if (targetLanguage !== 'en' && document.readyState === 'complete') {
+      setTimeout(() => {
+        restoreTranslationsFromCache(targetLanguage);
+      }, 100);
     }
   }, []);
 
   const setLanguage = (lang: Language) => {
+    if (lang === language) return; // Prevent unnecessary re-processing
+    
     setLanguageState(lang);
     localStorage.setItem('language', lang);
     
-    // Trigger auto-translation
+    // Clear previous translation state
+    document.querySelectorAll('[data-translated]').forEach(el => {
+      el.removeAttribute('data-translated');
+    });
+    
+    // Trigger efficient translation
     if (lang !== 'en') {
       triggerAutoTranslation(lang);
     } else {
       restoreOriginalContent();
     }
     
-    // If user is logged in, save preference to profile
+    // Save to user profile if logged in
     if (user) {
       console.log('TODO: Save language preference to user profile');
     }
@@ -332,13 +348,41 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
 
   const triggerAutoTranslation = async (targetLang: Language) => {
     setIsTranslating(true);
-    // Auto-translation logic will be implemented here
-    setTimeout(() => setIsTranslating(false), 2000); // Temporary
+    
+    // Dispatch custom event for AITranslationEngine
+    window.dispatchEvent(new CustomEvent('languageChange', {
+      detail: { targetLang, source: 'user' }
+    }));
+    
+    // Listen for completion
+    const handleComplete = () => {
+      setIsTranslating(false);
+      window.removeEventListener('translationComplete', handleComplete);
+    };
+    
+    window.addEventListener('translationComplete', handleComplete);
+    
+    // Set timeout to prevent infinite loading
+    setTimeout(() => {
+      setIsTranslating(false);
+      window.removeEventListener('translationComplete', handleComplete);
+    }, 8000);
   };
 
   const restoreOriginalContent = () => {
-    // Restore original content logic
+    // Dispatch event to restore original content
+    window.dispatchEvent(new CustomEvent('languageChange', {
+      detail: { targetLang: 'en', source: 'user' }
+    }));
+    
     setIsTranslating(false);
+  };
+
+  const restoreTranslationsFromCache = (targetLang: Language) => {
+    // Attempt to restore from cache
+    window.dispatchEvent(new CustomEvent('languageChange', {
+      detail: { targetLang, source: 'cache' }
+    }));
   };
 
   const t = (key: string): string => {
