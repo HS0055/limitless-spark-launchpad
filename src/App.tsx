@@ -25,6 +25,7 @@ import EditorApp from "./pages/EditorApp";
 import WebEditor from "./pages/WebEditor";
 import AIContentStudio from "./pages/AIContentStudio";
 import BugTracker from "./pages/BugTracker";
+import ContentDetector from "./pages/ContentDetector";
 import NotFound from "./pages/NotFound";
 
 // Optimized QueryClient configuration
@@ -67,6 +68,7 @@ const AppContent = () => {
             <Route path="/editor" element={<EditorApp />} />
             <Route path="/web-editor" element={<WebEditor />} />
             <Route path="/ai-content-studio" element={<AIContentStudio />} />
+            <Route path="/content-detector" element={<ContentDetector />} />
             <Route path="/bug-tracker" element={<BugTracker />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminPanel />} />
