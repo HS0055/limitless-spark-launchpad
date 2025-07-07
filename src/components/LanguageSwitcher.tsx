@@ -66,7 +66,7 @@ const LanguageSwitcher = () => {
           <Button 
             variant="outline" 
             size="sm" 
-            className="group relative hover:scale-105 transition-all duration-200 min-w-fit bg-background/95 border-border/50 shadow-sm"
+            className="group relative hover:scale-105 transition-all duration-200 min-w-fit bg-card/80 border-border shadow-sm"
             disabled={isTranslating}
             aria-label={`Current language: ${currentLanguage?.name}. Click to change language`}
           >
@@ -74,7 +74,7 @@ const LanguageSwitcher = () => {
               {isTranslating ? (
                 <Languages className="w-4 h-4 animate-spin text-primary flex-shrink-0" />
               ) : (
-                <Globe className="w-4 h-4 text-primary/80 group-hover:text-primary transition-colors flex-shrink-0" />
+                <Globe className="w-4 h-4 text-foreground group-hover:text-primary transition-colors flex-shrink-0" />
               )}
               
               <span className="text-base flex-shrink-0" aria-hidden="true">
