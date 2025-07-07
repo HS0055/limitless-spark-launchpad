@@ -6,6 +6,7 @@ import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
+import { cacheManager } from '@/lib/cacheManager';
 
 interface TranslationCache {
   [key: string]: {
@@ -53,6 +54,11 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   };
 
   useEffect(() => {
+    // Initialize user session tracking
+    if (user?.id) {
+      cacheManager.updateUserId(user.id);
+    }
+    
     // Check admin role
     const checkAdminRole = async () => {
       if (user) {
@@ -61,6 +67,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           setHasAdminRole(data?.isAdmin || false);
         } catch (error) {
           setHasAdminRole(false);
+          cacheManager.trackError('Admin role check failed', { error });
         }
       }
     };
@@ -73,26 +80,41 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     setTranslationMode('auto');
     
     try {
-      const savedCache = localStorage.getItem('translation-cache');
-      if (savedCache) {
-        translationCache.current = JSON.parse(savedCache);
+      // Load from advanced cache first
+      const cachedTranslationCache = cacheManager.get<TranslationCache>('translation-memory-cache');
+      if (cachedTranslationCache) {
+        translationCache.current = cachedTranslationCache;
       }
       
       // Ensure settings are saved
-      localStorage.setItem('master-translation-enabled', 'true');
-      localStorage.setItem('auto-translate-enabled', 'true');
-      localStorage.setItem('translation-mode', 'auto');
+      cacheManager.set('master-translation-enabled', true, 24 * 60 * 60 * 1000); // 24 hours
+      cacheManager.set('auto-translate-enabled', true, 24 * 60 * 60 * 1000);
+      cacheManager.set('translation-mode', 'auto', 24 * 60 * 60 * 1000);
+      
+      cacheManager.trackInteraction('translation_system_initialized', {
+        enabled: true,
+        mode: 'auto'
+      });
     } catch (error) {
       console.error('Error loading translation settings:', error);
+      cacheManager.trackError('Translation settings load failed', { error });
     }
   }, [user]);
 
-  // Save cache to localStorage
+  // Enhanced cache saving with error handling
   const saveCache = () => {
     try {
-      localStorage.setItem('translation-cache', JSON.stringify(translationCache.current));
+      // Save to advanced cache system
+      cacheManager.set('translation-memory-cache', translationCache.current, 7 * 24 * 60 * 60 * 1000); // 7 days
+      
+      // Track cache performance
+      cacheManager.trackInteraction('cache_saved', {
+        size: Object.keys(translationCache.current).length,
+        timestamp: Date.now()
+      });
     } catch (error) {
       console.error('Error saving translation cache:', error);
+      cacheManager.trackError('Cache save failed', { error });
     }
   };
 
@@ -393,31 +415,40 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     const cleanText = text.trim();
     if (!cleanText) return text;
 
-    try {
-      // Check database first for persistent translations
-      const { data: existingTranslation } = await supabase
-        .from('translations')
-        .select('translated_text')
-        .eq('source_text', cleanText)
-        .eq('source_language', 'en')
-        .eq('target_language', targetLang)
-        .limit(1)
-        .single();
+    // Update language tracking
+    cacheManager.updateLanguage(targetLang);
 
-      if (existingTranslation) {
-        console.log('📦 Using saved translation from database');
-        return existingTranslation.translated_text;
+    try {
+      // Check advanced cache system first
+      const cachedTranslation = await cacheManager.getTranslation(cleanText, 'en', targetLang);
+      if (cachedTranslation) {
+        cacheManager.trackInteraction('translation_cache_hit', {
+          sourceLength: cleanText.length,
+          targetLang,
+          source: 'advanced_cache'
+        });
+        return cachedTranslation;
       }
 
       // Check memory cache
       const cacheKey = `${cleanText.toLowerCase()}_${context || ''}`;
       if (translationCache.current[cacheKey]?.[targetLang]) {
+        cacheManager.trackInteraction('translation_cache_hit', {
+          sourceLength: cleanText.length,
+          targetLang,
+          source: 'memory_cache'
+        });
         return translationCache.current[cacheKey][targetLang];
       }
 
       console.log('🔄 Translating new text:', cleanText.substring(0, 50) + '...');
+      cacheManager.trackInteraction('translation_api_call', {
+        sourceLength: cleanText.length,
+        targetLang,
+        context
+      });
 
-      // Translate with AI only if not found in database
+      // Translate with AI only if not found in any cache
       const result = await apiClient.invoke('ai-translate', {
         body: {
           text: cleanText,
@@ -431,37 +462,40 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
         skipCache: false
       });
 
-      if (result.error) throw result.error;
+      if (result.error) {
+        cacheManager.trackError('AI translation API error', { error: result.error, text: cleanText });
+        throw result.error;
+      }
 
       const translatedText = result.data.translatedText;
 
-      // Save to database for future use
-      if (user?.id) {
-        try {
-          await supabase
-            .from('translations')
-            .insert({
-              source_text: cleanText,
-              source_language: 'en',
-              target_language: targetLang,
-              translated_text: translatedText,
-              user_id: user.id
-            });
-          console.log('💾 Saved translation to database');
-        } catch (dbError) {
-          console.warn('Failed to save translation to database:', dbError);
-        }
-      }
+      // Save to advanced cache system
+      await cacheManager.setTranslation(cleanText, 'en', targetLang, translatedText, user?.id);
 
-      // Also cache in memory
+      // Also cache in memory for immediate access
       if (!translationCache.current[cacheKey]) {
         translationCache.current[cacheKey] = {};
       }
       translationCache.current[cacheKey][targetLang] = translatedText;
       saveCache();
 
+      // Track successful translation
+      cacheManager.trackTranslation();
+      cacheManager.trackInteraction('translation_completed', {
+        sourceLength: cleanText.length,
+        targetLength: translatedText.length,
+        targetLang
+      });
+
       return translatedText;
     } catch (error) {
+      cacheManager.trackError('Translation failed', { 
+        text: cleanText, 
+        context, 
+        targetLang,
+        error: error instanceof Error ? error.message : String(error)
+      });
+      
       if (hasAdminRole) {
         logToAdmin('Translation error', { text: cleanText, context, error });
       }
@@ -774,6 +808,7 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   // Fixed route change detection - prevents duplicate translations
   useEffect(() => {
     console.log(`🌐 Route changed → ${location.pathname}`);
+    cacheManager.trackPageView(location.pathname);
     
     if (language !== 'en' && !translationInProgress.current) {
       // Clear any previous debounce
