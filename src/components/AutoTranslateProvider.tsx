@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import { apiClient } from '@/lib/apiClient';
+import { useToast } from '@/hooks/use-toast';
 
 interface TranslationCache {
   [key: string]: {
@@ -219,8 +219,8 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     }
 
     try {
-      // Use Claude 4 with AI Vision context for maximum accuracy
-      const { data, error } = await supabase.functions.invoke('ai-translate', {
+      // Use optimized API client with caching and deduplication
+      const result = await apiClient.invoke('ai-translate', {
         body: {
           text: text,
           sourceLang: 'en',
@@ -228,11 +228,14 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
           context: context,
           visionMode: true
         }
+      }, {
+        ttl: 300000, // 5 minute cache
+        skipCache: false
       });
 
-      if (error) throw error;
+      if (result.error) throw result.error;
 
-      const translatedText = data.translatedText;
+      const translatedText = result.data.translatedText;
 
       // Enhanced aggressive caching with context
       if (!translationCache.current[cacheKey]) {
