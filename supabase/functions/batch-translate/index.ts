@@ -1,5 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,14 +16,23 @@ serve(async (req) => {
   try {
     console.log('▶️ /batch-translate called');
     
-    // Log request details
-    console.log('Request method:', req.method);
-    console.log('Request headers:', Object.fromEntries(req.headers.entries()));
+    // Initialize Supabase client with service role key for cache access
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     
-    // Check API key first
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Missing Supabase configuration');
+      return new Response(
+        JSON.stringify({ error: 'Supabase configuration missing' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Check API key
     const anthropicApiKey = Deno.env.get('ANTHROPIC_API_KEY');
     console.log('ANTHROPIC_API_KEY present:', !!anthropicApiKey);
-    console.log('ANTHROPIC_API_KEY length:', anthropicApiKey?.length || 0);
     
     if (!anthropicApiKey) {
       console.error('❌ ANTHROPIC_API_KEY is not set in environment');
@@ -36,7 +46,7 @@ serve(async (req) => {
     const body = await req.json();
     console.log('▶️ /batch-translate payload:', body);
     
-    const { texts, targetLang, context } = body;
+    const { texts, targetLang } = body as { texts: string[], targetLang: string };
 
     // Validate inputs
     if (!texts || !Array.isArray(texts) || texts.length === 0) {
@@ -56,120 +66,161 @@ serve(async (req) => {
     }
 
     console.log(`📦 Processing ${texts.length} texts for translation to ${targetLang}`);
-    console.log('Sample texts:', texts.slice(0, 3));
 
-    const languageNames = {
-      'en': 'English',
-      'hy': 'Armenian', 
-      'ru': 'Russian',
-      'es': 'Spanish',
-      'fr': 'French',
-      'de': 'German',
-      'zh': 'Chinese',
-      'ja': 'Japanese',
-      'ko': 'Korean',
-      'ar': 'Arabic'
-    };
+    // 1) Check cache for existing translations
+    console.log('🔍 Checking translation cache...');
+    const { data: existing, error: cacheError } = await supabase
+      .from('translation_cache')
+      .select('original, translated')
+      .in('original', texts)
+      .eq('target_lang', targetLang);
 
-    const targetLanguage = languageNames[targetLang as keyof typeof languageNames] || targetLang;
-    console.log(`Target language: ${targetLanguage}`);
+    if (cacheError) {
+      console.error('❌ Cache lookup error:', cacheError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to check translation cache' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
-    // Prepare simplified prompt
-    const prompt = `Translate these texts to ${targetLanguage}. Keep HTML tags unchanged:
+    // Build cache map
+    const cacheMap: Record<string, string> = {};
+    if (existing) {
+      existing.forEach(row => {
+        cacheMap[row.original] = row.translated;
+      });
+    }
 
-${texts.map((text, i) => `${i + 1}. ${text}`).join('\n')}
+    console.log(`💾 Found ${Object.keys(cacheMap).length} cached translations`);
+
+    // 2) Determine which strings need AI translation
+    const toTranslate = texts.filter(text => !cacheMap[text]);
+    console.log(`🤖 Need to translate ${toTranslate.length} new texts`);
+
+    let newTranslations: Record<string, string> = {};
+
+    if (toTranslate.length > 0) {
+      // 3) Call Claude only for missing strings
+      const languageNames = {
+        'en': 'English',
+        'hy': 'Armenian', 
+        'ru': 'Russian',
+        'es': 'Spanish',
+        'fr': 'French',
+        'de': 'German',
+        'zh': 'Chinese',
+        'ja': 'Japanese',
+        'ko': 'Korean',
+        'ar': 'Arabic'
+      };
+
+      const targetLanguage = languageNames[targetLang as keyof typeof languageNames] || targetLang;
+      console.log(`🌐 Translating to: ${targetLanguage}`);
+
+      const prompt = `Translate these texts to ${targetLanguage}. Keep HTML tags unchanged:
+
+${toTranslate.map((text, i) => `${i + 1}. ${text}`).join('\n')}
 
 Return only the numbered translations.`;
 
-    console.log('Prompt length:', prompt.length);
-    console.log('Sending request to Claude API...');
+      console.log('📤 Sending request to Claude API...');
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': anthropicApiKey,
-        'Content-Type': 'application/json',
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 2000,
-        temperature: 0,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      }),
-    });
-
-    console.log(`Claude API response status: ${response.status}`);
-    console.log(`Claude API response headers:`, Object.fromEntries(response.headers.entries()));
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Claude API error response:', errorText);
-      
-      // Try to parse as JSON for more details
-      try {
-        const errorJson = JSON.parse(errorText);
-        console.error('❌ Claude API error details:', errorJson);
-      } catch (e) {
-        console.error('❌ Could not parse Claude error as JSON');
-      }
-      
-      return new Response(
-        JSON.stringify({ 
-          error: 'Claude API error', 
-          status: response.status,
-          details: errorText.substring(0, 500) // Truncate for safety
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': anthropicApiKey,
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: 'claude-3-5-sonnet-20241022',
+          max_tokens: 2000,
+          temperature: 0,
+          messages: [
+            {
+              role: 'user',
+              content: prompt
+            }
+          ]
         }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Claude API error:', errorText);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Claude API error', 
+            status: response.status,
+            details: errorText.substring(0, 500)
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const data = await response.json();
+      
+      if (!data.content || !data.content[0] || !data.content[0].text) {
+        console.error('❌ Unexpected Claude API response structure:', data);
+        return new Response(
+          JSON.stringify({ error: 'Unexpected API response structure' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const translatedContent = data.content[0].text.trim();
+      console.log('📥 Claude response received');
+
+      // Parse translations
+      const lines = translatedContent.split('\n');
+      lines.forEach((line, index) => {
+        const match = line.match(/^\d+\.\s*(.*)$/);
+        if (match && toTranslate[index]) {
+          newTranslations[toTranslate[index]] = match[1].trim();
+        }
+      });
+
+      // Fill in any missing with originals
+      toTranslate.forEach(text => {
+        if (!newTranslations[text]) {
+          newTranslations[text] = text;
+        }
+      });
+
+      // 4) Store new translations in cache
+      if (Object.keys(newTranslations).length > 0) {
+        console.log('💾 Storing new translations in cache...');
+        const upserts = Object.entries(newTranslations).map(([original, translated]) => ({
+          original,
+          target_lang: targetLang,
+          translated
+        }));
+
+        const { error: upsertError } = await supabase
+          .from('translation_cache')
+          .upsert(upserts, { onConflict: 'original,target_lang' });
+
+        if (upsertError) {
+          console.error('❌ Failed to cache translations:', upsertError);
+          // Continue anyway - we still have the translations
+        } else {
+          console.log(`✅ Cached ${Object.keys(newTranslations).length} new translations`);
+        }
+      }
     }
 
-    const data = await response.json();
-    console.log('Claude API response data:', data);
-
-    if (!data.content || !data.content[0] || !data.content[0].text) {
-      console.error('❌ Unexpected Claude API response structure:', data);
-      return new Response(
-        JSON.stringify({ error: 'Unexpected API response structure' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const translatedContent = data.content[0].text.trim();
-    console.log('Claude translation result:', translatedContent);
-
-    // Parse the numbered translations back into an object
-    const translations: Record<string, string> = {};
-    const lines = translatedContent.split('\n');
+    // 5) Merge cache + new translations
+    const allTranslations = { ...cacheMap, ...newTranslations };
     
-    lines.forEach((line, index) => {
-      const match = line.match(/^\d+\.\s*(.*)$/);
-      if (match && texts[index]) {
-        translations[texts[index]] = match[1].trim();
-        console.log(`Parsed: "${texts[index]}" → "${match[1].trim()}"`);
-      }
-    });
-
-    // Fill in any missing translations with originals
-    texts.forEach(text => {
-      if (!translations[text]) {
-        console.log(`Missing translation for "${text}", using original`);
-        translations[text] = text;
-      }
-    });
-
-    console.log(`✅ Batch translation completed: ${Object.keys(translations).length} texts`);
+    console.log(`✅ Translation completed: ${Object.keys(allTranslations).length} total translations`);
 
     return new Response(
       JSON.stringify({ 
-        translations,
+        translations: allTranslations,
         targetLang,
-        count: Object.keys(translations).length
+        count: Object.keys(allTranslations).length,
+        cached: Object.keys(cacheMap).length,
+        new: Object.keys(newTranslations).length
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -180,7 +231,6 @@ Return only the numbered translations.`;
     console.error('❌ batch-translate error:', error);
     console.error('❌ Error stack:', error.stack);
     
-    // Return detailed error information
     return new Response(
       JSON.stringify({ 
         error: 'Failed to translate texts', 

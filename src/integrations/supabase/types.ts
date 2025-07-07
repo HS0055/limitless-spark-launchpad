@@ -402,6 +402,30 @@ export type Database = {
         }
         Relationships: []
       }
+      translation_cache: {
+        Row: {
+          id: number
+          inserted_at: string | null
+          original: string
+          target_lang: string
+          translated: string
+        }
+        Insert: {
+          id?: number
+          inserted_at?: string | null
+          original: string
+          target_lang: string
+          translated: string
+        }
+        Update: {
+          id?: number
+          inserted_at?: string | null
+          original?: string
+          target_lang?: string
+          translated?: string
+        }
+        Relationships: []
+      }
       translations: {
         Row: {
           created_at: string
