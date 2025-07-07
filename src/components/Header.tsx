@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Menu, X, BookOpen, Users, Target, DollarSign, Home, Settings } from "lucide-react";
+import { Menu, X, BookOpen, Users, Target, DollarSign, Home, Settings, Trophy, TrendingUp, Image } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -11,7 +11,10 @@ const Header = () => {
 
   const navItems = [
     { name: "Home", href: "/", icon: Home },
+    { name: "League", href: "/league", icon: Trophy },
     { name: "Business League", href: "/business-fundamentals", icon: Target },
+    { name: "Meme Coins", href: "/meme-coins", icon: TrendingUp },
+    { name: "Visual Business", href: "/visual-business", icon: Image },
     { name: "Community", href: "#testimonials", icon: Users },
     { name: "Pricing", href: "#pricing", icon: DollarSign },
   ];

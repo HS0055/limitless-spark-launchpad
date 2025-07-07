@@ -10,6 +10,9 @@ import Dashboard from "./pages/Dashboard";
 import AdminPanel from "./pages/AdminPanel";
 import Community from "./pages/Community";
 import Settings from "./pages/Settings";
+import League from "./pages/League";
+import MemeCoins from "./pages/MemeCoins";
+import VisualBusiness from "./pages/VisualBusiness";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -25,6 +28,9 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/business-fundamentals" element={<Index />} />
+              <Route path="/league" element={<League />} />
+              <Route path="/meme-coins" element={<MemeCoins />} />
+              <Route path="/visual-business" element={<VisualBusiness />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin" element={<AdminPanel />} />
               <Route path="/community" element={<Community />} />
