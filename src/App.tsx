@@ -19,6 +19,7 @@ import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
 import AITools from "./pages/AITools";
 import NotFound from "./pages/NotFound";
+import { WebScraperTranslator } from "./components/WebScraperTranslator";
 
 // Optimized QueryClient configuration
 const queryClient = new QueryClient({
@@ -56,6 +57,7 @@ const App = () => (
                     <Route path="/meme-coins" element={<MemeCoins />} />
                     <Route path="/visual-business" element={<VisualBusiness />} />
                     <Route path="/ai-tools" element={<AITools />} />
+                    <Route path="/web-translator" element={<WebScraperTranslator />} />
                     <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/admin" element={<AdminPanel />} />
                     <Route path="/community" element={<Community />} />
