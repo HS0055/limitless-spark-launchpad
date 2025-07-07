@@ -22,6 +22,7 @@ import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
 import AITools from "./pages/AITools";
 import EditorApp from "./pages/EditorApp";
+import WebEditor from "./pages/WebEditor";
 import BugTracker from "./pages/BugTracker";
 import NotFound from "./pages/NotFound";
 
@@ -63,6 +64,7 @@ const AppContent = () => {
             <Route path="/visual-business" element={<VisualBusiness />} />
             <Route path="/ai-tools" element={<AITools />} />
             <Route path="/editor" element={<EditorApp />} />
+            <Route path="/web-editor" element={<WebEditor />} />
             <Route path="/bug-tracker" element={<BugTracker />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminPanel />} />

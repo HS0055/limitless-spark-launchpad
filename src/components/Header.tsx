@@ -20,6 +20,7 @@ const Header = () => {
     { name: 'nav.memeCoins', href: "/meme-coins", icon: "TrendingUp" as IconName },
     { name: 'nav.visual', href: "/visual-business", icon: "Image" as IconName },
     { name: 'nav.aiTools', href: "/ai-tools", icon: "BookOpen" as IconName },
+    { name: "Web Editor", href: "/web-editor", icon: "Code" as IconName },
     { name: "Python Tools", href: "/python-tools", icon: "Calculator" as IconName },
   ];
 
