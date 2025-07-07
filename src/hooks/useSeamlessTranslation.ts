@@ -82,26 +82,31 @@ export const useSeamlessTranslation = (): SeamlessTranslationHook => {
   const extractTranslatableContent = useCallback(() => {
     const contentMap = new Map<string, { element: Element; originalText: string; context: string }>();
     
-    // Text content
+    // More comprehensive text content extraction
     const textNodes = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
       {
         acceptNode: (node) => {
           const text = node.textContent?.trim() || '';
-          if (text.length < 2) return NodeFilter.FILTER_REJECT;
+          if (text.length < 1) return NodeFilter.FILTER_REJECT;
           
           const parent = node.parentElement;
           if (!parent) return NodeFilter.FILTER_REJECT;
           
-          // Skip script, style, code elements
+          // Skip script, style, code elements and hidden elements
           const tagName = parent.tagName.toLowerCase();
           if (['script', 'style', 'code', 'pre', 'noscript'].includes(tagName)) {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Skip if text looks like code, IDs, or classes
-          if (/^[a-z-_]+$|^[A-Z_]+$|^\d+$|^#|^\.|^\//.test(text)) {
+          // Skip if parent has data-no-translate
+          if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          
+          // Only skip very specific patterns (not general text)
+          if (/^[\s\-_•]+$|^[{}[\]()]+$|^[&<>]+$/.test(text)) {
             return NodeFilter.FILTER_REJECT;
           }
           
@@ -114,6 +119,10 @@ export const useSeamlessTranslation = (): SeamlessTranslationHook => {
     while (node = textNodes.nextNode()) {
       const element = node.parentElement!;
       const text = node.textContent!.trim();
+      
+      // Skip empty or whitespace-only text
+      if (!text || text.length === 0) continue;
+      
       const context = `${element.tagName.toLowerCase()}-${element.className || 'text'}`;
       const fingerprint = generateFingerprint(text, context);
       
