@@ -28,7 +28,14 @@ serve(async (req) => {
     const languageNames = {
       'en': 'English',
       'hy': 'Armenian', 
-      'ru': 'Russian'
+      'ru': 'Russian',
+      'es': 'Spanish',
+      'fr': 'French',
+      'de': 'German',
+      'zh': 'Chinese',
+      'ja': 'Japanese',
+      'ko': 'Korean',
+      'ar': 'Arabic'
     };
 
     const targetLanguage = languageNames[targetLang as keyof typeof languageNames] || targetLang;
@@ -50,11 +57,11 @@ serve(async (req) => {
         messages: [
           {
             role: 'user',
-            content: `You are an expert translator with vision capabilities for web content translation.
-
-TASK: Translate the following numbered list of texts from English to ${targetLanguage}.
+            content: `TASK: Auto-detect source language and translate the following numbered list of texts to ${targetLanguage}.
 
 CRITICAL REQUIREMENTS:
+- Auto-detect the source language of each text (could be English, Armenian, Russian, Spanish, French, German, Chinese, Japanese, Korean, Arabic, etc.)
+- Translate each text into ${targetLanguage}
 - Preserve ALL HTML tags exactly as they appear (including <strong>, <em>, <span>, etc.)
 - Maintain the numbered format (1. 2. 3. etc.)
 - Translate only the text content, not HTML attributes or tags

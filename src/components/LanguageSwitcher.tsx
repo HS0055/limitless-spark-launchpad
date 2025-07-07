@@ -16,6 +16,13 @@ const LanguageSwitcher = () => {
     { code: 'en' as Language, name: 'English', flag: '🇺🇸' },
     { code: 'hy' as Language, name: 'Հայերեն', flag: '🇦🇲' },
     { code: 'ru' as Language, name: 'Русский', flag: '🇷🇺' },
+    { code: 'es' as Language, name: 'Español', flag: '🇪🇸' },
+    { code: 'fr' as Language, name: 'Français', flag: '🇫🇷' },
+    { code: 'de' as Language, name: 'Deutsch', flag: '🇩🇪' },
+    { code: 'zh' as Language, name: '中文', flag: '🇨🇳' },
+    { code: 'ja' as Language, name: '日本語', flag: '🇯🇵' },
+    { code: 'ko' as Language, name: '한국어', flag: '🇰🇷' },
+    { code: 'ar' as Language, name: 'العربية', flag: '🇸🇦' },
   ];
 
   const currentLanguage = languages.find(lang => lang.code === language);

@@ -1,6 +1,6 @@
 import { apiClient } from '@/lib/apiClient';
 
-export type Language = 'en' | 'hy' | 'ru';
+export type Language = 'en' | 'hy' | 'ru' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'ko' | 'ar';
 
 interface TranslationCache {
   [key: string]: {
@@ -12,6 +12,7 @@ interface TranslatableText {
   textNode: Text;
   originalText: string;
   cacheKey: string;
+  isTitle?: boolean;
 }
 
 class TranslationEngine {
@@ -75,6 +76,23 @@ class TranslationEngine {
   private collectTranslatables(): TranslatableText[] {
     const textNodes: TranslatableText[] = [];
     const seenTexts = new Set<string>();
+
+    // Handle document title separately
+    if (document.title && document.title.trim().length > 2) {
+      const titleText = document.title.trim();
+      if (!seenTexts.has(titleText)) {
+        seenTexts.add(titleText);
+        
+        // Create a virtual text node for the title
+        const titleNode = document.createTextNode(titleText);
+        textNodes.push({
+          textNode: titleNode,
+          originalText: titleText,
+          cacheKey: `title_${titleText}`,
+          isTitle: true
+        });
+      }
+    }
 
     // Recursively walk document.body to find all Text nodes
     const walkTextNodes = (element: Node) => {
@@ -263,16 +281,29 @@ class TranslationEngine {
   }
 
   private applyTranslations(textNodes: TranslatableText[], targetLang: Language) {
-    textNodes.forEach(({ textNode, originalText, cacheKey }) => {
+    textNodes.forEach(({ textNode, originalText, cacheKey, isTitle }) => {
       const translation = this.cache[cacheKey]?.[targetLang];
       if (translation && translation !== originalText) {
-        // Directly update the Text node's nodeValue to preserve HTML structure
-        textNode.nodeValue = translation;
+        if (isTitle) {
+          // Update document title
+          document.title = translation;
+          console.log(`✅ Translated page title: '${originalText}' → '${translation}'`);
+        } else {
+          // Directly update the Text node's nodeValue to preserve HTML structure
+          textNode.nodeValue = translation;
+        }
       }
     });
   }
 
   private restoreOriginalContent() {
+    // Restore document title
+    const originalTitle = this.originalContent.get(document.head);
+    if (originalTitle && typeof originalTitle === 'string') {
+      document.title = originalTitle;
+    }
+    
+    // Restore page content
     this.originalContent.forEach((originalHTML, element) => {
       if (element && element.innerHTML !== originalHTML) {
         element.innerHTML = originalHTML;

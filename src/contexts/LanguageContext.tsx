@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
 
-export type Language = 'en' | 'hy' | 'ru';
+export type Language = 'en' | 'hy' | 'ru' | 'es' | 'fr' | 'de' | 'zh' | 'ja' | 'ko' | 'ar';
 
 interface LanguageContextType {
   language: Language;
@@ -302,12 +302,13 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   // Load language preference on mount
   useEffect(() => {
     const savedLanguage = localStorage.getItem('language') as Language;
-    if (savedLanguage && ['en', 'hy', 'ru'].includes(savedLanguage)) {
+    const validLanguages = ['en', 'hy', 'ru', 'es', 'fr', 'de', 'zh', 'ja', 'ko', 'ar'];
+    if (savedLanguage && validLanguages.includes(savedLanguage)) {
       setLanguageState(savedLanguage);
     } else {
       // Try to detect browser language
       const browserLang = navigator.language.split('-')[0] as Language;
-      if (['en', 'hy', 'ru'].includes(browserLang)) {
+      if (validLanguages.includes(browserLang)) {
         setLanguageState(browserLang);
       }
     }
@@ -342,7 +343,12 @@ export const LanguageProvider = ({ children }: LanguageProviderProps) => {
   };
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations[typeof language]] || key;
+    // For new languages without translations, return the key as fallback
+    const currentTranslations = translations[language];
+    if (!currentTranslations) {
+      return key;
+    }
+    return currentTranslations[key as keyof typeof currentTranslations] || key;
   };
 
   return (
