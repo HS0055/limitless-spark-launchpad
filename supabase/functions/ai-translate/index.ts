@@ -39,7 +39,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-4-20250514',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 10,
         temperature: 0,
         messages: [
@@ -112,7 +112,7 @@ Text: "${text}"`
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-4-20250514',
+        model: 'claude-3-5-sonnet-20241022',
         max_tokens: 4000,
         temperature: 0.1,
         messages: [
