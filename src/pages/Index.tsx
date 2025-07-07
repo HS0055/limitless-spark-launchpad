@@ -2,14 +2,63 @@ import PublicLayout from "@/components/PublicLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Target, Users, Star, CheckCircle, ArrowRight, Zap, BarChart3, Briefcase, TrendingUp, BookOpen, GraduationCap, Award, Clock, Eye, Brain } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Target, Users, Star, CheckCircle, ArrowRight, Zap, BarChart3, Briefcase, TrendingUp, BookOpen, GraduationCap, Award, Clock, Trophy, Calendar, DollarSign, LineChart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [financialData, setFinancialData] = useState({
+    revenue: '',
+    costs: '',
+    marketing: '',
+    growth: ''
+  });
 
   const handleJoinNow = () => {
     navigate('/dashboard');
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFinancialData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  // League Data
+  const leagueStats = [
+    { name: "Revenue Champions", participants: "1,247", prize: "$50,000", status: "Active" },
+    { name: "Growth Masters", participants: "892", prize: "$25,000", status: "Starting Soon" },
+    { name: "Profit Builders", participants: "654", prize: "$15,000", status: "Registration Open" }
+  ];
+
+  const leaderboard = [
+    { rank: 1, name: "Alex Chen", company: "TechFlow", revenue: "$2.4M", growth: "+340%" },
+    { rank: 2, name: "Sarah Martinez", company: "GrowthCo", revenue: "$1.8M", growth: "+285%" },
+    { rank: 3, name: "David Park", company: "ScaleUp", revenue: "$1.2M", growth: "+210%" },
+    { rank: 4, name: "Emma Wilson", company: "InnovateLab", revenue: "$980K", growth: "+180%" },
+    { rank: 5, name: "Michael Johnson", company: "VentureX", revenue: "$750K", growth: "+165%" }
+  ];
+
+  // Business Fundamentals Spreadsheet Data
+  const financialMetrics = [
+    { metric: "Monthly Revenue", q1: 50000, q2: 65000, q3: 78000, q4: 95000 },
+    { metric: "Operating Costs", q1: 30000, q2: 38000, q3: 42000, q4: 48000 },
+    { metric: "Marketing Spend", q1: 8000, q2: 12000, q3: 15000, q4: 20000 },
+    { metric: "Net Profit", q1: 12000, q2: 15000, q3: 21000, q4: 27000 },
+    { metric: "Customer Acquisition", q1: 120, q2: 180, q3: 240, q4: 320 }
+  ];
+
+  const calculateROI = () => {
+    const revenue = parseFloat(financialData.revenue) || 0;
+    const costs = parseFloat(financialData.costs) || 0;
+    const marketing = parseFloat(financialData.marketing) || 0;
+    const totalCosts = costs + marketing;
+    return totalCosts > 0 ? ((revenue - totalCosts) / totalCosts * 100).toFixed(1) : '0';
   };
 
   // Psychological urgency stats
@@ -143,8 +192,174 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Enhanced Features Section */}
+      {/* Business League Section */}
       <section className="py-20 bg-gradient-to-b from-background to-muted/20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold mb-6">
+              <Trophy className="w-10 h-10 inline-block mr-3 text-yellow-500" />
+              Business Fundamentals <span className="text-blue-500">League</span>
+            </h2>
+            <p className="text-xl text-muted-foreground">
+              Compete with fellow entrepreneurs and win real prizes while mastering business skills
+            </p>
+          </div>
+
+          <Tabs defaultValue="leagues" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
+              <TabsTrigger value="leagues">Active Leagues</TabsTrigger>
+              <TabsTrigger value="leaderboard">Leaderboard</TabsTrigger>
+              <TabsTrigger value="calculator">Financial Calculator</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="leagues" className="space-y-6">
+              <div className="grid md:grid-cols-3 gap-6">
+                {leagueStats.map((league, index) => (
+                  <Card key={index} className="p-6 hover:scale-105 transition-all duration-300 border-border/30 hover:border-primary/30">
+                    <CardHeader className="pb-4">
+                      <CardTitle className="text-lg">{league.name}</CardTitle>
+                      <Badge variant={league.status === 'Active' ? 'default' : 'secondary'}>
+                        {league.status}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent className="p-0 space-y-3">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Participants:</span>
+                        <span className="font-semibold">{league.participants}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Prize Pool:</span>
+                        <span className="font-bold text-green-500">{league.prize}</span>
+                      </div>
+                      <Button className="w-full mt-4" variant="outline">
+                        Join League
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="leaderboard" className="space-y-6">
+              <Card className="p-6">
+                <CardHeader>
+                  <CardTitle>Current Leaderboard - Revenue Champions</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Rank</TableHead>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Company</TableHead>
+                        <TableHead>Revenue</TableHead>
+                        <TableHead>Growth</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {leaderboard.map((player) => (
+                        <TableRow key={player.rank}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {player.rank === 1 && <Trophy className="w-4 h-4 text-yellow-500" />}
+                              {player.rank === 2 && <Trophy className="w-4 h-4 text-gray-400" />}
+                              {player.rank === 3 && <Trophy className="w-4 h-4 text-amber-600" />}
+                              #{player.rank}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">{player.name}</TableCell>
+                          <TableCell>{player.company}</TableCell>
+                          <TableCell className="font-semibold text-green-600">{player.revenue}</TableCell>
+                          <TableCell className="font-semibold text-blue-600">{player.growth}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="calculator" className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-8">
+                <Card className="p-6">
+                  <CardHeader>
+                    <CardTitle>Business Calculator</CardTitle>
+                    <p className="text-muted-foreground">Calculate your ROI and business metrics</p>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Monthly Revenue ($)</label>
+                      <Input 
+                        type="number" 
+                        placeholder="50000"
+                        value={financialData.revenue}
+                        onChange={(e) => handleInputChange('revenue', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Operating Costs ($)</label>
+                      <Input 
+                        type="number" 
+                        placeholder="30000"
+                        value={financialData.costs}
+                        onChange={(e) => handleInputChange('costs', e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium mb-2 block">Marketing Spend ($)</label>
+                      <Input 
+                        type="number" 
+                        placeholder="8000"
+                        value={financialData.marketing}
+                        onChange={(e) => handleInputChange('marketing', e.target.value)}
+                      />
+                    </div>
+                    <div className="pt-4 border-t">
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">Return on Investment</p>
+                        <p className="text-2xl font-bold text-green-600">{calculateROI()}%</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="p-6">
+                  <CardHeader>
+                    <CardTitle>Financial Metrics Spreadsheet</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Metric</TableHead>
+                          <TableHead>Q1</TableHead>
+                          <TableHead>Q2</TableHead>
+                          <TableHead>Q3</TableHead>
+                          <TableHead>Q4</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {financialMetrics.map((metric, index) => (
+                          <TableRow key={index}>
+                            <TableCell className="font-medium">{metric.metric}</TableCell>
+                            <TableCell>${metric.q1.toLocaleString()}</TableCell>
+                            <TableCell>${metric.q2.toLocaleString()}</TableCell>
+                            <TableCell>${metric.q3.toLocaleString()}</TableCell>
+                            <TableCell>${metric.q4.toLocaleString()}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
+      {/* Enhanced Features Section */}
+      <section className="py-20 bg-gradient-to-b from-muted/20 to-background">
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-6">
