@@ -117,11 +117,11 @@ serve(async (req) => {
       const targetLanguage = languageNames[targetLang as keyof typeof languageNames] || targetLang;
       console.log(`🌐 Translating to: ${targetLanguage}`);
 
-      const prompt = `Translate these texts to ${targetLanguage}. Keep HTML tags unchanged:
+      const prompt = `Translate to ${targetLanguage}. Be concise and preserve HTML tags:
 
 ${toTranslate.map((text, i) => `${i + 1}. ${text}`).join('\n')}
 
-Return only the numbered translations.`;
+Return numbered translations only.`;
 
       console.log('📤 Sending request to Claude API...');
 
@@ -133,8 +133,8 @@ Return only the numbered translations.`;
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: 'claude-3-5-sonnet-20241022',
-          max_tokens: 2000,
+          model: 'claude-3-5-haiku-20241022', // Faster, cheaper model
+          max_tokens: 1500, // Reduced for cost savings
           temperature: 0,
           messages: [
             {

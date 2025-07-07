@@ -247,7 +247,7 @@ class TranslationEngine {
     const uncachedTexts: string[] = [];
     const seenTexts = new Set<string>();
 
-    // Collect ALL text content that isn't cached (more aggressive)
+    // More selective collection to reduce API costs
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
@@ -256,13 +256,13 @@ class TranslationEngine {
           const parent = node.parentElement;
           if (!parent) return NodeFilter.FILTER_REJECT;
           
-          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE'];
+          const skipTags = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'CODE', 'PRE', 'SVG'];
           if (skipTags.includes(parent.tagName)) return NodeFilter.FILTER_REJECT;
           if (parent.hasAttribute('data-no-translate')) return NodeFilter.FILTER_REJECT;
           
           const text = node.textContent?.trim();
-          // Accept even single character texts for better coverage
-          return (text && text.length > 0) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          // Only accept meaningful text (3+ chars) to reduce costs
+          return (text && text.length >= 3) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
         }
       }
     );
@@ -271,11 +271,14 @@ class TranslationEngine {
     while (node = walker.nextNode()) {
       const text = node.textContent?.trim();
       if (text && !seenTexts.has(text) && !this.cache[text]?.[targetLang]) {
-        // More permissive filtering - only skip obvious non-text
-        if (!/^[\d\s\.,\-\+\(\)\[\]%$€£¥]+$/.test(text) && 
-            !/^https?:\/\//.test(text) && 
-            !/^[^\s]+@[^\s]+\.[^\s]+$/.test(text) &&
-            !/^[\/\\]/.test(text)) { // Skip file paths
+        // Strict filtering to avoid unnecessary API calls
+        if (!/^[\d\s\.,\-\+\(\)\[\]%$€£¥]*$/.test(text) && // Skip pure numbers/symbols
+            !/^https?:\/\//.test(text) && // Skip URLs
+            !/^[^\s]+@[^\s]+\.[^\s]+$/.test(text) && // Skip emails
+            !/^[\/\\]/.test(text) && // Skip file paths
+            !/^[A-Z]{2,}$/.test(text) && // Skip pure uppercase abbreviations
+            text.length >= 3 && // Minimum length
+            text.length <= 500) { // Maximum length to avoid huge costs
           seenTexts.add(text);
           uncachedTexts.push(text);
         }
@@ -298,7 +301,7 @@ class TranslationEngine {
   }
 
   private async translateNewContent(texts: string[], targetLang: Language) {
-    const batchSize = 30; // Larger batches for better performance
+    const batchSize = 50; // Larger batches to reduce API costs
     
     const batchPromises = [];
     for (let i = 0; i < texts.length; i += batchSize) {
