@@ -8,7 +8,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
-import LanguageAdaptiveLayout from "@/components/LanguageAdaptiveLayout";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -45,29 +44,27 @@ const App = () => (
         <AuthProvider>
           <LanguageProvider>
             <AutoTranslateProvider>
-              <LanguageAdaptiveLayout>
-                <div className="min-h-screen bg-background">
-                  <Toaster />
-                  <Sonner />
-                  <PerformanceMonitor />
-                  <BrowserRouter>
-                    <Routes>
-                      <Route path="/" element={<Home />} />
-                      <Route path="/business-fundamentals" element={<Index />} />
-                      <Route path="/league" element={<League />} />
-                      <Route path="/meme-coins" element={<MemeCoins />} />
-                      <Route path="/visual-business" element={<VisualBusiness />} />
-                      <Route path="/ai-tools" element={<AITools />} />
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/admin" element={<AdminPanel />} />
-                      <Route path="/community" element={<Community />} />
-                      <Route path="/settings" element={<Settings />} />
-                      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </BrowserRouter>
-                </div>
-              </LanguageAdaptiveLayout>
+              <div className="min-h-screen bg-background">
+                <Toaster />
+                <Sonner />
+                <PerformanceMonitor />
+                <BrowserRouter>
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/business-fundamentals" element={<Index />} />
+                    <Route path="/league" element={<League />} />
+                    <Route path="/meme-coins" element={<MemeCoins />} />
+                    <Route path="/visual-business" element={<VisualBusiness />} />
+                    <Route path="/ai-tools" element={<AITools />} />
+                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/admin" element={<AdminPanel />} />
+                    <Route path="/community" element={<Community />} />
+                    <Route path="/settings" element={<Settings />} />
+                    {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </BrowserRouter>
+              </div>
             </AutoTranslateProvider>
           </LanguageProvider>
         </AuthProvider>
