@@ -39,8 +39,8 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 10,
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 15,
         temperature: 0,
         messages: [
           {
@@ -112,38 +112,50 @@ Text: "${text}"`
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-3-5-sonnet-20241022',
-        max_tokens: 4000,
-        temperature: 0.1,
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        temperature: 0.05,
         messages: [
           {
             role: 'user',
             content: visionMode ? 
-              `You are an expert AI translator with vision capabilities for comprehensive website translation.
+              `You are Claude 4, the most advanced AI translator specializing in culturally-aware website localization.
 
-CONTEXT ANALYSIS: ${context || 'general web content'}
-ELEMENT TYPE: Web page element requiring maximum accuracy
-SOURCE: ${sourceLanguage} → TARGET: ${targetLanguage}
+🎯 TRANSLATION MISSION: Transform "${text}" from ${sourceLanguage} to ${targetLanguage}
 
-CRITICAL REQUIREMENTS:
-- Analyze the complete semantic context of this web element
-- Detect UI patterns, navigation elements, business content, and user interface text
-- Preserve exact formatting, spacing, and special characters
-- Use culturally appropriate expressions for the target language
-- Maintain consistency with web conventions and user expectations
-- For buttons/CTAs: use action-oriented language appropriate for the target culture
-- For headings: preserve hierarchy and impact
-- For navigation: use standard web terminology
-- For content: maintain tone and register
+📍 CONTEXT INTELLIGENCE: ${context || 'general web content'}
+🏗️ ELEMENT TYPE: High-priority web interface component
 
-Web Element Context: ${context}
-Text to translate: "${text}"
+🔥 PREMIUM LOCALIZATION STANDARDS:
+✅ Deep Cultural Adaptation: Use region-specific expressions, idioms, and communication styles
+✅ Advanced Context Analysis: Understand business domain, user intent, and conversion goals  
+✅ UI/UX Optimization: Adapt text length, tone, and formality for target audience
+✅ Brand Voice Consistency: Maintain professional yet approachable educational platform tone
+✅ Technical Precision: Preserve formatting, emojis, and special characters exactly
+✅ Conversion-Focused: For CTAs/buttons, use psychologically compelling language for target culture
 
-Return ONLY the precise translation that fits this web context.` 
+🌍 LANGUAGE-SPECIFIC GUIDELINES:
+${targetLanguage === 'Armenian' ? 
+  '🇦🇲 ARMENIAN: Use formal yet warm tone. Prefer classical Armenian vocabulary. Educational content should sound authoritative but accessible.' :
+  targetLanguage === 'Russian' ?
+  '🇷🇺 RUSSIAN: Use contemporary business Russian. Maintain professional courtesy. Educational terminology should be clear and modern.' :
+  '🇺🇸 ENGLISH: Keep original text as baseline reference.'
+}
+
+📋 CONTEXT: ${context}
+💬 SOURCE TEXT: "${text}"
+
+🎯 DELIVER: Only the perfect ${targetLanguage} translation that will convert and engage users.` 
               : 
-              `Translate from ${sourceLanguage} to ${targetLanguage}. Return ONLY the translated text, nothing else.
+              `You are Claude 4, expert translator. Translate "${text}" from ${sourceLanguage} to ${targetLanguage}.
 
-Text to translate: "${text}"`
+RULES:
+- Natural, culturally appropriate translation
+- Maintain original meaning and tone
+- Return ONLY the translated text
+- No explanations or additions
+
+Translation:`
           }
         ]
       }),
