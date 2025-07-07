@@ -32,6 +32,17 @@ const MarketingLayout = ({ children }: MarketingLayoutProps) => {
             
             <div className="flex items-center space-x-4">
               <LanguageSwitcher />
+              <nav className="hidden md:flex items-center space-x-4 mr-4">
+                <Link to="/league" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                  {t('nav.programs')}
+                </Link>
+                <Link to="/visual-business" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                  {t('nav.visual')}
+                </Link>
+                <Link to="/business-fundamentals" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                  {t('nav.business')}
+                </Link>
+              </nav>
               <Button className="btn-hero font-semibold px-6" asChild>
                 <Link to="/dashboard">{t('nav.getStarted')}</Link>
               </Button>

@@ -1,5 +1,4 @@
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
+import SectionLayout from "@/components/SectionLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -220,8 +219,11 @@ const VisualBusiness = () => {
   });
 
   return (
-    <div className="min-h-screen">
-      <Header />
+    <SectionLayout 
+      sectionName="Visual Mindset" 
+      sectionIcon={Brain}
+      sectionColor="from-accent-tertiary to-primary"
+    >
       
       {/* Hero Section */}
       <section className="content-section pt-24 relative">
@@ -754,8 +756,7 @@ const VisualBusiness = () => {
         </div>
       </section>
 
-      <Footer />
-    </div>
+    </SectionLayout>
   );
 };
 

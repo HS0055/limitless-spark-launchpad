@@ -8,8 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
+import SectionLayout from '@/components/SectionLayout';
 import { 
   Languages, 
   ArrowRightLeft, 
@@ -186,10 +185,12 @@ const Translator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
-      <div className="content-container py-8 pt-24">
+    <SectionLayout 
+      sectionName="Translator" 
+      sectionIcon={Languages}
+      sectionColor="from-info to-accent-secondary"
+    >
+      <div className="py-8">
         {/* Header */}
         <div className="mb-12 text-center">
           <div className="inline-flex items-center bg-gradient-to-r from-primary/10 to-accent-secondary/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6 border border-primary/20 shadow-lg">
@@ -445,9 +446,7 @@ const Translator = () => {
           </div>
         </div>
       </div>
-
-      <Footer />
-    </div>
+    </SectionLayout>
   );
 };
 

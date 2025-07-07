@@ -29,7 +29,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
     { name: t('nav.home'), href: "/dashboard", icon: Home },
     { name: t('nav.programs'), href: "/league", icon: Trophy },
     { name: t('nav.visual'), href: "/visual-business", icon: Image },
-    { name: t('nav.memeCoins'), href: "/meme-coins", icon: TrendingUp },
+    { name: t('nav.business'), href: "/business-fundamentals", icon: BookOpen },
     { name: t('nav.translator'), href: "/translator", icon: Languages },
   ];
 
