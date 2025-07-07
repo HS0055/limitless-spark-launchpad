@@ -9,7 +9,7 @@ import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
-import { VisualEditor } from "@/components/visual-editor/VisualEditor";
+import { VisualEditor as GlobalVisualEditor } from "@/components/visual-editor/VisualEditor";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -21,6 +21,7 @@ import PythonToolsPage from "./pages/PythonToolsPage";
 import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
 import AITools from "./pages/AITools";
+import VisualEditor from "./pages/VisualEditor";
 import NotFound from "./pages/NotFound";
 
 // Optimized QueryClient configuration
@@ -59,6 +60,7 @@ const AppContent = () => {
             <Route path="/meme-coins" element={<MemeCoins />} />
             <Route path="/visual-business" element={<VisualBusiness />} />
             <Route path="/ai-tools" element={<AITools />} />
+            <Route path="/editor" element={<VisualEditor />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/community" element={<Community />} />
@@ -68,7 +70,7 @@ const AppContent = () => {
           </Routes>
           
           {/* Global Visual Editor - Available on all pages for admins */}
-          {userRole === 'admin' && <VisualEditor />}
+          {userRole === 'admin' && <GlobalVisualEditor />}
         </AutoTranslateProvider>
       </BrowserRouter>
     </div>
