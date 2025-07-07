@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Languages, Copy, History, Search, Zap } from 'lucide-react';
+import { Loader2, Languages, Copy, History, Search, Zap, RotateCw, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/components/auth/AuthProvider';
 import MarketingLayout from '@/components/MarketingLayout';
@@ -30,6 +30,7 @@ const Translator = () => {
   const [sourceLang, setSourceLang] = useState('en');
   const [targetLang, setTargetLang] = useState('hy');
   const [isTranslating, setIsTranslating] = useState(false);
+  const [isDetectingLanguage, setIsDetectingLanguage] = useState(false);
   const [translationHistory, setTranslationHistory] = useState<Translation[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
@@ -149,6 +150,76 @@ const Translator = () => {
     }
   };
 
+  // One-button switch function
+  const handleLanguageSwitch = () => {
+    const temp = sourceLang;
+    setSourceLang(targetLang);
+    setTargetLang(temp);
+    
+    // Also swap the texts if both exist
+    if (sourceText && translatedText) {
+      const tempText = sourceText;
+      setSourceText(translatedText);
+      setTranslatedText(tempText);
+    }
+    
+    toast({
+      title: "Languages Switched",
+      description: "Source and target languages have been swapped",
+    });
+  };
+
+  // Auto-detect language function
+  const handleAutoDetect = async () => {
+    if (!sourceText.trim()) {
+      toast({
+        title: "No Text",
+        description: "Please enter text for language detection",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsDetectingLanguage(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-translate', {
+        body: {
+          text: sourceText,
+          sourceLang: 'auto', // Special code for auto-detection
+          targetLang: sourceLang, // This will be ignored for detection
+          detectOnly: true
+        }
+      });
+      
+      if (error) throw error;
+      
+      const detectedLang = data.detectedLanguage;
+      if (detectedLang && detectedLang !== sourceLang) {
+        setSourceLang(detectedLang);
+        const langName = languages.find(l => l.code === detectedLang)?.name || detectedLang;
+        toast({
+          title: "Language Detected",
+          description: `Detected language: ${langName}`,
+        });
+      } else {
+        toast({
+          title: "Language Detection",
+          description: "Current language selection appears correct",
+        });
+      }
+    } catch (error) {
+      console.error('Language detection error:', error);
+      toast({
+        title: "Detection Failed",
+        description: "Failed to detect language. Using current selection.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDetectingLanguage(false);
+    }
+  };
+
   return (
     <MarketingLayout>
       <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20 py-12">
@@ -199,54 +270,91 @@ const Translator = () => {
                       Enter your text and select languages for translation
                     </CardDescription>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">From</label>
-                        <Select value={sourceLang} onValueChange={setSourceLang}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {languages.map((lang) => (
-                              <SelectItem key={lang.code} value={lang.code}>
-                                <span className="flex items-center gap-2">
-                                  {lang.flag} {lang.name}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">To</label>
-                        <Select value={targetLang} onValueChange={setTargetLang}>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {languages.map((lang) => (
-                              <SelectItem key={lang.code} value={lang.code}>
-                                <span className="flex items-center gap-2">
-                                  {lang.flag} {lang.name}
-                                </span>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                   <CardContent className="space-y-4">
+                     {/* Enhanced Language Selection with Switch Button */}
+                     <div className="flex items-center gap-3">
+                       <div className="flex-1">
+                         <label className="text-sm font-medium mb-2 block">From</label>
+                         <Select value={sourceLang} onValueChange={setSourceLang}>
+                           <SelectTrigger>
+                             <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent>
+                             {languages.map((lang) => (
+                               <SelectItem key={lang.code} value={lang.code}>
+                                 <span className="flex items-center gap-2">
+                                   {lang.flag} {lang.name}
+                                 </span>
+                               </SelectItem>
+                             ))}
+                           </SelectContent>
+                         </Select>
+                       </div>
+                       
+                       {/* PROMINENT ONE-BUTTON SWITCH ICON */}
+                       <div className="flex flex-col items-center pt-6">
+                         <Button
+                           onClick={handleLanguageSwitch}
+                           variant="outline"
+                           size="lg"
+                           className="w-14 h-14 rounded-full border-2 border-primary/20 hover:border-primary hover:bg-primary/5 hover:scale-110 transition-all duration-200 shadow-lg hover:shadow-xl"
+                           title="Switch Languages"
+                         >
+                           <RotateCw className="w-6 h-6 text-primary" />
+                         </Button>
+                         <span className="text-xs text-muted-foreground mt-1 font-medium">Switch</span>
+                       </div>
+                       
+                       <div className="flex-1">
+                         <label className="text-sm font-medium mb-2 block">To</label>
+                         <Select value={targetLang} onValueChange={setTargetLang}>
+                           <SelectTrigger>
+                             <SelectValue />
+                           </SelectTrigger>
+                           <SelectContent>
+                             {languages.map((lang) => (
+                               <SelectItem key={lang.code} value={lang.code}>
+                                 <span className="flex items-center gap-2">
+                                   {lang.flag} {lang.name}
+                                 </span>
+                               </SelectItem>
+                             ))}
+                           </SelectContent>
+                         </Select>
+                       </div>
+                     </div>
 
-                    <div>
-                      <label className="text-sm font-medium mb-2 block">Text to translate</label>
-                      <Textarea
-                        value={sourceText}
-                        onChange={(e) => setSourceText(e.target.value)}
-                        placeholder="Enter text to translate..."
-                        rows={6}
-                        className="resize-none"
-                      />
-                    </div>
+                     <div className="space-y-2">
+                       <div className="flex items-center justify-between">
+                         <label className="text-sm font-medium">Text to translate</label>
+                         <Button
+                           onClick={handleAutoDetect}
+                           variant="ghost"
+                           size="sm"
+                           disabled={isDetectingLanguage || !sourceText.trim()}
+                           className="text-primary hover:text-primary-foreground hover:bg-primary"
+                         >
+                           {isDetectingLanguage ? (
+                             <>
+                               <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                               Detecting...
+                             </>
+                           ) : (
+                             <>
+                               <Sparkles className="w-3 h-3 mr-1" />
+                               Auto-Detect
+                             </>
+                           )}
+                         </Button>
+                       </div>
+                       <Textarea
+                         value={sourceText}
+                         onChange={(e) => setSourceText(e.target.value)}
+                         placeholder="Enter text to translate..."
+                         rows={6}
+                         className="resize-none"
+                       />
+                     </div>
 
                     <Button 
                       onClick={handleTranslate} 

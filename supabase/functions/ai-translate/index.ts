@@ -15,11 +15,74 @@ serve(async (req) => {
   }
 
   try {
-    const { text, sourceLang, targetLang } = await req.json();
+    const { text, sourceLang, targetLang, detectOnly } = await req.json();
 
-    if (!text || !sourceLang || !targetLang) {
+    if (!text) {
       return new Response(
-        JSON.stringify({ error: 'Text, source language, and target language are required' }),
+        JSON.stringify({ error: 'Text is required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Language detection mode
+    if (detectOnly) {
+      console.log('Detecting language for:', text);
+      
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-4.1-2025-04-14',
+          messages: [
+            {
+              role: 'system',
+              content: `You are a language detection expert. Analyze the given text and determine its language. 
+              Return ONLY the language code from these options: 'en' for English, 'hy' for Armenian, 'ru' for Russian.
+              If the language is not one of these three, return the closest match or 'en' as default.
+              Return only the language code, nothing else.`
+            },
+            {
+              role: 'user',
+              content: text
+            }
+          ],
+          max_tokens: 10,
+          temperature: 0.1,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('OpenAI API error:', errorData);
+        throw new Error(`OpenAI API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const detectedLanguage = data.choices[0].message.content.trim().toLowerCase();
+      
+      console.log('Language detected:', detectedLanguage);
+
+      return new Response(
+        JSON.stringify({ 
+          detectedLanguage: detectedLanguage,
+          originalText: text
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
+    // Translation mode
+    if (!sourceLang || !targetLang) {
+      return new Response(
+        JSON.stringify({ error: 'Source language and target language are required for translation' }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
