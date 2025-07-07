@@ -44,7 +44,7 @@ class TranslationEngine {
   }
 
   private preloadCommonStrings() {
-    // Pre-populate cache with common UI strings to make translation instant
+    // Pre-populate cache with EXTENSIVE common UI strings to make translation instant
     const commonStrings = {
       // Navigation & buttons
       'Home': { hy: 'Գլխավոր', ru: 'Главная', es: 'Inicio', fr: 'Accueil', de: 'Startseite' },
@@ -58,6 +58,32 @@ class TranslationEngine {
       'Settings': { hy: 'Կարգավորումներ', ru: 'Настройки', es: 'Configuración', fr: 'Paramètres', de: 'Einstellungen' },
       'Translator': { hy: 'Թարգմանիչ', ru: 'Переводчик', es: 'Traductor', fr: 'Traducteur', de: 'Übersetzer' },
       
+      // All Hero section content
+      'Master business skills with': { hy: 'Տիրապետիր բիզնես հմտություններին', ru: 'Овладей навыками бизнеса с', es: 'Domina las habilidades empresariales con' },
+      'TopOne Academy': { hy: 'TopOne ակադեմիա', ru: 'TopOne Академия', es: 'TopOne Academia' },
+      'Join the Business Fundamentals League and gain confidence through': { hy: 'Միացիր Բիզնես հիմունքների լիգային և ձեռք բեր վստահություն', ru: 'Присоединяйся к Лиге основ бизнеса и обретай уверенность через' },
+      'visual learning': { hy: 'տեսարան ուսուցման միջոցով', ru: 'визуальное обучение', es: 'aprendizaje visual' },
+      'Transform your business skills with bite-sized visual lessons designed to make complex concepts simple and actionable.': { 
+        hy: 'Փոխակերպիր քո բիզնես հմտությունները կոճ-չափ տեսարան դասերով, որոնք նախագծված են բարդ հասկացությունները պարզ և գործնական դարձնելու համար:', 
+        ru: 'Трансформируй свои бизнес-навыки с помощью коротких визуальных уроков, разработанных для того, чтобы сделать сложные концепции простыми и применимыми.',
+        es: 'Transforma tus habilidades comerciales con lecciones visuales concisas diseñadas para hacer que los conceptos complejos sean simples y aplicables.'
+      },
+      'Join Business League': { hy: 'Միանալ բիզնես լիգային', ru: 'Присоединиться к бизнес-лиге', es: 'Unirse a la Liga Empresarial' },
+      'Watch Preview': { hy: 'Դիտել նախադիտումը', ru: 'Смотреть превью', es: 'Ver Vista Previa' },
+      
+      // Stats & features  
+      'Learning Leagues': { hy: 'Ուսուցման լիգաներ', ru: 'Лиги обучения', es: 'Ligas de Aprendizaje' },
+      'Active Learners': { hy: 'Ակտիվ ուսանողներ', ru: 'Активные ученики', es: 'Estudiantes Activos' },
+      'Average Rating': { hy: 'Միջին գնահատական', ru: 'Средний рейтинг', es: 'Calificación Promedio' },
+      'Lesson Length': { hy: 'Դասի տևությունը', ru: 'Длительность урока', es: 'Duración de la Lección' },
+      
+      // How it works section
+      'How': { hy: 'Ինչպես', ru: 'Как', es: 'Cómo' },
+      'Works': { hy: 'է գործում', ru: 'работает', es: 'Funciona' },
+      'Choose Your League': { hy: 'Ընտրեք ձեր լիգան', ru: 'Выберите свою лигу', es: 'Elige tu Liga' },
+      'Learn Visually': { hy: 'Սովորեք տեսականորեն', ru: 'Учитесь визуально', es: 'Aprende Visualmente' },
+      'Unlock & Achieve': { hy: 'Բացահայտեք և հասնեք', ru: 'Открывайте и достигайте', es: 'Desbloquea y Logra' },
+      
       // Common phrases
       'Loading...': { hy: 'Բեռնվում է...', ru: 'Загрузка...', es: 'Cargando...', fr: 'Chargement...', de: 'Laden...' },
       'Welcome': { hy: 'Բարի գալուստ', ru: 'Добро пожаловать', es: 'Bienvenido', fr: 'Bienvenue', de: 'Willkommen' },
@@ -68,19 +94,6 @@ class TranslationEngine {
       'Previous': { hy: 'Նախորդ', ru: 'Предыдущий', es: 'Anterior', fr: 'Précédent', de: 'Zurück' },
       'Save': { hy: 'Պահպանել', ru: 'Сохранить', es: 'Guardar', fr: 'Enregistrer', de: 'Speichern' },
       'Cancel': { hy: 'Չեղարկել', ru: 'Отмена', es: 'Cancelar', fr: 'Annuler', de: 'Abbrechen' },
-      
-      // Hero section
-      'Master business skills with': { hy: 'Տիրապետիր բիզնես հմտություններին', ru: 'Овладей навыками бизнеса с' },
-      'TopOne Academy': { hy: 'TopOne ակադեմիա', ru: 'TopOne Академия' },
-      'visual learning': { hy: 'տեսարան ուսուցման միջոցով', ru: 'визуальное обучение' },
-      'Join Business League': { hy: 'Միանալ բիզնես լիգային', ru: 'Присоединиться к бизнес-лиге' },
-      'Watch Preview': { hy: 'Դիտել նախադիտումը', ru: 'Смотреть превью' },
-      
-      // Stats & features
-      'Learning Leagues': { hy: 'Ուսուցման լիգաներ', ru: 'Лиги обучения' },
-      'Active Learners': { hy: 'Ակտիվ ուսանողներ', ru: 'Активные ученики' },
-      'Average Rating': { hy: 'Միջին գնահատական', ru: 'Средний рейтинг' },
-      'Lesson Length': { hy: 'Դասի տևությունը', ru: 'Длительность урока' },
       'Still have questions?': { hy: 'Դեռ հարցե՞ր ունեք', ru: 'Есть еще вопросы?' },
     };
 
@@ -234,7 +247,7 @@ class TranslationEngine {
     const uncachedTexts: string[] = [];
     const seenTexts = new Set<string>();
 
-    // Collect all text content that isn't cached
+    // Collect ALL text content that isn't cached (more aggressive)
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
@@ -248,7 +261,8 @@ class TranslationEngine {
           if (parent.hasAttribute('data-no-translate')) return NodeFilter.FILTER_REJECT;
           
           const text = node.textContent?.trim();
-          return (text && text.length > 2) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          // Accept even single character texts for better coverage
+          return (text && text.length > 0) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
         }
       }
     );
@@ -257,10 +271,11 @@ class TranslationEngine {
     while (node = walker.nextNode()) {
       const text = node.textContent?.trim();
       if (text && !seenTexts.has(text) && !this.cache[text]?.[targetLang]) {
-        // Skip numbers, URLs, emails
-        if (!/^[\d\s\.,\-\+\(\)\[\]]+$/.test(text) && 
+        // More permissive filtering - only skip obvious non-text
+        if (!/^[\d\s\.,\-\+\(\)\[\]%$€£¥]+$/.test(text) && 
             !/^https?:\/\//.test(text) && 
-            !/^[^\s]+@[^\s]+\.[^\s]+$/.test(text)) {
+            !/^[^\s]+@[^\s]+\.[^\s]+$/.test(text) &&
+            !/^[\/\\]/.test(text)) { // Skip file paths
           seenTexts.add(text);
           uncachedTexts.push(text);
         }

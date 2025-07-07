@@ -295,9 +295,18 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider = ({ children }: LanguageProviderProps) => {
-  const { user } = useAuth();
   const [language, setLanguageState] = useState<Language>('en');
   const [isTranslating, setIsTranslating] = useState(false);
+  
+  // Get user safely to avoid dependency issues
+  let user = null;
+  try {
+    const auth = useAuth();
+    user = auth?.user;
+  } catch (error) {
+    // Auth context not ready yet, that's okay
+    console.log('Auth context not ready yet');
+  }
 
   // Load language preference on mount
   useEffect(() => {
