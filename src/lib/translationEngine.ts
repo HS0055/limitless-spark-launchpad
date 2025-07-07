@@ -287,14 +287,39 @@ class TranslationEngine {
   }
 
   private translateCachedContent(targetLang: Language) {
-    // Translate document title
+    // Comprehensive solution to prevent text floating during translation
+    const body = document.body;
+    const html = document.documentElement;
+    
+    // Create a comprehensive style block to disable ALL animations and transitions
+    const styleBlock = document.createElement('style');
+    styleBlock.id = 'translation-freeze-styles';
+    styleBlock.textContent = `
+      *, *::before, *::after {
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+      }
+      body {
+        overflow-anchor: none !important;
+      }
+    `;
+    document.head.appendChild(styleBlock);
+    
+    // Prevent layout shifts by freezing scroll and dimensions
+    const originalOverflow = body.style.overflow;
+    const originalHeight = body.style.height;
+    body.style.overflow = 'hidden';
+    body.style.height = body.scrollHeight + 'px';
+    
+    // Translate document title first
     const originalTitle = document.title;
     const translatedTitle = this.cache[originalTitle]?.[targetLang];
     if (translatedTitle && translatedTitle !== originalTitle) {
       document.title = translatedTitle;
     }
 
-    // Fast translation of all text content
+    // Collect all text nodes to translate
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
@@ -320,11 +345,8 @@ class TranslationEngine {
       textNodesToTranslate.push(node as Text);
     }
 
-    // Temporarily disable transitions to prevent floating text effect
-    document.body.style.setProperty('transition', 'none', 'important');
-    document.body.style.setProperty('animation', 'none', 'important');
-    
-    // Batch translate text nodes for better performance
+    // Batch all text replacements to minimize reflows
+    const fragment = document.createDocumentFragment();
     textNodesToTranslate.forEach(textNode => {
       const originalText = textNode.textContent?.trim();
       if (!originalText) return;
@@ -332,30 +354,29 @@ class TranslationEngine {
       const translation = this.cache[originalText]?.[targetLang];
       if (translation && translation !== originalText) {
         console.log(`🔄 Replacing "${originalText}" → "${translation}"`);
-        // Apply translation instantly without transitions
-        const parentElement = textNode.parentElement;
-        if (parentElement) {
-          parentElement.style.setProperty('transition', 'none', 'important');
-        }
         textNode.textContent = translation;
       }
     });
-    
-    // Re-enable transitions after a short delay
-    setTimeout(() => {
-      document.body.style.removeProperty('transition');
-      document.body.style.removeProperty('animation');
-      textNodesToTranslate.forEach(textNode => {
-        const parentElement = textNode.parentElement;
-        if (parentElement) {
-          parentElement.style.removeProperty('transition');
-        }
-      });
-    }, 50);
 
-    // Also translate common attributes and data-i18n elements
+    // Translate attributes and data-i18n elements
     this.translateAttributes(targetLang);
     this.translateDataI18nElements(targetLang);
+    
+    // Restore layout and enable animations after translation is complete
+    requestAnimationFrame(() => {
+      // Remove the freeze styles
+      const freezeStyles = document.getElementById('translation-freeze-styles');
+      if (freezeStyles) {
+        freezeStyles.remove();
+      }
+      
+      // Restore original overflow and height
+      body.style.overflow = originalOverflow;
+      body.style.height = originalHeight;
+      
+      // Force a reflow to ensure everything is properly positioned
+      body.offsetHeight;
+    });
   }
 
   private translateAttributes(targetLang: Language) {
