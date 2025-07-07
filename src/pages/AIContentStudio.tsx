@@ -3,7 +3,8 @@ import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ContentGenerator } from '@/components/ai-content/ContentGenerator';
 import { PromptBuilder } from '@/components/ai-content/PromptBuilder';
-import { Sparkles, Wand2, Target, Globe } from 'lucide-react';
+import WebsiteTranslationManager from '@/components/WebsiteTranslationManager';
+import { Sparkles, Wand2, Target, Globe, Languages } from 'lucide-react';
 
 interface GenerationResult {
   content: string;
@@ -13,7 +14,7 @@ interface GenerationResult {
 
 const AIContentStudio = () => {
   const [generationResults, setGenerationResults] = useState<GenerationResult[]>([]);
-  const [activeTab, setActiveTab] = useState('enhance');
+  const [activeTab, setActiveTab] = useState('website');
 
   const handleGenerationResult = (result: GenerationResult) => {
     setGenerationResults(prev => [result, ...prev]);
@@ -36,7 +37,7 @@ const AIContentStudio = () => {
           <div className="lg:col-span-2">
             <Card className="p-6">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-4">
+                <TabsList className="grid w-full grid-cols-5">
                   <TabsTrigger value="enhance" className="flex items-center gap-2">
                     <Wand2 className="w-4 h-4" />
                     Enhance
@@ -52,6 +53,10 @@ const AIContentStudio = () => {
                   <TabsTrigger value="translate" className="flex items-center gap-2">
                     <Globe className="w-4 h-4" />
                     Translate
+                  </TabsTrigger>
+                  <TabsTrigger value="website" className="flex items-center gap-2">
+                    <Languages className="w-4 h-4" />
+                    Auto Site
                   </TabsTrigger>
                 </TabsList>
 
@@ -89,6 +94,10 @@ const AIContentStudio = () => {
                     title="Multi-language Generation"
                     description="Generate content in different languages"
                   />
+                </TabsContent>
+
+                <TabsContent value="website" className="mt-6">
+                  <WebsiteTranslationManager />
                 </TabsContent>
               </Tabs>
             </Card>
