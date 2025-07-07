@@ -20,7 +20,7 @@ export const useLanguage = () => {
   return context;
 };
 
-// Translation dictionaries - ALL LANGUAGES SUPPORTED
+// Translation dictionaries
 const translations = {
   en: {
     // Navigation
@@ -49,6 +49,59 @@ const translations = {
     'dashboard.currentStreak': 'current streak',
     'dashboard.almostThere': 'almost there!',
     'dashboard.available': 'available',
+    
+    // Leagues
+    'leagues.title': 'Learning Leagues',
+    'leagues.viewAll': 'View All Programs',
+    'leagues.beginner': 'Beginner League',
+    'leagues.advanced': 'Advanced League',
+    'leagues.elite': 'Elite League',
+    'leagues.foundation': 'Foundation Building',
+    'leagues.strategic': 'Strategic Mastery',
+    'leagues.innovation': 'Innovation & Leadership',
+    'leagues.participants': 'participants',
+    
+    // Mental Models
+    'models.yourModels': 'Your Mental Models',
+    'models.browseAll': 'Browse All',
+    'models.mastered': 'Mastered',
+    'models.inProgress': 'In Progress',
+    'models.continue': 'Continue',
+    'models.review': 'Review',
+    'models.progress': 'Progress',
+    'models.lessons': 'lessons',
+    
+    // Achievements
+    'achievements.nextGoal': 'Next Goal',
+    'achievements.recent': 'Recent Achievements',
+    'achievements.quickActions': 'Quick Actions',
+    'achievements.browsePrograms': 'Browse Programs',
+    'achievements.joinCommunity': 'Join Community',
+    'achievements.setGoals': 'Set Goals',
+    
+    // Hero Section
+    'hero.badge': '🏆 Business Fundamentals League',
+    'hero.title': 'Master business skills with',
+    'hero.company': 'TopOne Academy',
+    'hero.subtitle': 'Join the Business Fundamentals League and gain confidence through',
+    'hero.visualLearning': 'visual learning',
+    'hero.description': 'Transform your business skills with bite-sized visual lessons designed to make complex concepts simple and actionable.',
+    'hero.joinLeague': '🚀 Join Business League',
+    'hero.watchPreview': 'Watch Preview',
+    
+    // Stats
+    'stats.leagues': 'Learning Leagues',
+    'stats.learners': 'Active Learners',
+    'stats.rating': 'Average Rating',
+    'stats.lessonLength': 'Lesson Length',
+    
+    // Benefits
+    'benefits.visual': 'Visual Learning - No boring theory',
+    'benefits.lessons': 'Minute Lessons - Perfect for busy schedules',
+    'benefits.gamified': 'Gamified Experience - Unlock achievements',
+    'benefits.tracking': 'Progress Tracking - See your growth',
+    'benefits.community': 'Community Access - Learn with peers',
+    'benefits.mobile': 'Mobile Optimized - Learn anywhere',
     
     // Common
     'common.loading': 'Loading...',
@@ -86,6 +139,59 @@ const translations = {
     'dashboard.almostThere': 'գրեթե այնտեղ!',
     'dashboard.available': 'հասանելի',
     
+    // Leagues
+    'leagues.title': 'Ուսուցման լիգաներ',
+    'leagues.viewAll': 'Տեսնել բոլոր ծրագրերը',
+    'leagues.beginner': 'Սկսնակների լիգա',
+    'leagues.advanced': 'Առաջադեմ լիգա',
+    'leagues.elite': 'Էլիտար լիգա',
+    'leagues.foundation': 'Հիմքերի կառուցում',
+    'leagues.strategic': 'Ռազմավարական տիրապետում',
+    'leagues.innovation': 'Նորարարություն և առաջնորդություն',
+    'leagues.participants': 'մասնակիցներ',
+    
+    // Mental Models
+    'models.yourModels': 'Ձեր մտական մոդելները',
+    'models.browseAll': 'Դիտել բոլորը',
+    'models.mastered': 'Տիրապետված',
+    'models.inProgress': 'Գործընթացում',
+    'models.continue': 'Շարունակել',
+    'models.review': 'Վերանայել',
+    'models.progress': 'Առաջընթաց',
+    'models.lessons': 'դասեր',
+    
+    // Achievements
+    'achievements.nextGoal': 'Հաջորդ նպատակ',
+    'achievements.recent': 'Վերջին ձեռքբերումներ',
+    'achievements.quickActions': 'Արագ գործողություններ',
+    'achievements.browsePrograms': 'Դիտել ծրագրերը',
+    'achievements.joinCommunity': 'Միանալ համայնքին',
+    'achievements.setGoals': 'Սահմանել նպատակներ',
+    
+    // Hero Section
+    'hero.badge': '🏆 Բիզնես հիմունքների լիգա',
+    'hero.title': 'Տիրապետիր բիզնես հմտություններին',
+    'hero.company': 'TopOne ակադեմիա',
+    'hero.subtitle': 'Միացիր Բիզնես հիմունքների լիգային և ձեռք բեր վստահություն',
+    'hero.visualLearning': 'տեսարան ուսուցման միջոցով',
+    'hero.description': 'Փոխակերպիր քո բիզնես հմտությունները կոճ-չափ տեսարան դասերով, որոնք նախագծված են բարդ հասկացությունները պարզ և գործնական դարձնելու համար:',
+    'hero.joinLeague': '🚀 Միանալ բիզնես լիգային',
+    'hero.watchPreview': 'Դիտել նախադիտումը',
+    
+    // Stats
+    'stats.leagues': 'Ուսուցման լիգաներ',
+    'stats.learners': 'Ակտիվ ուսանողներ',
+    'stats.rating': 'Միջին գնահատական',
+    'stats.lessonLength': 'Դասի տևությունը',
+    
+    // Benefits
+    'benefits.visual': 'Տեսարան ուսուցում - Ոչ ձանձրալի տեսություն',
+    'benefits.lessons': 'Րոպեանոց դասեր - Կատարյալ է զբաղված ժամանակացույցի համար',
+    'benefits.gamified': 'Խաղակրական փորձ - Բացահայտեք ձեռքբերումներ',
+    'benefits.tracking': 'Առաջընթացի հետևում - Տեսեք ձեր աճը',
+    'benefits.community': 'Համայնքի մուտք - Սովորեք հասակակիցների հետ',
+    'benefits.mobile': 'Բջջային օպտիմիզացված - Սովորեք ցանկացած վայրում',
+    
     // Common
     'common.loading': 'Բեռնվում է...',
     'common.signIn': 'Մուտք գործել',
@@ -122,264 +228,65 @@ const translations = {
     'dashboard.almostThere': 'почти готово!',
     'dashboard.available': 'доступно',
     
+    // Leagues
+    'leagues.title': 'Лиги обучения',
+    'leagues.viewAll': 'Посмотреть все программы',
+    'leagues.beginner': 'Лига новичков',
+    'leagues.advanced': 'Продвинутая лига',
+    'leagues.elite': 'Элитная лига',
+    'leagues.foundation': 'Построение основ',
+    'leagues.strategic': 'Стратегическое мастерство',
+    'leagues.innovation': 'Инновации и лидерство',
+    'leagues.participants': 'участников',
+    
+    // Mental Models
+    'models.yourModels': 'Ваши ментальные модели',
+    'models.browseAll': 'Просмотреть все',
+    'models.mastered': 'Освоено',
+    'models.inProgress': 'В прогрессе',
+    'models.continue': 'Продолжить',
+    'models.review': 'Повторить',
+    'models.progress': 'Прогресс',
+    'models.lessons': 'уроков',
+    
+    // Achievements
+    'achievements.nextGoal': 'Следующая цель',
+    'achievements.recent': 'Недавние достижения',
+    'achievements.quickActions': 'Быстрые действия',
+    'achievements.browsePrograms': 'Просмотреть программы',
+    'achievements.joinCommunity': 'Присоединиться к сообществу',
+    'achievements.setGoals': 'Установить цели',
+    
+    // Hero Section
+    'hero.badge': '🏆 Лига основ бизнеса',
+    'hero.title': 'Овладей навыками бизнеса с',
+    'hero.company': 'TopOne Академия',
+    'hero.subtitle': 'Присоединяйся к Лиге основ бизнеса и обретай уверенность через',
+    'hero.visualLearning': 'визуальное обучение',
+    'hero.description': 'Трансформируй свои бизнес-навыки с помощью коротких визуальных уроков, разработанных для того, чтобы сделать сложные концепции простыми и применимыми.',
+    'hero.joinLeague': '🚀 Присоединиться к бизнес-лиге',
+    'hero.watchPreview': 'Смотреть превью',
+    
+    // Stats
+    'stats.leagues': 'Лиги обучения',
+    'stats.learners': 'Активные ученики',
+    'stats.rating': 'Средний рейтинг',
+    'stats.lessonLength': 'Длительность урока',
+    
+    // Benefits
+    'benefits.visual': 'Визуальное обучение - Никакой скучной теории',
+    'benefits.lessons': 'Минутные уроки - Идеально для плотного расписания',
+    'benefits.gamified': 'Игровой опыт - Открывайте достижения',
+    'benefits.tracking': 'Отслеживание прогресса - Видите свой рост',
+    'benefits.community': 'Доступ к сообществу - Учитесь со сверстниками',
+    'benefits.mobile': 'Мобильная оптимизация - Учитесь где угодно',
+    
     // Common
     'common.loading': 'Загрузка...',
     'common.signIn': 'Войти',
     'common.signUp': 'Регистрация',
     'common.models': 'Модели',
     'common.of': 'из',
-  },
-
-  es: {
-    // Navigation
-    'nav.home': 'Inicio',
-    'nav.programs': 'Programas',
-    'nav.business': 'Negocio',
-    'nav.memeCoins': 'Meme Coins',
-    'nav.visual': 'Visual',
-    'nav.translator': 'Traductor',
-    'nav.community': 'Comunidad',
-    'nav.pricing': 'Precios',
-    'nav.settings': 'Configuración',
-    'nav.signOut': 'Cerrar Sesión',
-    'nav.getStarted': 'Empezar',
-    
-    // Dashboard
-    'dashboard.welcome': '¡Bienvenido de vuelta, Pensador!',
-    'dashboard.subtitle': 'Continúa construyendo tu mente única',
-    'dashboard.dayStreak': 'Racha Diaria',
-    'dashboard.exploreModels': 'Explorar Modelos',
-    'dashboard.mentalModels': 'Modelos Mentales',
-    'dashboard.learningHours': 'Horas de Aprendizaje',
-    'dashboard.streakDays': 'Días Consecutivos',
-    'dashboard.weeklyGoal': 'Meta Semanal',
-    'dashboard.thisMonth': 'este mes',
-    'dashboard.currentStreak': 'racha actual',
-    'dashboard.almostThere': '¡casi llegamos!',
-    'dashboard.available': 'disponible',
-    
-    // Common
-    'common.loading': 'Cargando...',
-    'common.signIn': 'Iniciar Sesión',
-    'common.signUp': 'Registrarse',
-    'common.models': 'Modelos',
-    'common.of': 'de',
-  },
-
-  fr: {
-    // Navigation
-    'nav.home': 'Accueil',
-    'nav.programs': 'Programmes',
-    'nav.business': 'Affaires',
-    'nav.memeCoins': 'Meme Coins',
-    'nav.visual': 'Visuel',
-    'nav.translator': 'Traducteur',
-    'nav.community': 'Communauté',
-    'nav.pricing': 'Tarifs',
-    'nav.settings': 'Paramètres',
-    'nav.signOut': 'Déconnexion',
-    'nav.getStarted': 'Commencer',
-    
-    // Dashboard
-    'dashboard.welcome': 'Bon retour, Penseur!',
-    'dashboard.subtitle': 'Continue à développer ton esprit unique',
-    'dashboard.dayStreak': 'Série Quotidienne',
-    'dashboard.exploreModels': 'Explorer les Modèles',
-    'dashboard.mentalModels': 'Modèles Mentaux',
-    'dashboard.learningHours': 'Heures d\'Apprentissage',
-    'dashboard.streakDays': 'Jours Consécutifs',
-    'dashboard.weeklyGoal': 'Objectif Hebdomadaire',
-    'dashboard.thisMonth': 'ce mois',
-    'dashboard.currentStreak': 'série actuelle',
-    'dashboard.almostThere': 'presque là!',
-    'dashboard.available': 'disponible',
-    
-    // Common
-    'common.loading': 'Chargement...',
-    'common.signIn': 'Connexion',
-    'common.signUp': 'S\'inscrire',
-    'common.models': 'Modèles',
-    'common.of': 'de',
-  },
-
-  de: {
-    // Navigation
-    'nav.home': 'Startseite',
-    'nav.programs': 'Programme',
-    'nav.business': 'Business',
-    'nav.memeCoins': 'Meme Coins',
-    'nav.visual': 'Visuell',
-    'nav.translator': 'Übersetzer',
-    'nav.community': 'Gemeinschaft',
-    'nav.pricing': 'Preise',
-    'nav.settings': 'Einstellungen',
-    'nav.signOut': 'Abmelden',
-    'nav.getStarted': 'Loslegen',
-    
-    // Dashboard
-    'dashboard.welcome': 'Willkommen zurück, Denker!',
-    'dashboard.subtitle': 'Entwickle weiterhin deinen einzigartigen Geist',
-    'dashboard.dayStreak': 'Tages-Serie',
-    'dashboard.exploreModels': 'Modelle Erkunden',
-    'dashboard.mentalModels': 'Mentale Modelle',
-    'dashboard.learningHours': 'Lernstunden',
-    'dashboard.streakDays': 'Aufeinanderfolgende Tage',
-    'dashboard.weeklyGoal': 'Wochenziel',
-    'dashboard.thisMonth': 'diesen Monat',
-    'dashboard.currentStreak': 'aktuelle Serie',
-    'dashboard.almostThere': 'fast geschafft!',
-    'dashboard.available': 'verfügbar',
-    
-    // Common
-    'common.loading': 'Laden...',
-    'common.signIn': 'Anmelden',
-    'common.signUp': 'Registrieren',
-    'common.models': 'Modelle',
-    'common.of': 'von',
-  },
-
-  zh: {
-    // Navigation
-    'nav.home': '首页',
-    'nav.programs': '程序',
-    'nav.business': '商业',
-    'nav.memeCoins': '模因币',
-    'nav.visual': '视觉',
-    'nav.translator': '翻译器',
-    'nav.community': '社区',
-    'nav.pricing': '价格',
-    'nav.settings': '设置',
-    'nav.signOut': '退出登录',
-    'nav.getStarted': '开始',
-    
-    // Dashboard
-    'dashboard.welcome': '欢迎回来，思考者！',
-    'dashboard.subtitle': '继续构建你独特的思维',
-    'dashboard.dayStreak': '每日连击',
-    'dashboard.exploreModels': '探索模型',
-    'dashboard.mentalModels': '心理模型',
-    'dashboard.learningHours': '学习时间',
-    'dashboard.streakDays': '连续天数',
-    'dashboard.weeklyGoal': '每周目标',
-    'dashboard.thisMonth': '本月',
-    'dashboard.currentStreak': '当前连击',
-    'dashboard.almostThere': '快到了！',
-    'dashboard.available': '可用',
-    
-    // Common
-    'common.loading': '加载中...',
-    'common.signIn': '登录',
-    'common.signUp': '注册',
-    'common.models': '模型',
-    'common.of': '的',
-  },
-
-  ja: {
-    // Navigation
-    'nav.home': 'ホーム',
-    'nav.programs': 'プログラム',
-    'nav.business': 'ビジネス',
-    'nav.memeCoins': 'ミームコイン',
-    'nav.visual': 'ビジュアル',
-    'nav.translator': '翻訳者',
-    'nav.community': 'コミュニティ',
-    'nav.pricing': '価格',
-    'nav.settings': '設定',
-    'nav.signOut': 'ログアウト',
-    'nav.getStarted': '始める',
-    
-    // Dashboard
-    'dashboard.welcome': 'おかえりなさい、思考者！',
-    'dashboard.subtitle': 'あなたのユニークな心を育て続けましょう',
-    'dashboard.dayStreak': '連続日数',
-    'dashboard.exploreModels': 'モデルを探索',
-    'dashboard.mentalModels': 'メンタルモデル',
-    'dashboard.learningHours': '学習時間',
-    'dashboard.streakDays': '連続日数',
-    'dashboard.weeklyGoal': '週間目標',
-    'dashboard.thisMonth': '今月',
-    'dashboard.currentStreak': '現在の連続記録',
-    'dashboard.almostThere': 'もう少し！',
-    'dashboard.available': '利用可能',
-    
-    // Common
-    'common.loading': '読み込み中...',
-    'common.signIn': 'ログイン',
-    'common.signUp': '登録',
-    'common.models': 'モデル',
-    'common.of': 'の',
-  },
-
-  ko: {
-    // Navigation
-    'nav.home': '홈',
-    'nav.programs': '프로그램',
-    'nav.business': '비즈니스',
-    'nav.memeCoins': '밈 코인',
-    'nav.visual': '비주얼',
-    'nav.translator': '번역기',
-    'nav.community': '커뮤니티',
-    'nav.pricing': '가격',
-    'nav.settings': '설정',
-    'nav.signOut': '로그아웃',
-    'nav.getStarted': '시작하기',
-    
-    // Dashboard
-    'dashboard.welcome': '돌아오신 것을 환영합니다, 사상가!',
-    'dashboard.subtitle': '당신만의 독특한 마음을 계속 키워나가세요',
-    'dashboard.dayStreak': '일일 연속 기록',
-    'dashboard.exploreModels': '모델 탐색',
-    'dashboard.mentalModels': '멘탈 모델',
-    'dashboard.learningHours': '학습 시간',
-    'dashboard.streakDays': '연속 일수',
-    'dashboard.weeklyGoal': '주간 목표',
-    'dashboard.thisMonth': '이번 달',
-    'dashboard.currentStreak': '현재 연속 기록',
-    'dashboard.almostThere': '거의 다 왔어요!',
-    'dashboard.available': '사용 가능',
-    
-    // Common
-    'common.loading': '로딩 중...',
-    'common.signIn': '로그인',
-    'common.signUp': '회원가입',
-    'common.models': '모델',
-    'common.of': '의',
-  },
-
-  ar: {
-    // Navigation
-    'nav.home': 'الرئيسية',
-    'nav.programs': 'البرامج',
-    'nav.business': 'الأعمال',
-    'nav.memeCoins': 'عملات الميم',
-    'nav.visual': 'بصري',
-    'nav.translator': 'المترجم',
-    'nav.community': 'المجتمع',
-    'nav.pricing': 'التسعير',
-    'nav.settings': 'الإعدادات',
-    'nav.signOut': 'تسجيل الخروج',
-    'nav.getStarted': 'ابدأ',
-    
-    // Dashboard
-    'dashboard.welcome': 'مرحباً بعودتك، أيها المفكر!',
-    'dashboard.subtitle': 'استمر في بناء عقلك الفريد',
-    'dashboard.dayStreak': 'السلسلة اليومية',
-    'dashboard.exploreModels': 'استكشاف النماذج',
-    'dashboard.mentalModels': 'النماذج الذهنية',
-    'dashboard.learningHours': 'ساعات التعلم',
-    'dashboard.streakDays': 'الأيام المتتالية',
-    'dashboard.weeklyGoal': 'الهدف الأسبوعي',
-    'dashboard.thisMonth': 'هذا الشهر',
-    'dashboard.currentStreak': 'السلسلة الحالية',
-    'dashboard.almostThere': 'تقريباً هناك!',
-    'dashboard.available': 'متاح',
-    
-    // Common
-    'common.loading': 'جار التحميل...',
-    'common.signIn': 'تسجيل الدخول',
-    'common.signUp': 'إنشاء حساب',
-    'common.models': 'النماذج',
-    'common.of': 'من',
   }
 };
 

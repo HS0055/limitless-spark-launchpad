@@ -10,10 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, Upload, Users, BookOpen, Video, FileText, Globe } from 'lucide-react';
+import { Plus, Edit, Trash2, Upload, Users, BookOpen, Video, FileText } from 'lucide-react';
 import { LoginForm } from '@/components/auth/LoginForm';
-import WebsiteTranslationManager from '@/components/WebsiteTranslationManager';
-
 
 interface Course {
   id: string;
@@ -237,7 +235,6 @@ const AdminPanel = () => {
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="lessons">Lessons</TabsTrigger>
             <TabsTrigger value="content">Website Content</TabsTrigger>
-            <TabsTrigger value="translations">Translations</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
@@ -488,10 +485,6 @@ const AdminPanel = () => {
                 </CardContent>
               </Card>
             </div>
-          </TabsContent>
-
-          <TabsContent value="translations">
-            <WebsiteTranslationManager />
           </TabsContent>
         </Tabs>
       </div>

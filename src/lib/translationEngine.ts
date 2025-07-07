@@ -59,182 +59,68 @@ class TranslationEngine {
   }
 
   private preloadCommonStrings() {
-    // Pre-populate cache with EXTENSIVE common UI strings for ALL LANGUAGES to make translation instant
+    // Pre-populate cache with EXTENSIVE common UI strings to make translation instant
     const commonStrings = {
-      // Navigation & buttons - ALL LANGUAGES
-      'Home': { 
-        hy: 'Գլխավոր', ru: 'Главная', es: 'Inicio', fr: 'Accueil', de: 'Startseite',
-        zh: '首页', ja: 'ホーム', ko: '홈', ar: 'الرئيسية'
-      },
-      'Get Started': { 
-        hy: 'Սկսել', ru: 'Начать', es: 'Comenzar', fr: 'Commencer', de: 'Loslegen',
-        zh: '开始', ja: '始める', ko: '시작하기', ar: 'ابدأ'
-      },
-      'Learn More': { 
-        hy: 'Իմանալ ավելին', ru: 'Узнать больше', es: 'Saber más', fr: 'En savoir plus', de: 'Mehr erfahren',
-        zh: '了解更多', ja: 'もっと詳しく', ko: '더 알아보기', ar: 'اعرف المزيد'
-      },
-      'Sign In': { 
-        hy: 'Մուտք գործել', ru: 'Войти', es: 'Iniciar sesión', fr: 'Connexion', de: 'Anmelden',
-        zh: '登录', ja: 'ログイン', ko: '로그인', ar: 'تسجيل الدخول'
-      },
-      'Sign Up': { 
-        hy: 'Գրանցվել', ru: 'Регистрация', es: 'Registrarse', fr: 'S\'inscrire', de: 'Registrieren',
-        zh: '注册', ja: '登録', ko: '회원가입', ar: 'إنشاء حساب'
-      },
-      'Programs': { 
-        hy: 'Ծրագրեր', ru: 'Программы', es: 'Programas', fr: 'Programmes', de: 'Programme',
-        zh: '程序', ja: 'プログラム', ko: '프로그램', ar: 'البرامج'
-      },
-      'Business': { 
-        hy: 'Բիզնես', ru: 'Бизнес', es: 'Negocio', fr: 'Affaires', de: 'Geschäft',
-        zh: '商业', ja: 'ビジネス', ko: '비즈니스', ar: 'الأعمال'
-      },
-      'Community': { 
-        hy: 'Համայնք', ru: 'Сообщество', es: 'Comunidad', fr: 'Communauté', de: 'Gemeinschaft',
-        zh: '社区', ja: 'コミュニティ', ko: '커뮤니티', ar: 'المجتمع'
-      },
-      'Settings': { 
-        hy: 'Կարգավորումներ', ru: 'Настройки', es: 'Configuración', fr: 'Paramètres', de: 'Einstellungen',
-        zh: '设置', ja: '設定', ko: '설정', ar: 'الإعدادات'
-      },
-      'Translator': { 
-        hy: 'Թարգմանիչ', ru: 'Переводчик', es: 'Traductor', fr: 'Traducteur', de: 'Übersetzer',
-        zh: '翻译器', ja: '翻訳者', ko: '번역기', ar: 'المترجم'
-      },
-      'Dashboard': {
-        hy: 'Վահանակ', ru: 'Панель управления', es: 'Panel', fr: 'Tableau de bord', de: 'Dashboard',
-        zh: '仪表板', ja: 'ダッシュボード', ko: '대시보드', ar: 'لوحة القيادة'
-      },
-      'AI Tools': {
-        hy: 'AI գործիքներ', ru: 'AI инструменты', es: 'Herramientas de IA', fr: 'Outils IA', de: 'KI-Werkzeuge',
-        zh: 'AI工具', ja: 'AIツール', ko: 'AI 도구', ar: 'أدوات الذكاء الاصطناعي'
-      },
+      // Navigation & buttons
+      'Home': { hy: 'Գլխավոր', ru: 'Главная', es: 'Inicio', fr: 'Accueil', de: 'Startseite' },
+      'Get Started': { hy: 'Սկսել', ru: 'Начать', es: 'Comenzar', fr: 'Commencer', de: 'Loslegen' },
+      'Learn More': { hy: 'Իմանալ ավելին', ru: 'Узнать больше', es: 'Saber más', fr: 'En savoir plus', de: 'Mehr erfahren' },
+      'Sign In': { hy: 'Մուտք գործել', ru: 'Войти', es: 'Iniciar sesión', fr: 'Connexion', de: 'Anmelden' },
+      'Sign Up': { hy: 'Գրանցվել', ru: 'Регистрация', es: 'Registrarse', fr: 'S\'inscrire', de: 'Registrieren' },
+      'Programs': { hy: 'Ծրագրեր', ru: 'Программы', es: 'Programas', fr: 'Programmes', de: 'Programme' },
+      'Business': { hy: 'Բիզնես', ru: 'Бизнес', es: 'Negocio', fr: 'Affaires', de: 'Geschäft' },
+      'Community': { hy: 'Համայնք', ru: 'Сообщество', es: 'Comunidad', fr: 'Communauté', de: 'Gemeinschaft' },
+      'Settings': { hy: 'Կարգավորումներ', ru: 'Настройки', es: 'Configuración', fr: 'Paramètres', de: 'Einstellungen' },
+      'Translator': { hy: 'Թարգմանիչ', ru: 'Переводчик', es: 'Traductor', fr: 'Traducteur', de: 'Übersetzer' },
       
-      // All Hero section content - ALL LANGUAGES
-      'Master business skills with': { 
-        hy: 'Տիրապետիր բիզնես հմտություններին', ru: 'Овладей навыками бизнеса с', es: 'Domina las habilidades empresariales con',
-        fr: 'Maîtrisez les compétences commerciales avec', de: 'Meistern Sie Geschäftsfähigkeiten mit',
-        zh: '掌握商业技能', ja: 'ビジネススキルをマスターする', ko: '비즈니스 스킬 마스터하기', ar: 'اتقن المهارات التجارية مع'
+      // All Hero section content
+      'Master business skills with': { hy: 'Տիրապետիր բիզնես հմտություններին', ru: 'Овладей навыками бизнеса с', es: 'Domina las habilidades empresariales con' },
+      'TopOne Academy': { hy: 'TopOne ակադեմիա', ru: 'TopOne Академия', es: 'TopOne Academia' },
+      'Join the Business Fundamentals League and gain confidence through': { hy: 'Միացիր Բիզնես հիմունքների լիգային և ձեռք բեր վստահություն', ru: 'Присоединяйся к Лиге основ бизнеса и обретай уверенность через' },
+      'visual learning': { hy: 'տեսարան ուսուցման միջոցով', ru: 'визуальное обучение', es: 'aprendizaje visual' },
+      'Transform your business skills with bite-sized visual lessons designed to make complex concepts simple and actionable.': { 
+        hy: 'Փոխակերպիր քո բիզնես հմտությունները կոճ-չափ տեսարան դասերով, որոնք նախագծված են բարդ հասկացությունները պարզ և գործնական դարձնելու համար:', 
+        ru: 'Трансформируй свои бизнес-навыки с помощью коротких визуальных уроков, разработанных для того, чтобы сделать сложные концепции простыми и применимыми.',
+        es: 'Transforma tus habilidades comerciales con lecciones visuales concisas diseñadas para hacer que los conceptos complejos sean simples y aplicables.'
       },
-      'TopOne Academy': { 
-        hy: 'TopOne ակադեմիա', ru: 'TopOne Академия', es: 'TopOne Academia',
-        fr: 'TopOne Académie', de: 'TopOne Akademie',
-        zh: 'TopOne 学院', ja: 'TopOne アカデミー', ko: 'TopOne 아카데미', ar: 'أكاديمية TopOne'
-      },
-      'visual learning': { 
-        hy: 'տեսարան ուսուցման միջոցով', ru: 'визуальное обучение', es: 'aprendizaje visual',
-        fr: 'apprentissage visuel', de: 'visuelles Lernen',
-        zh: '视觉学习', ja: 'ビジュアル学習', ko: '시각적 학습', ar: 'التعلم البصري'
-      },
+      'Join Business League': { hy: 'Միանալ բիզնես լիգային', ru: 'Присоединиться к бизнес-лиге', es: 'Unirse a la Liga Empresarial' },
+      'Watch Preview': { hy: 'Դիտել նախադիտումը', ru: 'Смотреть превью', es: 'Ver Vista Previa' },
       
-      // Stats & features - ALL LANGUAGES
-      'Learning Leagues': { 
-        hy: 'Ուսուցման լիգաներ', ru: 'Лиги обучения', es: 'Ligas de Aprendizaje',
-        fr: 'Ligues d\'apprentissage', de: 'Lernligen',
-        zh: '学习联盟', ja: '学習リーグ', ko: '학습 리그', ar: 'دوريات التعلم'
-      },
-      'Active Learners': { 
-        hy: 'Ակտիվ ուսանողներ', ru: 'Активные ученики', es: 'Estudiantes Activos',
-        fr: 'Apprenants actifs', de: 'Aktive Lernende',
-        zh: '活跃学习者', ja: 'アクティブ学習者', ko: '활성 학습자', ar: 'المتعلمون النشطون'
-      },
-      'Average Rating': { 
-        hy: 'Միջին գնահատական', ru: 'Средний рейтинг', es: 'Calificación Promedio',
-        fr: 'Note moyenne', de: 'Durchschnittsbewertung',
-        zh: '平均评分', ja: '平均評価', ko: '평균 평점', ar: 'التقييم المتوسط'
-      },
-      'Lesson Length': { 
-        hy: 'Դասի տևությունը', ru: 'Длительность урока', es: 'Duración de la Lección',
-        fr: 'Durée de la leçon', de: 'Lektionsdauer',
-        zh: '课程时长', ja: 'レッスンの長さ', ko: '수업 시간', ar: 'مدة الدرس'
-      },
+      // Stats & features  
+      'Learning Leagues': { hy: 'Ուսուցման լիգաներ', ru: 'Лиги обучения', es: 'Ligas de Aprendizaje' },
+      'Active Learners': { hy: 'Ակտիվ ուսանողներ', ru: 'Активные ученики', es: 'Estudiantes Activos' },
+      'Average Rating': { hy: 'Միջին գնահատական', ru: 'Средний рейтинг', es: 'Calificación Promedio' },
+      'Lesson Length': { hy: 'Դասի տևությունը', ru: 'Длительность урока', es: 'Duración de la Lección' },
       
-      // How it works section - ALL LANGUAGES
-      'How': { 
-        hy: 'Ինչպես', ru: 'Как', es: 'Cómo',
-        fr: 'Comment', de: 'Wie',
-        zh: '如何', ja: 'どのように', ko: '어떻게', ar: 'كيف'
-      },
-      'Works': { 
-        hy: 'է գործում', ru: 'работает', es: 'Funciona',
-        fr: 'ça marche', de: 'funktioniert',
-        zh: '工作', ja: '動作する', ko: '작동', ar: 'يعمل'
-      },
-      'Choose Your League': { 
-        hy: 'Ընտրեք ձեր լիգան', ru: 'Выберите свою лигу', es: 'Elige tu Liga',
-        fr: 'Choisissez votre ligue', de: 'Wählen Sie Ihre Liga',
-        zh: '选择你的联盟', ja: 'リーグを選択', ko: '리그 선택', ar: 'اختر دوريتك'
-      },
-      'Learn Visually': { 
-        hy: 'Սովորեք տեսականորեն', ru: 'Учитесь визуально', es: 'Aprende Visualmente',
-        fr: 'Apprenez visuellement', de: 'Visuell lernen',
-        zh: '视觉学习', ja: 'ビジュアルで学ぶ', ko: '시각적으로 학습', ar: 'تعلم بصرياً'
-      },
-      'Unlock & Achieve': { 
-        hy: 'Բացահայտեք և հասնեք', ru: 'Открывайте и достигайте', es: 'Desbloquea y Logra',
-        fr: 'Débloquez et réalisez', de: 'Freischalten und erreichen',
-        zh: '解锁并实现', ja: 'アンロックして達成', ko: '잠금 해제 및 달성', ar: 'افتح واحقق'
-      },
+      // How it works section
+      'How': { hy: 'Ինչպես', ru: 'Как', es: 'Cómo' },
+      'Works': { hy: 'է գործում', ru: 'работает', es: 'Funciona' },
+      'Choose Your League': { hy: 'Ընտրեք ձեր լիգան', ru: 'Выберите свою лигу', es: 'Elige tu Liga' },
+      'Learn Visually': { hy: 'Սովորեք տեսականորեն', ru: 'Учитесь визуально', es: 'Aprende Visualmente' },
+      'Unlock & Achieve': { hy: 'Բացահայտեք և հասնեք', ru: 'Открывайте и достигайте', es: 'Desbloquea y Logra' },
       
-      // Common phrases - ALL LANGUAGES
-      'Loading...': { 
-        hy: 'Բեռնվում է...', ru: 'Загрузка...', es: 'Cargando...', fr: 'Chargement...', de: 'Laden...',
-        zh: '加载中...', ja: '読み込み中...', ko: '로딩 중...', ar: 'جار التحميل...'
-      },
-      'Welcome': { 
-        hy: 'Բարի գալուստ', ru: 'Добро пожаловать', es: 'Bienvenido', fr: 'Bienvenue', de: 'Willkommen',
-        zh: '欢迎', ja: 'ようこそ', ko: '환영합니다', ar: 'مرحباً'
-      },
-      'Learn': { 
-        hy: 'Սովորել', ru: 'Изучать', es: 'Aprender', fr: 'Apprendre', de: 'Lernen',
-        zh: '学习', ja: '学ぶ', ko: '배우기', ar: 'تعلم'
-      },
-      'Continue': { 
-        hy: 'Շարունակել', ru: 'Продолжить', es: 'Continuar', fr: 'Continuer', de: 'Weiter',
-        zh: '继续', ja: '続ける', ko: '계속', ar: 'استمر'
-      },
-      'Start': { 
-        hy: 'Սկսել', ru: 'Начать', es: 'Empezar', fr: 'Commencer', de: 'Beginnen',
-        zh: '开始', ja: '開始', ko: '시작', ar: 'ابدأ'
-      },
-      'Next': { 
-        hy: 'Հաջորդ', ru: 'Следующий', es: 'Siguiente', fr: 'Suivant', de: 'Weiter',
-        zh: '下一个', ja: '次', ko: '다음', ar: 'التالي'
-      },
-      'Previous': { 
-        hy: 'Նախորդ', ru: 'Предыдущий', es: 'Anterior', fr: 'Précédent', de: 'Zurück',
-        zh: '上一个', ja: '前', ko: '이전', ar: 'السابق'
-      },
-      'Save': { 
-        hy: 'Պահպանել', ru: 'Сохранить', es: 'Guardar', fr: 'Enregistrer', de: 'Speichern',
-        zh: '保存', ja: '保存', ko: '저장', ar: 'حفظ'
-      },
-      'Cancel': { 
-        hy: 'Չեղարկել', ru: 'Отмена', es: 'Cancelar', fr: 'Annuler', de: 'Abbrechen',
-        zh: '取消', ja: 'キャンセル', ko: '취소', ar: 'إلغاء'
-      },
-      'Still have questions?': { 
-        hy: 'Դեռ հարցե՞ր ունեք', ru: 'Есть еще вопросы?', es: '¿Aún tienes preguntas?',
-        fr: 'Vous avez encore des questions?', de: 'Haben Sie noch Fragen?',
-        zh: '还有问题吗？', ja: 'まだ質問がありますか？', ko: '아직 질문이 있나요?', ar: 'لا تزال لديك أسئلة؟'
-      },
+      // Common phrases
+      'Loading...': { hy: 'Բեռնվում է...', ru: 'Загрузка...', es: 'Cargando...', fr: 'Chargement...', de: 'Laden...' },
+      'Welcome': { hy: 'Բարի գալուստ', ru: 'Добро пожаловать', es: 'Bienvenido', fr: 'Bienvenue', de: 'Willkommen' },
+      'Learn': { hy: 'Սովորել', ru: 'Изучать', es: 'Aprender', fr: 'Apprendre', de: 'Lernen' },
+      'Continue': { hy: 'Շարունակել', ru: 'Продолжить', es: 'Continuar', fr: 'Continuer', de: 'Weiter' },
+      'Start': { hy: 'Սկսել', ru: 'Начать', es: 'Empezar', fr: 'Commencer', de: 'Beginnen' },
+      'Next': { hy: 'Հաջորդ', ru: 'Следующий', es: 'Siguiente', fr: 'Suivant', de: 'Weiter' },
+      'Previous': { hy: 'Նախորդ', ru: 'Предыдущий', es: 'Anterior', fr: 'Précédent', de: 'Zurück' },
+      'Save': { hy: 'Պահպանել', ru: 'Сохранить', es: 'Guardar', fr: 'Enregistrer', de: 'Speichern' },
+      'Cancel': { hy: 'Չեղարկել', ru: 'Отмена', es: 'Cancelar', fr: 'Annuler', de: 'Abbrechen' },
+      'Still have questions?': { hy: 'Դեռ հարցե՞ր ունեք', ru: 'Есть еще вопросы?' },
     };
 
-    // Pre-populate cache for ALL languages
+    // Pre-populate cache
     Object.entries(commonStrings).forEach(([english, translations]) => {
       this.cache[english] = translations;
     });
-    
-    console.log(`🌍 Pre-loaded ${Object.keys(commonStrings).length} common strings for ALL languages`);
   }
 
   private setupMutationObserver() {
     this.observer = new MutationObserver(() => {
-      // COMPREHENSIVE FIX: Multiple checks to prevent any floating
-      if (this.currentLanguage !== 'en' && 
-          !this.isTranslating && 
-          !document.getElementById('translation-freeze-styles')) {
+      if (this.currentLanguage !== 'en' && !this.isTranslating) {
         this.debouncedRetranslate();
       }
     });
@@ -252,42 +138,21 @@ class TranslationEngine {
     }
     
     this.debounceTimer = window.setTimeout(() => {
-      // COMPREHENSIVE CHECK: Prevent ALL possible floating scenarios
-      if (this.isTranslating || 
-          document.getElementById('translation-freeze-styles') ||
-          document.body.style.overflow === 'hidden') {
-        console.log('⏳ Translation blocked to prevent floating');
-        return;
-      }
-      
       console.log('🔄 Dynamic content detected, re-translating…');
       // Use faster, cached-only translation for dynamic updates
       this.translateCachedContent(this.currentLanguage);
       
-      // Completely disable random re-translations to prevent floating
-      // if (Math.random() < 0.1) { // DISABLED to prevent floating
-      //   this.translateAllContent(this.currentLanguage);
-      // }
-    }, 1200); // Increased delay even more to prevent any floating
+      // Only check for new content occasionally
+      if (Math.random() < 0.3) { // 30% chance to check for new content
+        this.translateAllContent(this.currentLanguage);
+      }
+    }, 200); // Longer delay for stability
   }
 
   async translateAll(targetLang: Language) {
     // Cancel any ongoing translation
     if (this.abortController) {
       this.abortController.abort();
-    }
-    
-    // Prevent rapid language switching that causes floating
-    if (this.isTranslating) {
-      console.log('⏳ Translation in progress, waiting...');
-      return new Promise((resolve) => {
-        const checkInterval = setInterval(() => {
-          if (!this.isTranslating) {
-            clearInterval(checkInterval);
-            this.translateAll(targetLang).then(resolve);
-          }
-        }, 100);
-      });
     }
     
     if (targetLang === 'en') {
@@ -405,24 +270,9 @@ class TranslationEngine {
             }
             this.cache[original][target_lang] = translated;
             
-            // FIXED: Only apply translation if it matches current language AND we're not already translating
-            // This prevents the infinite loop with mutation observer
-            if (target_lang === this.currentLanguage && !this.isTranslating) {
-              // Temporarily disable mutation observer to prevent loop
-              const wasObserving = !!this.observer;
-              if (wasObserving) {
-                this.observer?.disconnect();
-              }
-              
-              // Apply translation
+            // If this matches current language, apply immediately
+            if (target_lang === this.currentLanguage) {
               this.translateCachedContent(target_lang);
-              
-              // Re-enable mutation observer after a delay
-              if (wasObserving) {
-                setTimeout(() => {
-                  this.setupMutationObserver();
-                }, 100);
-              }
             }
             
             this.saveCache();
@@ -437,56 +287,14 @@ class TranslationEngine {
   }
 
   private translateCachedContent(targetLang: Language) {
-    // ULTIMATE FLOATING PREVENTION: Most comprehensive solution
-    const body = document.body;
-    const html = document.documentElement;
-    
-    // Set translation flag immediately to prevent conflicts
-    this.isTranslating = true;
-    
-    // Disconnect mutation observer completely during translation
-    if (this.observer) {
-      this.observer.disconnect();
-    }
-    
-    // Create the most comprehensive freeze possible
-    const styleBlock = document.createElement('style');
-    styleBlock.id = 'translation-freeze-styles';
-    styleBlock.textContent = `
-      *, *::before, *::after {
-        transition: none !important;
-        animation: none !important;
-        transform: none !important;
-      }
-      body {
-        overflow: hidden !important;
-        overflow-anchor: none !important;
-      }
-    `;
-    document.head.appendChild(styleBlock);
-    
-    // Freeze scroll and dimensions completely
-    const originalScrollTop = window.scrollY;
-    const originalScrollLeft = window.scrollX;
-    const originalOverflow = body.style.overflow;
-    const originalHeight = body.style.height;
-    const originalPosition = body.style.position;
-    
-    body.style.overflow = 'hidden';
-    body.style.height = body.scrollHeight + 'px';
-    body.style.position = 'fixed';
-    body.style.top = `-${originalScrollTop}px`;
-    body.style.left = `-${originalScrollLeft}px`;
-    body.style.width = '100%';
-    
-    // Translate document title first
+    // Translate document title
     const originalTitle = document.title;
     const translatedTitle = this.cache[originalTitle]?.[targetLang];
     if (translatedTitle && translatedTitle !== originalTitle) {
       document.title = translatedTitle;
     }
 
-    // Collect all text nodes to translate
+    // Fast translation of all text content
     const walker = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
@@ -512,7 +320,7 @@ class TranslationEngine {
       textNodesToTranslate.push(node as Text);
     }
 
-    // Batch all text replacements in one operation
+    // Batch translate text nodes for better performance
     textNodesToTranslate.forEach(textNode => {
       const originalText = textNode.textContent?.trim();
       if (!originalText) return;
@@ -524,38 +332,9 @@ class TranslationEngine {
       }
     });
 
-    // Translate attributes and data-i18n elements
+    // Also translate common attributes and data-i18n elements
     this.translateAttributes(targetLang);
     this.translateDataI18nElements(targetLang);
-    
-    // Restore everything after translation is complete
-    requestAnimationFrame(() => {
-      // Remove the freeze styles
-      const freezeStyles = document.getElementById('translation-freeze-styles');
-      if (freezeStyles) {
-        freezeStyles.remove();
-      }
-      
-      // Restore all original styles and scroll position
-      body.style.overflow = originalOverflow;
-      body.style.height = originalHeight;
-      body.style.position = originalPosition;
-      body.style.top = '';
-      body.style.left = '';
-      body.style.width = '';
-      
-      // Restore scroll position
-      window.scrollTo(originalScrollLeft, originalScrollTop);
-      
-      // Force a reflow to ensure everything is properly positioned
-      body.offsetHeight;
-      
-      // Re-enable mutation observer after everything is settled
-      setTimeout(() => {
-        this.isTranslating = false;
-        this.setupMutationObserver();
-      }, 200); // Longer delay to ensure complete stability
-    });
   }
 
   private translateAttributes(targetLang: Language) {
@@ -731,19 +510,18 @@ class TranslationEngine {
     location.reload(); // Simple but effective way to restore original content
   }
 
-  // Hook methods for external integration - WORKS FOR ALL PAGES
+  // Hook methods for external integration
   onLanguageChange(newLanguage: Language) {
-    console.log(`🌐 Language changed to: ${newLanguage} - Applying to ALL pages`);
+    console.log(`🌐 Language changed to: ${newLanguage}`);
     this.translateAll(newLanguage);
   }
 
   onRouteChange(newPath: string) {
-    console.log(`🌐 Route changed → ${newPath} - Re-translating for current language: ${this.currentLanguage}`);
+    console.log(`🌐 Route changed → ${newPath}`);
     if (this.currentLanguage !== 'en') {
-      // Ensure translation works on ALL pages with anti-floating protection
       setTimeout(() => {
         this.translateAllContent(this.currentLanguage);
-      }, 100); // Optimized timing for all pages
+      }, 50); // Very fast re-translation for route changes
     }
   }
 
