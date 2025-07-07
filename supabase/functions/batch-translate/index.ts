@@ -117,11 +117,30 @@ serve(async (req) => {
       const targetLanguage = languageNames[targetLang as keyof typeof languageNames] || targetLang;
       console.log(`🌐 Translating to: ${targetLanguage}`);
 
-      const prompt = `Translate to ${targetLanguage}. Be concise and preserve HTML tags:
+      const prompt = `You are an expert copywriter and translator specializing in marketing and business content. Translate the following texts from English to ${targetLanguage} with professional copywriting skills.
 
+TRANSLATION GUIDELINES:
+- Maintain the emotional impact and persuasive power of the original
+- Use natural, native-sounding language that locals would use
+- Adapt cultural references and idioms appropriately
+- Keep the marketing tone and call-to-action strength
+- For business terms, use industry-standard translations
+- Preserve brand voice and personality
+- Make it sound compelling and engaging, not robotic
+- Preserve HTML tags exactly as they are
+
+SPECIFIC INSTRUCTIONS:
+- Headlines: Make them punchy and attention-grabbing
+- Button text: Keep urgency and action-oriented language
+- Value propositions: Maintain benefit-focused messaging
+- Testimonials: Keep authentic and relatable tone
+- Technical terms: Use accepted industry terminology
+- Numbers and metrics: Adapt currency/measurement formats if needed
+
+Texts to translate:
 ${toTranslate.map((text, i) => `${i + 1}. ${text}`).join('\n')}
 
-Return numbered translations only.`;
+Return only numbered translations (1., 2., 3., etc.) with the professionally translated and copywritten versions.`;
 
       console.log('📤 Sending request to Claude API...');
 

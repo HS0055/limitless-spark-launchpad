@@ -139,21 +139,39 @@ serve(async (req) => {
         console.log(`📷 Analyzing page with Vision AI: ${page}`);
         const pageUrl = `${baseUrl}${page}`;
         
-        // Take screenshot using a screenshot service API
+        // Take high-quality screenshot using a screenshot service API
         const screenshotResponse = await fetch(`https://htmlcsstoimage.com/demo_run`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            html: `<script>window.location.href = "${pageUrl}";</script>`,
-            css: '',
+            html: `<script>
+              window.location.href = "${pageUrl}";
+              // Wait for dynamic content to load
+              setTimeout(() => {
+                // Scroll to capture more content
+                window.scrollTo(0, document.body.scrollHeight / 2);
+                setTimeout(() => window.scrollTo(0, 0), 500);
+              }, 2000);
+            </script>`,
+            css: `
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                font-size: 16px;
+                line-height: 1.5;
+              }
+              * { 
+                visibility: visible !important; 
+                opacity: 1 !important; 
+              }
+            `,
             google_fonts: '',
             selector: 'body',
-            ms_delay: 3000,
-            device_scale: 1,
-            viewport_width: 1200,
-            viewport_height: 800
+            ms_delay: 5000, // Longer delay for dynamic content
+            device_scale: 2, // Higher resolution
+            viewport_width: 1920, // Wider viewport
+            viewport_height: 1080 // Taller viewport
           })
         });
 
@@ -167,7 +185,7 @@ serve(async (req) => {
           screenshotBase64 = `data:image/png;base64,mock-screenshot-${page.replace(/\//g, '-')}`;
         }
 
-        // Use OpenAI Vision to extract all text content
+        // Use OpenAI Vision to extract all text content with enhanced detection
         const visionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -175,23 +193,54 @@ serve(async (req) => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'gpt-4o-mini', // Vision model
+            model: 'gpt-4o', // Use the more powerful vision model
             messages: [
+              {
+                role: 'system',
+                content: 'You are an expert at extracting ALL visible text content from website screenshots. You have exceptional attention to detail and can spot even small text elements, overlays, tooltips, and subtle content.'
+              },
               {
                 role: 'user',
                 content: [
                   {
                     type: 'text',
-                    text: `Extract ALL visible text content from this webpage screenshot. Include:
-- Headlines and titles
-- Button text
-- Navigation menu items  
-- Body paragraphs
-- Form labels
-- Call-to-action text
-- Any other visible text
+                    text: `COMPREHENSIVE TEXT EXTRACTION TASK:
 
-Return ONLY the extracted text, one piece per line, without any formatting or explanations. Skip empty lines and duplicates.`
+Extract EVERY SINGLE piece of visible text from this webpage screenshot. Be extremely thorough and include:
+
+PRIMARY CONTENT:
+- All headlines, titles, and subtitles (H1, H2, H3, etc.)
+- Body paragraphs and article content
+- Navigation menu items and links
+- Button text and call-to-action elements
+- Form labels, placeholders, and input text
+- Footer content and copyright notices
+
+SECONDARY CONTENT:
+- Small text like captions, footnotes, disclaimers
+- Price tags, dates, numbers with context
+- Tab labels and dropdown options
+- Breadcrumb navigation
+- Social media text and hashtags
+- Error messages or notifications
+- Tooltips or overlay text (if visible)
+
+MARKETING CONTENT:
+- Value propositions and selling points
+- Testimonial quotes and customer names
+- Feature descriptions and benefits
+- Promotional text and offers
+- Brand messaging and taglines
+
+TECHNICAL CONTENT:
+- Status indicators and badges
+- Progress indicators with text
+- Image alt text that's visible
+- Icon labels and descriptions
+
+FORMAT: Return each unique text element on a separate line. Preserve the actual wording exactly as it appears. Include context where helpful (e.g., "Free Trial - 30 Days" not just "Free Trial"). Avoid duplicates but capture all variations.
+
+CRITICAL: Look carefully at ALL areas of the screenshot - top, middle, bottom, sides, corners, overlays. Don't miss any text, no matter how small or subtle.`
                   },
                   {
                     type: 'image_url',
@@ -202,7 +251,8 @@ Return ONLY the extracted text, one piece per line, without any formatting or ex
                 ]
               }
             ],
-            max_tokens: 1000
+            max_tokens: 2000,
+            temperature: 0.1 // Low temperature for consistent, thorough extraction
           }),
         });
 
