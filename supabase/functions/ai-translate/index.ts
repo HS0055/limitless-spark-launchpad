@@ -39,7 +39,7 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-20250514', // Upgraded to Claude 4 Opus for maximum accuracy
         max_tokens: 15,
         temperature: 0,
         messages: [
@@ -112,50 +112,52 @@ Text: "${text}"`
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-20250514', // Upgraded to Claude 4 Opus for maximum quality
         max_tokens: 8000,
         temperature: 0.05,
         messages: [
           {
             role: 'user',
             content: visionMode ? 
-              `You are Claude 4, the most advanced AI translator specializing in culturally-aware website localization.
+              `🚀 CLAUDE 4 OPUS PREMIUM TRANSLATION SYSTEM 🌍
 
-🎯 TRANSLATION MISSION: Transform "${text}" from ${sourceLanguage} to ${targetLanguage}
+🎯 MISSION: Transform "${text}" from ${sourceLanguage} to ${targetLanguage} with MAXIMUM cultural intelligence
 
-📍 CONTEXT INTELLIGENCE: ${context || 'general web content'}
-🏗️ ELEMENT TYPE: High-priority web interface component
+📍 ADVANCED CONTEXT: ${context || 'general web content'}
+🏗️ CONTENT TYPE: Critical web interface element requiring perfect localization
 
-🔥 PREMIUM LOCALIZATION STANDARDS:
-✅ Deep Cultural Adaptation: Use region-specific expressions, idioms, and communication styles
-✅ Advanced Context Analysis: Understand business domain, user intent, and conversion goals  
-✅ UI/UX Optimization: Adapt text length, tone, and formality for target audience
-✅ Brand Voice Consistency: Maintain professional yet approachable educational platform tone
-✅ Technical Precision: Preserve formatting, emojis, and special characters exactly
-✅ Conversion-Focused: For CTAs/buttons, use psychologically compelling language for target culture
+🔥 CLAUDE 4 OPUS EXCELLENCE STANDARDS:
+✨ ULTIMATE Cultural Adaptation: Deep understanding of regional nuances, idioms, and cultural context
+🧠 SUPREME Context Analysis: Advanced business domain expertise with conversion psychology
+💎 PREMIUM UI/UX Optimization: Perfect text length and tone calibration for target audience  
+🎭 MASTERFUL Brand Voice: Sophisticated professional yet approachable educational platform tone
+⚡ TECHNICAL PERFECTION: Flawless formatting, emoji, and special character preservation
+🎯 CONVERSION MASTERY: Psychologically optimized language for maximum cultural impact
 
-🌍 LANGUAGE-SPECIFIC GUIDELINES:
+🌍 ADVANCED LANGUAGE-SPECIFIC INTELLIGENCE:
 ${targetLanguage === 'Armenian' ? 
-  '🇦🇲 ARMENIAN: Use formal yet warm tone. Prefer contemporary Eastern Armenian vocabulary. Educational content should sound engaging and accessible. Avoid overly complex expressions - use clear, modern Armenian that resonates with current learners.' :
+  '🇦🇲 ARMENIAN MASTERY: Use contemporary Eastern Armenian with warm professional tone. Create engaging educational content that feels natural to current Armenian learners. Avoid archaic expressions - prioritize clear, modern Armenian that connects with today audiences. Consider Armenian cultural values of education and respect.' :
   targetLanguage === 'Russian' ?
-  '🇷🇺 RUSSIAN: Use contemporary business Russian. Maintain professional courtesy. Educational terminology should be clear and modern.' :
-  '🇺🇸 ENGLISH: Keep original text as baseline reference.'
+  '🇷🇺 RUSSIAN EXCELLENCE: Deploy contemporary business Russian with proper courtesy levels. Educational terminology must be precise yet accessible. Reflect Russian cultural appreciation for thoroughness and competence.' :
+  '🇺🇸 ENGLISH BASELINE: Maintain as gold standard reference for cultural adaptation assessment.'
 }
 
-📋 CONTEXT: ${context}
-💬 SOURCE TEXT: "${text}"
+🎯 CONTEXT INTELLIGENCE: ${context}
+💫 SOURCE TEXT: "${text}"
 
-🎯 DELIVER: Only the perfect ${targetLanguage} translation that will convert and engage users.` 
+🏆 DELIVER: The most culturally intelligent ${targetLanguage} translation that will deeply resonate and convert.` 
               : 
-              `You are Claude 4, expert translator. Translate "${text}" from ${sourceLanguage} to ${targetLanguage}.
+              `You are Claude 4 Opus, the world's most advanced AI translator with perfect cultural intelligence.
 
-RULES:
-- Natural, culturally appropriate translation
-- Maintain original meaning and tone
-- Return ONLY the translated text
-- No explanations or additions
+SUPREME TRANSLATION TASK: "${text}" → ${sourceLanguage} to ${targetLanguage}
 
-Translation:`
+CLAUDE 4 OPUS STANDARDS:
+- Culturally perfect translation with deep regional understanding
+- Maintain exact original meaning and sophisticated tone
+- Return ONLY the flawless translated text
+- No explanations, no additions
+
+Perfect Translation:`
           }
         ]
       }),

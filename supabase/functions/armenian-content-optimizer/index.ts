@@ -37,50 +37,50 @@ serve(async (req) => {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-opus-4-20250514', // Upgraded to Claude 4 Opus for maximum Armenian cultural intelligence
         max_tokens: 4000,
         temperature: 0.1,
         messages: [
           {
             role: 'user',
-            content: `You are an expert Armenian language specialist and UI/UX consultant focusing on modern Eastern Armenian.
+            content: `🇦🇲 CLAUDE 4 OPUS ARMENIAN CULTURAL MASTERY SYSTEM 🌟
 
-🎯 TASK: Optimize this English text for Armenian users, considering both language and cultural context.
+🎯 SUPREME ARMENIAN OPTIMIZATION: Transform this English content for Armenian users with MAXIMUM cultural intelligence and modern appeal.
 
 📍 CONTENT TYPE: ${type}
 🏗️ CONTEXT: ${context || 'educational platform'}
 🌍 SOURCE TEXT: "${text}"
 
-🔥 ARMENIAN OPTIMIZATION REQUIREMENTS:
+🔥 CLAUDE 4 OPUS ARMENIAN EXCELLENCE STANDARDS:
 
-✅ LANGUAGE EXCELLENCE:
-- Use contemporary Eastern Armenian (not Western Armenian)
-- Prefer modern, accessible vocabulary over archaic terms
-- Ensure natural flow and rhythm in Armenian
-- Use appropriate formality level for educational content
-- Avoid literal translations - adapt for cultural context
+✨ ULTIMATE LANGUAGE PERFECTION:
+- Use sophisticated contemporary Eastern Armenian (not Western Armenian)
+- Deploy modern, accessible vocabulary that resonates with current Armenian speakers
+- Create natural linguistic flow that feels authentically Armenian
+- Apply appropriate formality level for premium educational content
+- Completely avoid literal translations - master cultural adaptation
 
-✅ UI/UX CONSIDERATIONS:
-- Consider that Armenian text is typically 15-25% longer than English
-- Use concise phrasing for buttons and navigation
-- Ensure clarity for non-native speakers who learned Armenian as second language
-- Apply proper Armenian punctuation and typography rules
+💎 PREMIUM UI/UX ARMENIAN CONSIDERATIONS:
+- Perfect awareness that Armenian text is typically 15-25% longer than English
+- Craft concise, impactful phrasing for buttons and navigation elements
+- Ensure crystal clarity for Armenian speakers (including those who learned as second language)
+- Apply authentic Armenian punctuation and sophisticated typography standards
 
-✅ CULTURAL ADAPTATION:
-- Use expressions that resonate with Armenian culture
-- Adapt metaphors and examples to be culturally relevant
-- Consider Armenian educational traditions and learning styles
-- Use encouraging, warm tone typical in Armenian educational settings
+🎭 MASTERFUL CULTURAL ADAPTATION:
+- Deploy expressions that deeply resonate with Armenian cultural values
+- Transform metaphors and examples to be culturally relevant and meaningful
+- Honor Armenian educational traditions while appealing to modern learning preferences
+- Use the encouraging, warm tone that characterizes Armenian educational excellence
 
-✅ CONTENT-SPECIFIC RULES:
-${type === 'button' ? '- Keep button text concise (max 3-4 words)\n- Use action verbs that feel natural in Armenian\n- Prefer imperative mood for CTAs' :
-  type === 'heading' ? '- Maintain impact and clarity\n- Use parallel structure for consistency\n- Consider Armenian word order preferences' :
-  type === 'navigation' ? '- Use standard Armenian web terminology\n- Keep navigation terms short and clear\n- Ensure consistency across the interface' :
-  '- Focus on clarity and engagement\n- Use appropriate paragraph structure\n- Maintain educational tone'}
+🏆 CONTENT-SPECIFIC ARMENIAN MASTERY:
+${type === 'button' ? '- Create button text that is concise yet powerful (maximum 3-4 words)\n- Use action verbs that feel natural and compelling in Armenian\n- Prefer imperative mood for call-to-actions that motivate Armenian users' :
+  type === 'heading' ? '- Maintain maximum impact and crystal clarity\n- Use sophisticated parallel structure for consistency\n- Consider optimal Armenian word order preferences for readability' :
+  type === 'navigation' ? '- Deploy standard Armenian web terminology that users expect\n- Keep navigation terms short, clear, and instantly recognizable\n- Ensure absolute consistency across the entire interface' :
+  '- Focus on perfect clarity and deep engagement\n- Use sophisticated paragraph structure that flows naturally\n- Maintain premium educational tone that inspires Armenian learners'}
 
-🎯 DELIVER: Only the optimized Armenian text that will engage and convert Armenian users effectively.
+🎯 DELIVER: Only the perfectly optimized Armenian text that will deeply engage and convert Armenian users with cultural authenticity.
 
-Armenian Translation:`
+Perfected Armenian Content:`
           }
         ]
       }),
