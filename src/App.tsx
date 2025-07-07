@@ -15,6 +15,7 @@ import League from "./pages/League";
 import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
 import Translator from "./pages/Translator";
+import AITools from "./pages/AITools";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
                 <Route path="/meme-coins" element={<MemeCoins />} />
                 <Route path="/visual-business" element={<VisualBusiness />} />
                 <Route path="/translator" element={<Translator />} />
+                <Route path="/ai-tools" element={<AITools />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<AdminPanel />} />
                 <Route path="/community" element={<Community />} />

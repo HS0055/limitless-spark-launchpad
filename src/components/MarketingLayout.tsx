@@ -39,6 +39,9 @@ const MarketingLayout = ({ children }: MarketingLayoutProps) => {
                 <Link to="/visual-business" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                   {t('nav.visual')}
                 </Link>
+                <Link to="/ai-tools" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                  AI Tools
+                </Link>
                 <Link to="/business-fundamentals" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                   {t('nav.business')}
                 </Link>

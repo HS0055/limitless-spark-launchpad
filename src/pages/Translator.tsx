@@ -116,28 +116,35 @@ const Translator = () => {
     setIsTranslating(true);
     
     try {
-      // Using MyMemory Translation API (free)
-      const response = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(sourceText)}&langpair=${sourceLang}|${targetLang}`
-      );
+      const response = await fetch('https://a048e3e6-89eb-49f4-9bfe-b3a6341ee7d3.supabase.co/functions/v1/ai-translate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+        body: JSON.stringify({
+          text: sourceText,
+          sourceLang: sourceLang,
+          targetLang: targetLang
+        }),
+      });
       
-      const data = await response.json();
-      
-      if (data.responseStatus === 200) {
-        const translation = data.responseData.translatedText;
-        setTranslatedText(translation);
-        
-        if (user) {
-          await saveTranslation(sourceText, translation, sourceLang, targetLang);
-        }
-        
-        toast({
-          title: "Translation Complete",
-          description: "Text has been successfully translated",
-        });
-      } else {
+      if (!response.ok) {
         throw new Error('Translation failed');
       }
+      
+      const data = await response.json();
+      const translation = data.translatedText;
+      setTranslatedText(translation);
+      
+      if (user) {
+        await saveTranslation(sourceText, translation, sourceLang, targetLang);
+      }
+      
+      toast({
+        title: "Translation Complete",
+        description: "Text has been successfully translated using AI",
+      });
     } catch (error) {
       console.error('Translation error:', error);
       toast({
@@ -195,14 +202,14 @@ const Translator = () => {
         <div className="mb-12 text-center">
           <div className="inline-flex items-center bg-gradient-to-r from-primary/10 to-accent-secondary/10 backdrop-blur-sm rounded-full px-6 py-3 mb-6 border border-primary/20 shadow-lg">
             <Globe className="w-4 h-4 text-primary mr-2" />
-            <span className="text-sm font-semibold text-gradient">Multilingual Translator</span>
+            <span className="text-sm font-semibold text-gradient">AI-Powered Multilingual Translator</span>
           </div>
           
           <h1 className="text-4xl md:text-5xl font-display font-bold mb-4">
             <span className="text-gradient">Translate</span> Instantly
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Seamless translation between Armenian, Russian, and English
+            Powered by GPT-4.1 for seamless translation between Armenian, Russian, and English
           </p>
         </div>
 
@@ -217,7 +224,9 @@ const Translator = () => {
                     Translation Tool
                   </CardTitle>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">Free Service</Badge>
+                    <Badge variant="secondary" className="bg-gradient-to-r from-primary/10 to-accent-secondary/10">
+                      GPT-4.1 Powered
+                    </Badge>
                     <Button
                       variant="outline"
                       size="sm"

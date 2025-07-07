@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Link } from "react-router-dom";
+import AIImageGenerator from "@/components/AIImageGenerator";
 
 const VisualBusiness = () => {
   const { toast } = useToast();
@@ -751,6 +752,53 @@ const VisualBusiness = () => {
                   </div>
                 </CardContent>
               </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Image Generator Section */}
+      <section className="content-section bg-gradient-to-b from-background via-muted/5 to-background">
+        <div className="content-container">
+          <div className="section-header mb-16">
+            <h2 className="section-title animate-slide-up">
+              <span className="text-gradient">AI-Powered</span> Visual Creation
+            </h2>
+            <p className="section-subtitle animate-fade-in">
+              Generate stunning visuals with GPT-Image-1 to enhance your learning experience
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+            <div className="space-y-6">
+              <AIImageGenerator />
+            </div>
+            
+            <div className="space-y-6">
+              <div className="bg-gradient-to-br from-primary/5 to-accent-tertiary/5 rounded-2xl p-8 border border-primary/10">
+                <h3 className="text-2xl font-bold mb-4 text-gradient-secondary">Perfect for Visual Learning</h3>
+                <div className="space-y-4 text-muted-foreground">
+                  <p>• Create custom diagrams and infographics</p>
+                  <p>• Generate visual examples for complex concepts</p>
+                  <p>• Design engaging presentation materials</p>
+                  <p>• Illustrate business scenarios and case studies</p>
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-accent-secondary/5 to-accent-tertiary/5 rounded-2xl p-8 border border-accent-secondary/10">
+                <h3 className="text-xl font-bold mb-4 text-accent-secondary">Example Prompts</h3>
+                <div className="space-y-3 text-sm">
+                  <div className="p-3 bg-background/50 rounded-lg">
+                    <strong className="text-foreground">Business:</strong> "Modern office workspace with diverse team collaborating on strategy"
+                  </div>
+                  <div className="p-3 bg-background/50 rounded-lg">
+                    <strong className="text-foreground">Finance:</strong> "Clean infographic showing compound interest growth over time"
+                  </div>
+                  <div className="p-3 bg-background/50 rounded-lg">
+                    <strong className="text-foreground">Marketing:</strong> "Customer journey visualization with touchpoints and emotions"
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
