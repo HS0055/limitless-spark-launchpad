@@ -74,29 +74,16 @@ const LanguageSwitcher = () => {
               {isTranslating ? (
                 <Languages className="w-4 h-4 animate-spin text-primary" />
               ) : (
-                <Globe className="w-4 h-4 group-hover:text-primary transition-colors" />
+                <Globe className="w-4 h-4 text-foreground group-hover:text-primary transition-colors" />
               )}
               
-              {/* Mobile: Show only flag */}
-              <span className="sm:hidden text-base" aria-hidden="true">
+              <span className="text-base" aria-hidden="true">
                 {currentLanguage?.flag}
               </span>
               
-              {/* Tablet: Show flag + code */}
-              <div className="hidden sm:flex md:hidden items-center gap-1">
-                <span className="text-base" aria-hidden="true">{currentLanguage?.flag}</span>
-                <span className="text-xs font-medium uppercase tracking-wide">
-                  {currentLanguage?.code}
-                </span>
-              </div>
-              
-              {/* Desktop: Show flag + full name */}
-              <div className="hidden md:flex items-center gap-2">
-                <span className="text-base" aria-hidden="true">{currentLanguage?.flag}</span>
-                <span className="font-medium truncate max-w-20">
-                  {currentLanguage?.nativeName}
-                </span>
-              </div>
+              <span className="hidden sm:inline font-medium">
+                {currentLanguage?.code.toUpperCase()}
+              </span>
             </div>
             
             {isTranslating && (
