@@ -25,10 +25,17 @@ class TranslationEngine {
 
   private loadCache() {
     try {
-      const savedCache = localStorage.getItem('i18nCache');
-      if (savedCache) {
-        this.cache = JSON.parse(savedCache);
-        console.log('💾 Loaded translation cache');
+      const savedData = localStorage.getItem('i18nCache');
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        // Handle both old and new cache formats
+        if (parsed.cache) {
+          this.cache = parsed.cache;
+          console.log('💾 Loaded persistent cache with', Object.keys(this.cache).length, 'translations');
+        } else {
+          this.cache = parsed; // Old format
+          console.log('💾 Loaded legacy cache');
+        }
       }
     } catch (error) {
       console.error('Failed to load translation cache:', error);
@@ -37,7 +44,14 @@ class TranslationEngine {
 
   private saveCache() {
     try {
-      localStorage.setItem('i18nCache', JSON.stringify(this.cache));
+      // Save with timestamp for persistence tracking
+      const cacheData = {
+        cache: this.cache,
+        lastUpdated: Date.now(),
+        version: '1.0'
+      };
+      localStorage.setItem('i18nCache', JSON.stringify(cacheData));
+      console.log('💾 Cache saved with', Object.keys(this.cache).length, 'entries');
     } catch (error) {
       console.error('Failed to save translation cache:', error);
     }
@@ -142,11 +156,17 @@ class TranslationEngine {
     this.currentLanguage = targetLang;
     this.abortController = new AbortController();
     
-    // Instant UI update with cached content
+    // INSTANT translation with cached content - no delays
     this.translateCachedContent(targetLang);
     
-    // Background translation of new content
-    setTimeout(() => this.translateAllContent(targetLang), 0);
+    // Only translate new content if absolutely necessary
+    const uncachedTexts = this.collectUncachedTexts(targetLang);
+    if (uncachedTexts.length > 0) {
+      console.log(`💰 Translating ${uncachedTexts.length} new texts (one-time cost)`);
+      setTimeout(() => this.translateNewContent(uncachedTexts, targetLang), 50);
+    } else {
+      console.log('✅ All content already cached - no API costs!');
+    }
   }
 
   private async translateAllContent(targetLang: Language) {
@@ -310,7 +330,9 @@ class TranslationEngine {
     }
 
     await Promise.allSettled(batchPromises);
-    this.saveCache();
+    
+    // Apply newly translated content immediately
+    this.translateCachedContent(targetLang);
   }
 
   private async translateBatch(texts: string[], targetLang: Language): Promise<void> {
@@ -327,13 +349,17 @@ class TranslationEngine {
         throw new Error(result.error);
       }
 
-      // Update cache with new translations
+      // Update cache with new translations and save immediately
       Object.entries(result.data.translations).forEach(([original, translated]) => {
         if (!this.cache[original]) {
           this.cache[original] = {};
         }
         this.cache[original][targetLang] = translated as string;
       });
+      
+      // Save cache immediately to prevent re-translation
+      this.saveCache();
+      console.log('💰 Saved new translations - no future costs for these texts!');
 
     } catch (error) {
       console.error('❌ Batch translation failed:', error);
