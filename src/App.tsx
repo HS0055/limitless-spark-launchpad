@@ -8,7 +8,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
-import { DragDropTextEditor } from "@/components/admin/DragDropTextEditor";
+import { VisualEditor } from "@/components/visual-editor/VisualEditor";
 import Home from "./pages/Home";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
@@ -66,8 +66,8 @@ const AppContent = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
           
-          {/* Global Drag & Drop Text Editor - Available on all pages for admins */}
-          {userRole === 'admin' && <DragDropTextEditor />}
+          {/* Global Visual Editor - Available on all pages for admins */}
+          {userRole === 'admin' && <VisualEditor />}
         </AutoTranslateProvider>
       </BrowserRouter>
     </div>
