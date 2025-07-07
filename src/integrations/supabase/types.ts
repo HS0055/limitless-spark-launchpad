@@ -507,6 +507,45 @@ export type Database = {
         }
         Relationships: []
       }
+      website_texts: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          edited_text: string
+          element_type: string | null
+          id: string
+          is_active: boolean | null
+          original_text: string
+          page_path: string
+          selector: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          edited_text: string
+          element_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          original_text: string
+          page_path: string
+          selector: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          edited_text?: string
+          element_type?: string | null
+          id?: string
+          is_active?: boolean | null
+          original_text?: string
+          page_path?: string
+          selector?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
