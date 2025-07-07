@@ -27,14 +27,20 @@ const Header = () => {
       <nav className="content-container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-lg flex items-center justify-center">
-                <BookOpen className="w-5 h-5 text-primary-foreground" />
+          <div className="flex items-center space-x-3">
+            <Link to="/" className="flex items-center space-x-3 group">
+              <div className="relative">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary via-accent-secondary to-accent-tertiary rounded-xl flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+                  <BookOpen className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-accent-tertiary/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
-              <span className="text-xl font-display font-bold">
-                TopOne <span className="text-primary">Academy</span>
-              </span>
+              <div className="flex flex-col">
+                <span className="text-xl font-display font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                  TopOne <span className="text-primary">Academy</span>
+                </span>
+                <span className="text-xs text-muted-foreground font-medium">Mindset League</span>
+              </div>
             </Link>
           </div>
 
