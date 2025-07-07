@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useLocation } from 'react-router-dom';
+import { useLanguage, Language } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { apiClient } from '@/lib/apiClient';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +14,7 @@ interface TranslationCache {
 
 export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
   const { language } = useLanguage();
+  const location = useLocation();
   const { toast } = useToast();
   const { user } = useAuth();
   const [masterTranslationEnabled, setMasterTranslationEnabled] = useState(true);
@@ -26,8 +28,9 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
   const [hasAdminRole, setHasAdminRole] = useState(false);
   const translationCache = useRef<TranslationCache>({});
   const originalContent = useRef<Map<Element, string>>(new Map());
-  const previousLanguage = useRef<string>('en');
+  const previousLanguage = useRef<Language>('en');
   const translationInProgress = useRef<boolean>(false);
+  const debounceId = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Admin-only logging function
   const logToAdmin = async (message: string, data: any) => {
@@ -674,30 +677,79 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     }
   };
 
+  // React Router-aware route change detection
   useEffect(() => {
-    // Force translation when language changes - simplified and aggressive
-    if (language === 'en') {
-      restoreOriginalContent();
-      previousLanguage.current = language;
-      return;
-    }
-
-    // Skip if same language
-    if (previousLanguage.current === language) {
-      return;
-    }
-
-    console.log(`🌐 Language changed: ${previousLanguage.current} → ${language}`);
-
-    // Force immediate translation with short delay
-    const timer = setTimeout(() => {
-      console.log(`🚀 Starting translation to ${language}`);
+    console.log(`🌐 Route changed → ${location.pathname}`);
+    
+    if (language !== 'en') {
+      // Clear any previous debounce
+      if (debounceId.current) {
+        clearTimeout(debounceId.current);
+      }
+      
+      // Translate immediately on route change (no extra timeout needed)
       translatePage(language, true);
-      previousLanguage.current = language;
-    }, 100); // Reduced delay for faster response
+    }
+    
+    previousLanguage.current = language;
+  }, [location.pathname, language]);
 
-    return () => clearTimeout(timer);
-  }, [language]);
+  // Enhanced MutationObserver with debouncing for dynamic content
+  useEffect(() => {
+    if (language === 'en') return;
+
+    console.log(`🔄 Setting up MutationObserver for ${language} on ${location.pathname}`);
+
+    const observer = new MutationObserver((mutations) => {
+      let hasTextChanges = false;
+      
+      mutations.forEach(mutation => {
+        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+          // Check if added nodes contain text content
+          mutation.addedNodes.forEach(node => {
+            if (node.nodeType === Node.TEXT_NODE && node.textContent?.trim()) {
+              hasTextChanges = true;
+            } else if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              if (element.textContent?.trim()) {
+                hasTextChanges = true;
+              }
+            }
+          });
+        } else if (mutation.type === 'characterData' && mutation.target.textContent?.trim()) {
+          hasTextChanges = true;
+        }
+      });
+      
+      if (hasTextChanges) {
+        console.log('🔄 Dynamic content detected, re-translating...');
+        
+        // Debounce to avoid performance hits
+        if (debounceId.current) {
+          clearTimeout(debounceId.current);
+        }
+        
+        debounceId.current = setTimeout(() => {
+          // Simplified condition to avoid type issues
+          translatePage(language, true);
+        }, 150); // 150ms debounce - instant feel but prevents spam
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+
+    return () => {
+      observer.disconnect();
+      if (debounceId.current) {
+        clearTimeout(debounceId.current);
+        debounceId.current = null;
+      }
+    };
+  }, [language, location.pathname]); // Restart observer on language or route change
 
   const enableAutoTranslate = () => {
     setAutoTranslateEnabled(true);
