@@ -22,6 +22,7 @@ import MemeCoins from "./pages/MemeCoins";
 import VisualBusiness from "./pages/VisualBusiness";
 import AITools from "./pages/AITools";
 import EditorApp from "./pages/EditorApp";
+import BugTracker from "./pages/BugTracker";
 import NotFound from "./pages/NotFound";
 
 // Optimized QueryClient configuration
@@ -61,6 +62,7 @@ const AppContent = () => {
             <Route path="/visual-business" element={<VisualBusiness />} />
             <Route path="/ai-tools" element={<AITools />} />
             <Route path="/editor" element={<EditorApp />} />
+            <Route path="/bug-tracker" element={<BugTracker />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/admin" element={<AdminPanel />} />
             <Route path="/community" element={<Community />} />

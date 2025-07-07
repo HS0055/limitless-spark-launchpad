@@ -14,6 +14,145 @@ export type Database = {
   }
   public: {
     Tables: {
+      bug_comments: {
+        Row: {
+          bug_id: string
+          comment: string
+          created_at: string
+          id: string
+          is_internal: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bug_id: string
+          comment: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bug_id?: string
+          comment?: string
+          created_at?: string
+          id?: string
+          is_internal?: boolean | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bug_comments_bug_id_fkey"
+            columns: ["bug_id"]
+            isOneToOne: false
+            referencedRelation: "bug_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bug_history: {
+        Row: {
+          action: string
+          bug_id: string
+          created_at: string
+          field_changed: string | null
+          id: string
+          new_value: string | null
+          old_value: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          bug_id: string
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          bug_id?: string
+          created_at?: string
+          field_changed?: string | null
+          id?: string
+          new_value?: string | null
+          old_value?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bug_history_bug_id_fkey"
+            columns: ["bug_id"]
+            isOneToOne: false
+            referencedRelation: "bug_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bug_reports: {
+        Row: {
+          actual_behavior: string | null
+          assigned_to: string | null
+          attachments: Json | null
+          browser_info: string | null
+          category: string
+          created_at: string
+          description: string
+          expected_behavior: string | null
+          id: string
+          reporter_id: string
+          severity: string
+          status: string
+          steps_to_reproduce: string | null
+          system_info: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          actual_behavior?: string | null
+          assigned_to?: string | null
+          attachments?: Json | null
+          browser_info?: string | null
+          category: string
+          created_at?: string
+          description: string
+          expected_behavior?: string | null
+          id?: string
+          reporter_id: string
+          severity: string
+          status?: string
+          steps_to_reproduce?: string | null
+          system_info?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          actual_behavior?: string | null
+          assigned_to?: string | null
+          attachments?: Json | null
+          browser_info?: string | null
+          category?: string
+          created_at?: string
+          description?: string
+          expected_behavior?: string | null
+          id?: string
+          reporter_id?: string
+          severity?: string
+          status?: string
+          steps_to_reproduce?: string | null
+          system_info?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           category: string | null
