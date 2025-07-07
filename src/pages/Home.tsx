@@ -15,6 +15,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import MarketingLayout from '@/components/MarketingLayout';
 // import { Scene3D } from '@/components/3D/Scene3D'; // Temporarily disabled
 import { InteractiveCard } from '@/components/InteractiveCard';
+import { AIVisualGenerator } from '@/components/AIVisualGenerator';
 
 const Home = () => {
   const { user, loading } = useAuth();
@@ -411,34 +412,7 @@ const Home = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center max-w-7xl mx-auto">
             {/* AI Visual Generator */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-card via-card/80 to-card/60 backdrop-blur-xl rounded-3xl p-8 border border-border/30 shadow-2xl">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                  <span className="ml-4 text-sm font-mono text-muted-foreground">AI Visual Generator</span>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="bg-muted/30 rounded-xl p-4 border border-border/20">
-                    <p className="text-sm text-muted-foreground mb-2">Generate business concept:</p>
-                    <p className="font-mono text-primary">"Market analysis with growth visualization"</p>
-                  </div>
-                  
-                  <div className="h-48 bg-gradient-to-br from-primary/10 to-accent-secondary/10 rounded-xl flex items-center justify-center border border-border/30">
-                    <div className="text-center space-y-3">
-                      <div className="w-16 h-16 mx-auto bg-gradient-to-br from-primary to-accent-secondary rounded-full animate-pulse flex items-center justify-center">
-                        <Sparkles className="w-8 h-8 text-white" />
-                      </div>
-                      <p className="text-sm text-muted-foreground">AI-Generated Visual</p>
-                    </div>
-                  </div>
-                  
-                  <Button className="w-full btn-hero" onClick={handleGetStarted}>
-                    Try AI Visuals FREE
-                  </Button>
-                </div>
-              </div>
+              <AIVisualGenerator />
             </div>
 
             {/* Benefits */}
