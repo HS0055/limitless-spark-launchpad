@@ -65,7 +65,6 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
         .from('website_translations')
         .select('original_text, translated_text, target_language, page_path')
         .eq('target_language', currentLanguage)
-        .eq('page_path', currentPath)
         .eq('is_active', true);
 
       if (error) {
@@ -130,13 +129,17 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   };
 
   const handleMissingKey = async (key: string, lng: string) => {
-    // Only queue in production and for non-English languages
-    if (process.env.NODE_ENV !== 'production' || lng === 'en') {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`[i18n] Missing translation: ${lng}:${key}`);
-      }
+    // Skip for English language
+    if (lng === 'en') {
       return;
     }
+
+    // Always log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Missing translation: ${lng}:${key}`);
+    }
+
+    // Queue for translation in both development and production
 
     try {
       await fetch('https://mbwieeegglyprxoncckdj.supabase.co/functions/v1/queue-missing-translation', {

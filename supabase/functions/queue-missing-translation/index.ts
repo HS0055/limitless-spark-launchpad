@@ -142,7 +142,7 @@ async function translateImmediately(
         translated_text: translation,
         target_language: lng,
         source_language: 'en',
-        page_path: '/',
+        page_path: page_path || '/',
         is_active: true
       }, {
         onConflict: 'original_text,target_language'
