@@ -1,9 +1,7 @@
 #!/usr/bin/env node
-// Import with createRequire to handle ES modules
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
 import glob from 'fast-glob';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 
 const sourceGlobs = ['src/**/*.{ts,tsx,md,mdx}'];
 const defaultLocale = 'en';
@@ -43,7 +41,14 @@ console.log(`Found ${keys.size} translatable strings`);
 // Update locale files
 const localeFiles = await glob(`locales/${defaultLocale}/**/*.json`);
 for (const file of localeFiles) {
-  const json = JSON.parse(readFileSync(file, 'utf8'));
+  let json = {};
+  try {
+    json = JSON.parse(readFileSync(file, 'utf8'));
+  } catch (error) {
+    // File doesn't exist or is malformed, start fresh
+    mkdirSync(dirname(file), { recursive: true });
+  }
+  
   let added = 0;
   
   keys.forEach(k => { 

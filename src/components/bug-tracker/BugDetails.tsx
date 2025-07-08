@@ -10,6 +10,7 @@ import { Clock, User, MessageCircle, History } from 'lucide-react';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { LoadingSkeleton, LoadingSpinner } from '@/components/ui/loading';
 
 interface BugReport {
   id: string;
@@ -54,6 +55,8 @@ const BugDetails = ({ bug, onUpdate, getSeverityColor, getStatusColor }: BugDeta
   const { toast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
+  const [isLoadingComments, setIsLoadingComments] = useState(true);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -61,6 +64,7 @@ const BugDetails = ({ bug, onUpdate, getSeverityColor, getStatusColor }: BugDeta
   }, [bug.id]);
 
   const fetchComments = async () => {
+    setIsLoadingComments(true);
     try {
       const { data, error } = await supabase
         .from('bug_comments')
@@ -75,6 +79,8 @@ const BugDetails = ({ bug, onUpdate, getSeverityColor, getStatusColor }: BugDeta
       setComments((data as any) || []);
     } catch (error) {
       console.error('Error fetching comments:', error);
+    } finally {
+      setIsLoadingComments(false);
     }
   };
 
@@ -125,7 +131,7 @@ const BugDetails = ({ bug, onUpdate, getSeverityColor, getStatusColor }: BugDeta
   const addComment = async () => {
     if (!newComment.trim() || !user) return;
 
-    setLoading(true);
+    setIsSubmittingComment(true);
     try {
       const { error } = await supabase
         .from('bug_comments')
@@ -149,7 +155,7 @@ const BugDetails = ({ bug, onUpdate, getSeverityColor, getStatusColor }: BugDeta
         variant: "destructive"
       });
     } finally {
-      setLoading(false);
+      setIsSubmittingComment(false);
     }
   };
 
@@ -271,21 +277,32 @@ const BugDetails = ({ bug, onUpdate, getSeverityColor, getStatusColor }: BugDeta
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {comments.map((comment) => (
-            <div key={comment.id} className="border-l-2 border-muted pl-4">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="font-medium text-sm">
-                  {comment.profiles?.display_name || 'Anonymous'}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                {comment.comment}
-              </p>
+          {isLoadingComments ? (
+            <div className="space-y-4">
+              <LoadingSkeleton variant="text" lines={3} />
+              <LoadingSkeleton variant="text" lines={2} />
             </div>
-          ))}
+          ) : comments.length > 0 ? (
+            comments.map((comment) => (
+              <div key={comment.id} className="border-l-2 border-muted pl-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="font-medium text-sm">
+                    {comment.profiles?.display_name || 'Anonymous'}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+                  </span>
+                </div>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                  {comment.comment}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No comments yet. Be the first to comment!
+            </p>
+          )}
 
           {user && (
             <div className="pt-4 border-t space-y-3">
@@ -297,10 +314,12 @@ const BugDetails = ({ bug, onUpdate, getSeverityColor, getStatusColor }: BugDeta
               />
               <Button 
                 onClick={addComment} 
-                disabled={loading || !newComment.trim()}
+                disabled={isSubmittingComment || !newComment.trim()}
                 size="sm"
+                className="flex items-center gap-2"
               >
-                {loading ? 'Adding...' : 'Add Comment'}
+                {isSubmittingComment && <LoadingSpinner size="sm" />}
+                {isSubmittingComment ? 'Adding...' : 'Add Comment'}
               </Button>
             </div>
           )}

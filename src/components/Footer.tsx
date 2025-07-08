@@ -21,40 +21,72 @@ const Footer = () => {
               that builds confidence and drives results.
             </p>
             <div className="flex space-x-4">
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <Twitter className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-primary"
+                aria-label="Follow us on Twitter"
+                asChild
+              >
+                <a href="#" aria-label="Twitter">
+                  <Twitter className="w-5 h-5" />
+                </a>
               </Button>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <Linkedin className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-primary"
+                aria-label="Connect on LinkedIn"
+                asChild
+              >
+                <a href="#" aria-label="LinkedIn">
+                  <Linkedin className="w-5 h-5" />
+                </a>
               </Button>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <Instagram className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-primary"
+                aria-label="Follow on Instagram"
+                asChild
+              >
+                <a href="#" aria-label="Instagram">
+                  <Instagram className="w-5 h-5" />
+                </a>
               </Button>
-              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-primary">
-                <Mail className="w-5 h-5" />
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="text-muted-foreground hover:text-primary"
+                aria-label="Contact us by email"
+                asChild
+              >
+                <a href="mailto:contact@limitlessconcepts.com" aria-label="Email">
+                  <Mail className="w-5 h-5" />
+                </a>
               </Button>
             </div>
           </div>
 
-          <div>
+          <nav aria-label="Learning navigation">
             <h4 className="font-semibold text-foreground mb-4">Learning</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><button className="hover:text-primary transition-colors text-left">Courses</button></li>
-              <li><button className="hover:text-primary transition-colors text-left">Community</button></li>
-              <li><button className="hover:text-primary transition-colors text-left">Coaching</button></li>
-              <li><button className="hover:text-primary transition-colors text-left">Downloads</button></li>
+              <li><a href="/courses" className="hover:text-primary transition-colors">Courses</a></li>
+              <li><a href="/community" className="hover:text-primary transition-colors">Community</a></li>
+              <li><a href="/coaching" className="hover:text-primary transition-colors">Coaching</a></li>
+              <li><a href="/downloads" className="hover:text-primary transition-colors">Downloads</a></li>
             </ul>
-          </div>
+          </nav>
 
-          <div>
+          <nav aria-label="Support navigation">
             <h4 className="font-semibold text-foreground mb-4">Support</h4>
             <ul className="space-y-2 text-muted-foreground">
-              <li><button className="hover:text-primary transition-colors text-left">Help Center</button></li>
-              <li><button className="hover:text-primary transition-colors text-left">Contact Us</button></li>
-              <li><button className="hover:text-primary transition-colors text-left">Privacy Policy</button></li>
-              <li><button className="hover:text-primary transition-colors text-left">Terms of Service</button></li>
+              <li><a href="/help" className="hover:text-primary transition-colors">Help Center</a></li>
+              <li><a href="/contact" className="hover:text-primary transition-colors">Contact Us</a></li>
+              <li><a href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</a></li>
+              <li><a href="/terms" className="hover:text-primary transition-colors">Terms of Service</a></li>
             </ul>
-          </div>
+          </nav>
         </div>
 
         <div className="border-t border-border mt-8 pt-8 text-center">

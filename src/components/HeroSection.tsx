@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Star, Play } from "lucide-react";
+import { OptimizedImage } from "@/components/OptimizedImage";
 import heroImage from "@/assets/business-education-hero.jpg";
 import { T, useTranslation } from "@/contexts/TranslationContext";
 
@@ -77,12 +78,12 @@ const HeroSection = () => {
         <div className="relative max-w-5xl mx-auto mb-20">
           <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-card via-card to-muted shadow-2xl animate-float border border-border/50">
             <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent z-10"></div>
-            <img 
+            <OptimizedImage
               src={heroImage} 
               alt={translate("Professional business education workspace")} 
               className="w-full h-auto aspect-video object-cover"
-              loading="lazy"
-              decoding="async"
+              enableLazyLoading={false}
+              enableWebP={true}
             />
             <div className="absolute inset-0 flex items-center justify-center z-20">
               <Button size="lg" className="rounded-full w-24 h-24 bg-primary/90 backdrop-blur-sm hover:bg-primary shadow-2xl hover:shadow-accent-glow-strong animate-pulse-glow border-4 border-white/20 transition-all duration-300 hover:scale-110">

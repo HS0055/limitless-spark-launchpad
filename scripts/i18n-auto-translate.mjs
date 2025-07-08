@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs/promises';
+import { mkdirSync } from 'node:fs';
+import { dirname } from 'node:path';
 import glob from 'fast-glob';
 import OpenAI from 'openai';
 
@@ -21,7 +23,13 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 try {
-  const base = JSON.parse(await fs.readFile('locales/en/common.json', 'utf8'));
+  let base = {};
+  try {
+    base = JSON.parse(await fs.readFile('locales/en/common.json', 'utf8'));
+  } catch (error) {
+    console.log('⚠️  No en/common.json found. Run i18n:scan first.');
+    process.exit(0);
+  }
   const baseKeys = Object.keys(base);
   
   if (baseKeys.length === 0) {
@@ -32,7 +40,14 @@ try {
   for (const locale of locales) {
     console.log(`\n🌍 Translating to ${languageNames[locale]}...`);
     const path = `locales/${locale}/common.json`;
-    const json = JSON.parse(await fs.readFile(path, 'utf8'));
+    
+    let json = {};
+    try {
+      json = JSON.parse(await fs.readFile(path, 'utf8'));
+    } catch (error) {
+      // Create directory if it doesn't exist
+      mkdirSync(dirname(path), { recursive: true });
+    }
     
     let translated = 0;
     
