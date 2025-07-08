@@ -192,6 +192,8 @@ serve(async (req) => {
               source_language: 'en',
               page_path: item.page_path,
               is_active: true
+            }, {
+              onConflict: 'original_text,target_language,page_path'
             });
 
             // Mark as completed
@@ -341,7 +343,7 @@ async function translateWithAI(text: string, targetLanguage: string, pagePath: s
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4.1-2025-04-14',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
