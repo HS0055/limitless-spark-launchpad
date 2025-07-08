@@ -53,6 +53,9 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   useEffect(() => {
     if (currentLanguage !== 'en') {
       loadTranslationsForPage();
+    } else {
+      // Clear translations when switching to English
+      setTranslations({});
     }
   }, [currentLanguage]);
 

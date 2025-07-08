@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from "@/contexts/TranslationContext";
 import { Button } from "@/components/ui/button";
 import { 
   Trophy, Target, Users, Star, Zap, Clock, Award, CheckCircle, 
@@ -19,7 +19,7 @@ import { AIVisualGenerator } from '@/components/AIVisualGenerator';
 
 const Home = () => {
   const { user, loading } = useAuth();
-  const { t } = useLanguage();
+  const { translate } = useTranslation();
   const navigate = useNavigate();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);

@@ -17,7 +17,7 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
   
   const [isTranslating, setIsTranslating] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(
-    translationContext.currentLanguage || languageContext.language
+    translationContext.currentLanguage
   );
   
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -51,8 +51,7 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
           return;
         }
         
-        // Use seamless translation instead of hiding body
-        languageContext.setLanguage(newLang as any);
+        // Use only TranslationContext to avoid conflicts
         translationContext.setLanguage(newLang);
         
         // Trigger seamless translation for dynamic content
