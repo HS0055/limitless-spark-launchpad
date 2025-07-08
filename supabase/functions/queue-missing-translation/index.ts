@@ -63,7 +63,7 @@ serve(async (req) => {
 
     // If this is a high-priority key (short text), translate immediately
     if (fallback.length <= 50) {
-      await translateImmediately(key, fallback, lng, supabase);
+      await translateImmediately(key, fallback, lng, page_path || '/', supabase);
     }
 
     return new Response('Queued for translation', { 
@@ -84,6 +84,7 @@ async function translateImmediately(
   key: string, 
   fallback: string, 
   lng: string, 
+  page_path: string,
   supabase: any
 ) {
   try {
@@ -92,15 +93,6 @@ async function translateImmediately(
       console.warn('No OpenAI API key available for immediate translation');
       return;
     }
-
-    const languageNames = {
-      de: 'German',
-      ru: 'Russian',
-      es: 'Spanish',
-      fr: 'French'
-    };
-
-    const targetLanguage = languageNames[lng as keyof typeof languageNames] || lng;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -113,7 +105,7 @@ async function translateImmediately(
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator. Translate the given text to ${targetLanguage}. Return only the translation, no quotes or explanations. Maintain the same tone and style.`
+            content: `You are a professional translator. Translate the given text to language code "${lng}". Return only the translation, no quotes or explanations. Maintain the same tone and style.`
           },
           {
             role: 'user',
@@ -142,10 +134,10 @@ async function translateImmediately(
         translated_text: translation,
         target_language: lng,
         source_language: 'en',
-        page_path: page_path || '/',
+        page_path: page_path,
         is_active: true
       }, {
-        onConflict: 'original_text,target_language'
+        onConflict: 'original_text,target_language,page_path'
       });
 
     if (error) {

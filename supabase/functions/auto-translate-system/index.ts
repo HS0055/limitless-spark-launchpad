@@ -79,94 +79,11 @@ serve(async (req) => {
   }
 
   try {
-    const { mode = 'scan', pagePath = '/', maxTextsPerBatch = 50, targetLanguages = null } = await req.json();
+    const { mode = 'continuous-monitor', maxTextsPerBatch = 50, targetLanguages = null } = await req.json();
 
-    console.log(`🔍 Auto-translate started: mode=${mode}, path=${pagePath}`);
+    console.log(`🔍 Auto-translate started: mode=${mode}`);
 
-    if (mode === 'scan') {
-      // Get current page content or scan all pages
-      const pageContent = await scanPageContent(pagePath);
-      const detectedTexts = await detectTranslatableContent(pageContent);
-      
-      const languagesToProcess = targetLanguages || ALL_LANGUAGES.map(l => l.code);
-      console.log(`📝 Detected ${detectedTexts.length} texts, processing ${languagesToProcess.length} languages`);
-
-      // Find missing translations
-      const missingTranslations = await findMissingTranslations(detectedTexts, languagesToProcess, pagePath);
-      console.log(`🚨 Found ${missingTranslations.length} missing translations`);
-
-      // Auto-translate missing content in batches
-      const results = await batchAutoTranslate(missingTranslations, maxTextsPerBatch);
-
-      return new Response(JSON.stringify({
-        success: true,
-        pagePath,
-        detectedTexts: detectedTexts.length,
-        missingTranslations: missingTranslations.length,
-        translated: results.translated,
-        failed: results.failed,
-        languages: languagesToProcess,
-        results: results.details
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-
-    } else if (mode === 'full-site-scan') {
-      // Scan and translate entire website
-      const allPages = ['/', '/league', '/visual-business', '/meme-coins', '/ai-tools', '/dashboard', '/settings', '/community'];
-      const languagesToProcess = targetLanguages || ALL_LANGUAGES.map(l => l.code);
-      
-      let totalDetected = 0;
-      let totalMissing = 0;
-      let totalTranslated = 0;
-      const pageResults = [];
-
-      for (const page of allPages) {
-        try {
-          console.log(`🔍 Scanning page: ${page}`);
-          const pageContent = await scanPageContent(page);
-          const detectedTexts = await detectTranslatableContent(pageContent);
-          const missingTranslations = await findMissingTranslations(detectedTexts, languagesToProcess, page);
-          
-          if (missingTranslations.length > 0) {
-            const results = await batchAutoTranslate(missingTranslations, maxTextsPerBatch);
-            totalTranslated += results.translated;
-            
-            pageResults.push({
-              page,
-              detected: detectedTexts.length,
-              missing: missingTranslations.length,
-              translated: results.translated,
-              failed: results.failed
-            });
-          }
-
-          totalDetected += detectedTexts.length;
-          totalMissing += missingTranslations.length;
-          
-        } catch (error) {
-          console.error(`Error scanning page ${page}:`, error);
-          pageResults.push({
-            page,
-            error: error.message
-          });
-        }
-      }
-
-      return new Response(JSON.stringify({
-        success: true,
-        mode: 'full-site-scan',
-        totalPages: allPages.length,
-        totalDetected,
-        totalMissing,
-        totalTranslated,
-        languages: languagesToProcess,
-        pageResults
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-
-    } else if (mode === 'continuous-monitor') {
+    if (mode === 'continuous-monitor') {
       // Continuous background translation service
       const languagesToProcess = targetLanguages || ALL_LANGUAGES.map(l => l.code);
       
@@ -230,7 +147,7 @@ serve(async (req) => {
       });
     }
 
-    throw new Error('Invalid mode. Use: scan, full-site-scan, or continuous-monitor');
+    throw new Error('Invalid mode. Use: continuous-monitor');
 
   } catch (error) {
     console.error('❌ Auto-translate error:', error);
@@ -243,97 +160,6 @@ serve(async (req) => {
     });
   }
 });
-
-async function scanPageContent(pagePath: string): Promise<string> {
-  // For now, we'll use a set of common translatable strings
-  // In a real implementation, this would fetch the actual page content
-  const commonStrings = [
-    'Home', 'About', 'Contact', 'Services', 'Products', 'Login', 'Register', 'Dashboard',
-    'Settings', 'Profile', 'Help', 'Support', 'FAQ', 'Privacy Policy', 'Terms of Service',
-    'Get Started', 'Learn More', 'Sign Up', 'Sign In', 'Log Out', 'Save', 'Cancel', 'Delete',
-    'Edit', 'View', 'Search', 'Filter', 'Sort', 'Previous', 'Next', 'Continue', 'Submit',
-    'Welcome', 'Hello', 'Thank you', 'Please', 'Yes', 'No', 'OK', 'Close', 'Open',
-    'New', 'Create', 'Add', 'Remove', 'Update', 'Refresh', 'Loading', 'Error', 'Success'
-  ];
-  
-  return commonStrings.join('\n');
-}
-
-async function detectTranslatableContent(content: string): Promise<string[]> {
-  const lines = content.split('\n').filter(line => line.trim().length > 0);
-  return [...new Set(lines)]; // Remove duplicates
-}
-
-async function findMissingTranslations(texts: string[], languages: string[], pagePath: string) {
-  const missingTranslations = [];
-  
-  for (const text of texts) {
-    for (const lang of languages) {
-      const { data: existing } = await supabase
-        .from('website_translations')
-        .select('id')
-        .eq('original_text', text)
-        .eq('target_language', lang)
-        .eq('page_path', pagePath)
-        .eq('is_active', true)
-        .single();
-
-      if (!existing) {
-        missingTranslations.push({
-          text,
-          language: lang,
-          pagePath
-        });
-      }
-    }
-  }
-  
-  return missingTranslations;
-}
-
-async function batchAutoTranslate(missingTranslations: any[], maxTexts: number) {
-  const batch = missingTranslations.slice(0, maxTexts);
-  let translated = 0;
-  let failed = 0;
-  const details = [];
-
-  for (const item of batch) {
-    try {
-      const translatedText = await translateWithAI(item.text, item.language, item.pagePath);
-      
-      await supabase.from('website_translations').upsert({
-        original_text: item.text,
-        translated_text: translatedText,
-        target_language: item.language,
-        source_language: 'en',
-        page_path: item.pagePath,
-        is_active: true
-      });
-
-      translated++;
-      details.push({
-        original: item.text,
-        translated: translatedText,
-        language: item.language,
-        status: 'success'
-      });
-
-      console.log(`✅ ${item.text} → ${item.language}: ${translatedText}`);
-      
-    } catch (error) {
-      failed++;
-      details.push({
-        original: item.text,
-        language: item.language,
-        status: 'failed',
-        error: error.message
-      });
-      console.error(`❌ Failed: ${item.text} → ${item.language}`, error);
-    }
-  }
-
-  return { translated, failed, details };
-}
 
 async function translateWithAI(text: string, targetLanguage: string, pagePath: string): Promise<string> {
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
