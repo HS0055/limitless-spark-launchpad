@@ -77,8 +77,7 @@ export const AutoTranslateProvider = ({ children, config = {} }: AutoTranslatePr
           }
         }
       } catch (error) {
-        // Silent fail - don't crash the app for translation issues
-        console.debug('Auto-translate processing error:', error);
+        console.error('Auto-translate processing error:', error);
       }
     };
 
@@ -130,8 +129,7 @@ export const AutoTranslateProvider = ({ children, config = {} }: AutoTranslatePr
       });
       console.log('✅ Full site scan completed');
     } catch (error) {
-      // Silent fail - don't crash the app for scan issues
-      console.debug('Full site scan error:', error);
+      console.error('Full site scan error:', error);
     }
   };
 

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { useTranslation } from '@/contexts/EnhancedTranslationContext';
+import { useTranslation } from '@/contexts/TranslationContext';
 
 interface DebouncedLanguageSwitch {
   switchLanguage: (newLang: string) => void;

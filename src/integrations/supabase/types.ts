@@ -789,45 +789,6 @@ export type Database = {
         }
         Relationships: []
       }
-      translation_reports: {
-        Row: {
-          created_at: string
-          current_translation: string
-          id: string
-          original_text: string
-          page_path: string
-          status: string
-          suggested_translation: string | null
-          target_language: string
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          current_translation: string
-          id?: string
-          original_text: string
-          page_path: string
-          status?: string
-          suggested_translation?: string | null
-          target_language: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          current_translation?: string
-          id?: string
-          original_text?: string
-          page_path?: string
-          status?: string
-          suggested_translation?: string | null
-          target_language?: string
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       translations: {
         Row: {
           created_at: string

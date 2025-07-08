@@ -311,28 +311,21 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
 
   const reportTranslation = async (originalText: string, currentTranslation: string, suggestedTranslation?: string) => {
     try {
-      // Use direct API call since table hasn't been added to types yet
-      const response = await fetch('https://mbwieeegglyprxoncckdj.supabase.co/rest/v1/translation_reports', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1id2llZWdnbHlwcnhvbmNja2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzE3MzQsImV4cCI6MjA2NzM0NzczNH0.mSp5jZo9OgsP7xRYueRqUH9GyXiqoERbnoR2JHWnjPk'
-        },
-        body: JSON.stringify({
+      await supabase
+        .from('translation_reports')
+        .insert({
           original_text: originalText,
           current_translation: currentTranslation,
           suggested_translation: suggestedTranslation,
           target_language: currentLanguage,
           page_path: window.location.pathname,
-          user_id: null
-        })
-      });
+          user_id: null // We can add user tracking later
+        });
 
-      if (response.ok) {
-        // Queue for re-translation
-        await handleMissingKey(originalText, currentLanguage);
-        console.log('Translation reported successfully');
-      }
+      // Queue for re-translation
+      await handleMissingKey(originalText, currentLanguage);
+      
+      console.log('Translation reported successfully');
     } catch (error) {
       console.error('Failed to report translation:', error);
     }

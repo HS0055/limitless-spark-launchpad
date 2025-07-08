@@ -188,8 +188,7 @@ export const useStringDetection = (config: StringDetectionConfig) => {
       });
 
     } catch (error) {
-      // Silent fail - don't crash the app for translation queueing issues
-      console.debug('Failed to queue detected strings:', error);
+      console.error('Failed to queue detected strings:', error);
     }
   };
 
