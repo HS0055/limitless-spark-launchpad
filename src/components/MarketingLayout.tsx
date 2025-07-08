@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useTranslation } from '@/contexts/TranslationContext';
+import { useTranslation } from '@/contexts/EnhancedTranslationContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
