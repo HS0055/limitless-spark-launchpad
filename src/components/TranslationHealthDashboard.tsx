@@ -96,13 +96,18 @@ export const TranslationHealthDashboard = () => {
       }
       
       if (data?.success) {
-        console.log('Batch translation result:', data);
+        console.log('✅ Batch translation result:', data);
+        if (data.processed > 0) {
+          console.log(`🎉 Processed ${data.processed} translations`);
+        } else {
+          console.log('📭 Translation queue is empty');
+        }
         setTimeout(fetchStats, 2000); // Refresh after 2 seconds
       } else {
-        console.error('Batch translation failed:', data?.error);
+        console.error('❌ Batch translation failed:', data?.error);
       }
     } catch (error) {
-      console.error('Batch translation error:', error);
+      console.error('❌ Batch translation error:', error);
     }
   };
 
