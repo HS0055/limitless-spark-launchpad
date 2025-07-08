@@ -83,10 +83,29 @@ Add these to your `package.json`:
     "i18n:scan": "node scripts/i18n-scan.js",
     "i18n:validate": "./scripts/validate-i18n.sh",
     "i18n:check": "npm run i18n:scan && npm run i18n:validate",
+    "i18n:batch": "node scripts/i18n-batch-translate.mjs",
+    "i18n:queue-status": "node scripts/i18n-queue-status.mjs",
     "prebuild": "npm run i18n:check"
   }
 }
 ```
+
+## Batch Translation Commands
+
+### `npm run i18n:batch`
+Processes pending translations from the queue:
+- Fetches pending items from `translation_queue` table
+- Calls AI translation service via edge function
+- Updates translations in the database
+- Reports success/failure statistics
+
+### `npm run i18n:queue-status`
+Shows translation system health in CLI:
+- Queue statistics (pending/completed/failed)
+- Language coverage metrics
+- Recent activity log
+- System health indicators
+- Actionable recommendations
 
 ## CI/CD Integration
 
