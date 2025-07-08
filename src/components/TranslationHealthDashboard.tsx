@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts';
-import { RefreshCw, AlertTriangle, CheckCircle, Clock, Zap } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle, Clock, Zap, Play } from 'lucide-react';
 
 interface TranslationStats {
   pending: number;
@@ -86,6 +86,26 @@ export const TranslationHealthDashboard = () => {
     }
   };
 
+  const runBatchTranslation = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('run-batch-translation');
+      
+      if (error) {
+        console.error('Failed to run batch translation:', error);
+        return;
+      }
+      
+      if (data?.success) {
+        console.log('Batch translation result:', data);
+        setTimeout(fetchStats, 2000); // Refresh after 2 seconds
+      } else {
+        console.error('Batch translation failed:', data?.error);
+      }
+    } catch (error) {
+      console.error('Batch translation error:', error);
+    }
+  };
+
   useEffect(() => {
     fetchStats();
     // Auto-refresh every 30 seconds
@@ -128,7 +148,11 @@ export const TranslationHealthDashboard = () => {
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
           </Button>
-          <Button onClick={triggerAutoTranslate} variant="default" size="sm">
+          <Button onClick={runBatchTranslation} variant="default" size="sm">
+            <Play className="h-4 w-4 mr-2" />
+            Запустить пакет
+          </Button>
+          <Button onClick={triggerAutoTranslate} variant="outline" size="sm">
             <Zap className="h-4 w-4 mr-2" />
             Process Queue
           </Button>
