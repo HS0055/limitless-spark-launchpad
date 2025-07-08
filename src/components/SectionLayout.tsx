@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/contexts/TranslationContext';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -24,7 +24,7 @@ interface SectionLayoutProps {
 
 const SectionLayout = ({ children, sectionName, sectionIcon: SectionIcon, sectionColor }: SectionLayoutProps) => {
   const { user, signOut, loading } = useAuth();
-  const { t } = useLanguage();
+  const { translate } = useTranslation();
   const location = useLocation();
 
   if (loading) {
@@ -32,7 +32,7 @@ const SectionLayout = ({ children, sectionName, sectionIcon: SectionIcon, sectio
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">{t('common.loading')}</p>
+          <p className="text-muted-foreground">{translate('common.loading')}</p>
         </div>
       </div>
     );
@@ -47,7 +47,7 @@ const SectionLayout = ({ children, sectionName, sectionIcon: SectionIcon, sectio
               <SectionIcon className="w-8 h-8 text-primary-foreground" />
             </div>
             <h1 className="text-3xl font-bold mb-2">{sectionName}</h1>
-            <p className="text-muted-foreground">{t('common.signIn')} to access this section</p>
+            <p className="text-muted-foreground">{translate('common.signIn')} to access this section</p>
           </div>
           <LoginForm />
         </div>

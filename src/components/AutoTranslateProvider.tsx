@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/contexts/TranslationContext';
 import { useLocation } from 'react-router-dom';
 
 export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
-  const { language } = useLanguage();
+  const { currentLanguage } = useTranslation();
   const location = useLocation();
 
   console.log('🔄 AutoTranslateProvider initialized for:', location.pathname);
@@ -13,12 +13,12 @@ export const AutoTranslateProvider = ({ children }: { children: React.ReactNode 
     console.log('🌐 Route changed to:', location.pathname);
     
     // Only translate on route changes if language is not English
-    if (language !== 'en') {
+    if (currentLanguage !== 'en') {
       const timer = setTimeout(async () => {
         try {
           const { translationEngine } = await import('@/lib/translationEngine');
           console.log('🔄 Re-translating page content for route change...');
-          await translationEngine.translateAll(language);
+          await translationEngine.translateAll(currentLanguage as any);
         } catch (error) {
           console.error('Failed to translate on route change:', error);
         }

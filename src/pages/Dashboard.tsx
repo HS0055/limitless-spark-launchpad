@@ -1,5 +1,5 @@
 import { useAuth } from '@/components/auth/AuthProvider';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from '@/contexts/TranslationContext';
 import { LoginForm } from '@/components/auth/LoginForm';
 import { Button } from '@/components/ui/button';
 import { Brain } from 'lucide-react';
@@ -14,7 +14,7 @@ import DashboardSidebar from '@/components/dashboard/DashboardSidebar';
 
 const Dashboard = () => {
   const { user, loading } = useAuth();
-  const { t } = useLanguage();
+  const { translate } = useTranslation();
   
   // Mock data for demonstration - ready content
   const mockMentalModels = [
@@ -124,14 +124,14 @@ const Dashboard = () => {
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div>
               <h1 className="text-4xl font-display font-bold mb-2">
-                {t('dashboard.welcome')} <span className="text-gradient">Thinker!</span>
+                {translate('dashboard.welcome')} <span className="text-gradient">Thinker!</span>
               </h1>
-              <p className="text-xl text-muted-foreground">{t('dashboard.subtitle')}</p>
+              <p className="text-xl text-muted-foreground">{translate('dashboard.subtitle')}</p>
             </div>
             <div className="flex items-center gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-primary">{learningStats.streakDays}</div>
-                <div className="text-sm text-muted-foreground">{t('dashboard.dayStreak')} 🔥</div>
+                <div className="text-sm text-muted-foreground">{translate('dashboard.dayStreak')} 🔥</div>
               </div>
             </div>
           </div>

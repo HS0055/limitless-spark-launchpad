@@ -1,5 +1,4 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
-import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/contexts/TranslationContext';
 
 interface DebouncedLanguageSwitch {
@@ -12,7 +11,6 @@ interface DebouncedLanguageSwitch {
 const DEBOUNCE_DELAY = 300; // ms
 
 export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
-  const languageContext = useLanguage();
   const translationContext = useTranslation();
   
   const [isTranslating, setIsTranslating] = useState(false);
@@ -78,7 +76,7 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
       }
     }, DEBOUNCE_DELAY);
     
-  }, [languageContext, translationContext]);
+  }, [translationContext]);
 
   // Cleanup on unmount
   useEffect(() => {
