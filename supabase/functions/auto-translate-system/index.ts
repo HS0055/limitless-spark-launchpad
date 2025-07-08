@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.50.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -79,7 +79,8 @@ serve(async (req) => {
   }
 
   try {
-    const { mode = 'continuous-monitor', maxTextsPerBatch = 50, targetLanguages = null } = await req.json();
+    const body = await req.json().catch(() => ({}));
+    const { mode = 'continuous-monitor', maxTextsPerBatch = 50, targetLanguages = null } = body;
 
     console.log(`🔍 Auto-translate started: mode=${mode}`);
 

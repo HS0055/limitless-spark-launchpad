@@ -38,19 +38,31 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Store missing key for batch processing
+    // Store missing key for batch processing - check if already exists first
+    const { data: existing } = await supabase
+      .from('translation_queue')
+      .select('id')
+      .eq('target_language', lng)
+      .eq('original_text', key)
+      .eq('status', 'pending')
+      .single();
+
+    if (existing) {
+      console.log(`Key already queued: ${lng}:${key}`);
+      return new Response('Already queued', { 
+        status: 200,
+        headers: corsHeaders 
+      });
+    }
+
     const { error: insertError } = await supabase
       .from('translation_queue')
-      .upsert({
+      .insert({
         target_language: lng,
         original_text: key,
         fallback_text: fallback,
         page_path: page_path || '/',
-        status: 'pending',
-        created_at: new Date().toISOString()
-      }, {
-        onConflict: 'target_language,original_text',
-        ignoreDuplicates: true
+        status: 'pending'
       });
 
     if (insertError) {
