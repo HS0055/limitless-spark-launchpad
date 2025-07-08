@@ -386,10 +386,10 @@ const Home = () => {
         <div className="content-container relative z-10">
           <div className="section-header">
             <h2 className="section-title animate-slide-up">
-              Why <span className="text-gradient">10,000+ Professionals</span> Choose Us
+              {translate("Why")} <span className="text-gradient">{translate("10,000+ Professionals")}</span> {translate("Choose Us")}
             </h2>
             <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              Experience the future of business education with our revolutionary visual learning platform
+              {translate("Experience the future of business education with our revolutionary visual learning platform")}
             </p>
           </div>
 
@@ -414,10 +414,10 @@ const Home = () => {
         <div className="content-container relative">
           <div className="section-header">
             <h2 className="section-title animate-slide-up">
-              Visualize Your <span className="text-gradient">Success</span>
+              {translate("Visualize Your")} <span className="text-gradient">{translate("Success")}</span>
             </h2>
             <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              AI-powered visual learning that transforms complex concepts into memorable experiences
+              {translate("AI-powered visual learning that transforms complex concepts into memorable experiences")}
             </p>
           </div>
 
@@ -473,18 +473,17 @@ const Home = () => {
             <div className="space-y-6">
               <div className="inline-flex items-center bg-red-500/10 text-red-600 px-6 py-3 rounded-full border border-red-500/20">
                 <Clock className="w-5 h-5 mr-2" />
-                <span className="font-bold">Limited Time Opportunity</span>
+                <span className="font-bold">{translate("Limited Time Opportunity")}</span>
               </div>
               
               <h2 className="text-4xl md:text-6xl font-display font-bold leading-tight">
-                Your Competition is
+                {translate("Your Competition is")}
                 <br />
-                <span className="text-gradient">Learning Right Now</span>
+                <span className="text-gradient">{translate("Learning Right Now")}</span>
               </h2>
               
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                While you're thinking about it, thousands of professionals are already advancing their careers. 
-                Don't let this moment pass—your future self will thank you.
+                {translate("While you're thinking about it, thousands of professionals are already advancing their careers. Don't let this moment pass—your future self will thank you.")}
               </p>
             </div>
 
@@ -492,20 +491,20 @@ const Home = () => {
               {[
                 { 
                   number: "2,847", 
-                  text: "Students enrolled this week", 
-                  subtext: "Join them before spots fill up",
+                  text: translate("Students enrolled this week"), 
+                  subtext: translate("Join them before spots fill up"),
                   color: "text-green-500"
                 },
                 { 
                   number: "94%", 
-                  text: "Got promoted within 6 months", 
-                  subtext: "Real results, real careers",
+                  text: translate("Got promoted within 6 months"), 
+                  subtext: translate("Real results, real careers"),
                   color: "text-blue-500"
                 },
                 { 
                   number: "48hrs", 
-                  text: "Left to claim your FREE access", 
-                  subtext: "After that, it's $97/month",
+                  text: translate("Left to claim your FREE access"), 
+                  subtext: translate("After that, it's $97/month"),
                   color: "text-red-500"
                 }
               ].map((stat, index) => (
@@ -544,10 +543,10 @@ const Home = () => {
         <div className="content-container">
           <div className="section-header">
             <h2 className="section-title animate-slide-up">
-              Trusted by <span className="text-gradient">Industry Leaders</span>
+              {translate("Trusted by")} <span className="text-gradient">{translate("Industry Leaders")}</span>
             </h2>
             <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              Join professionals from Fortune 500 companies who've transformed their careers
+              {translate("Join professionals from Fortune 500 companies who've transformed their careers")}
             </p>
           </div>
 

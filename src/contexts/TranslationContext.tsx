@@ -41,11 +41,14 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const [translations, setTranslations] = useState<Record<string, Translation>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load user's language preference from localStorage
+  // Load user's language preference from localStorage and DOM
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('preferred-language');
+    const savedLanguage = localStorage.getItem('preferred-language') || 
+                          document.documentElement.lang ||
+                          'en';
     if (savedLanguage && availableLanguages.find(l => l.code === savedLanguage)) {
       setCurrentLanguage(savedLanguage);
+      document.documentElement.lang = savedLanguage;
     }
   }, []);
 
@@ -94,6 +97,9 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const setLanguage = (lang: string) => {
     setCurrentLanguage(lang);
     localStorage.setItem('preferred-language', lang);
+    
+    // Force DOM update to persist language across route changes
+    document.documentElement.lang = lang;
     
     // OPTIMISTIC UPDATE: Immediately update UI, no page reload
     // Background translation will happen via AutoTranslateProvider
