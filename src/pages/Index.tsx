@@ -146,7 +146,7 @@ const Index = () => {
             {/* Urgency Badge */}
             <div className="inline-flex items-center bg-red-500/10 text-red-600 px-6 py-3 rounded-full border border-red-500/20 animate-pulse">
               <Clock className="w-5 h-5 mr-2" />
-              <span className="font-bold">CAREER ACCELERATION: Limited Time 70% OFF!</span>
+              <span className="font-bold"><T>CAREER ACCELERATION: Limited Time 70% OFF!</T></span>
             </div>
             
             <h1 className="text-5xl lg:text-7xl font-black leading-tight">
@@ -181,14 +181,14 @@ const Index = () => {
               >
                 <span className="flex items-center gap-3">
                   <GraduationCap className="w-6 h-6 group-hover:animate-bounce" />
-                  START YOUR CEO TRANSFORMATION FREE
+                  <T>START YOUR CEO TRANSFORMATION FREE</T>
                   <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                 </span>
               </Button>
               
-              <p className="text-sm text-muted-foreground">
-                🎓 MBA-Level Education • 💼 No Degree Required • ⚡ Start Today
-              </p>
+                <p className="text-sm text-muted-foreground">
+                  🎓 <T>MBA-Level Education</T> • 💼 <T>No Degree Required</T> • ⚡ <T>Start Today</T>
+                </p>
             </div>
           </div>
         </div>
@@ -203,10 +203,10 @@ const Index = () => {
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-6">
               <Trophy className="w-10 h-10 inline-block mr-3 text-yellow-500" />
-              Business Fundamentals <span className="text-blue-500">League</span>
+              <T>Business Fundamentals</T> <span className="text-blue-500"><T>League</T></span>
             </h2>
             <p className="text-xl text-muted-foreground">
-              Compete with fellow entrepreneurs and win real prizes while mastering business skills
+              <T>Compete with fellow entrepreneurs and win real prizes while mastering business skills</T>
             </p>
           </div>
 
@@ -368,10 +368,10 @@ const Index = () => {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-6">
-              Master What <span className="text-blue-500">Top Executives</span> Know
+              <T>Master What</T> <span className="text-blue-500"><T>Top Executives</T></span> <T>Know</T>
             </h2>
             <p className="text-xl text-muted-foreground">
-              The same strategic frameworks taught in $200,000 MBA programs, now accessible to you
+              <T>The same strategic frameworks taught in $200,000 MBA programs, now accessible to you</T>
             </p>
           </div>
 
@@ -400,10 +400,10 @@ const Index = () => {
         <div className="max-w-6xl mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold mb-6">
-              Real Results from <span className="text-green-500">Real Professionals</span>
+              <T>Real Results from</T> <span className="text-green-500"><T>Real Professionals</T></span>
             </h2>
             <p className="text-xl text-muted-foreground">
-              See how business fundamentals transformed these careers in months, not years
+              <T>See how business fundamentals transformed these careers in months, not years</T>
             </p>
           </div>
 
@@ -446,18 +446,17 @@ const Index = () => {
           <div className="space-y-6">
             <div className="inline-flex items-center bg-red-500/10 text-red-600 px-6 py-3 rounded-full border border-red-500/20">
               <Clock className="w-5 h-5 mr-2" />
-              <span className="font-bold">Your Competition Is Already Learning</span>
+              <span className="font-bold"><T>Your Competition Is Already Learning</T></span>
             </div>
             
             <h2 className="text-4xl md:text-6xl font-display font-bold leading-tight">
-              Don't Let This
+              <T>Don't Let This</T>
               <br />
-              <span className="text-gradient">Moment Pass</span>
+              <span className="text-gradient"><T>Moment Pass</T></span>
             </h2>
             
             <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Every day you wait, someone else is getting the promotion, the raise, or starting the business you've been dreaming about. 
-              Your future self will thank you for starting today.
+              <T>Every day you wait, someone else is getting the promotion, the raise, or starting the business you've been dreaming about. Your future self will thank you for starting today.</T>
             </p>
           </div>
 
@@ -465,15 +464,15 @@ const Index = () => {
             onClick={handleJoinNow}
             className="bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white text-xl px-12 py-6 rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 group animate-pulse"
           >
-            <span className="flex items-center gap-3">
-              <Award className="w-6 h-6 group-hover:animate-bounce" />
-              TRANSFORM YOUR CAREER NOW - FREE
-              <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-            </span>
+              <span className="flex items-center gap-3">
+                <Award className="w-6 h-6 group-hover:animate-bounce" />
+                <T>TRANSFORM YOUR CAREER NOW - FREE</T>
+                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+              </span>
           </Button>
           
           <p className="text-sm text-muted-foreground">
-            ⚡ Instant access • 🎯 No risk • 🚀 Start your transformation today
+            ⚡ <T>Instant access</T> • 🎯 <T>No risk</T> • 🚀 <T>Start your transformation today</T>
           </p>
         </div>
       </section>
