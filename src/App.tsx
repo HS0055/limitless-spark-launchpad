@@ -5,8 +5,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
-import { TranslationProvider } from "@/contexts/TranslationContext";
-import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
+import { TranslationProvider } from "@/contexts/EnhancedTranslationContext";
+import { AutoTranslateProvider } from "@/components/EnhancedAutoTranslateProvider";
 import { Suspense, lazy } from "react";
 
 // Core pages (loaded immediately)
@@ -31,6 +31,7 @@ const BugTracker = lazy(() => import("./pages/BugTracker"));
 const ContentDetector = lazy(() => import("./pages/ContentDetector"));
 const GlobalVisualEditor = lazy(() => import("@/components/visual-editor/VisualEditor").then(module => ({ default: module.VisualEditor })));
 const TranslationHealthDashboard = lazy(() => import("./components/TranslationHealthDashboard").then(module => ({ default: module.TranslationHealthDashboard })));
+const ComprehensiveI18nDemo = lazy(() => import("./components/ComprehensiveI18nDemo"));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -91,6 +92,7 @@ const AppContent = () => {
               <Route path="/ai-content-studio" element={<AIContentStudio />} />
               <Route path="/content-detector" element={<ContentDetector />} />
               <Route path="/translation-health" element={<TranslationHealthDashboard />} />
+              <Route path="/i18n-demo" element={<ComprehensiveI18nDemo />} />
               <Route path="/bug-tracker" element={<BugTracker />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin" element={<AdminPanel />} />
