@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Import with createRequire to handle ES modules
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
 import glob from 'fast-glob';
 import { readFileSync, writeFileSync } from 'node:fs';
 
