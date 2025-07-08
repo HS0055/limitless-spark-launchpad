@@ -69,7 +69,13 @@ const AppContent = () => {
       {/* PerformanceMonitor disabled by default for production performance */}
       {process.env.NODE_ENV === 'development' && <PerformanceMonitor />}
       <BrowserRouter>
-        <AutoTranslateProvider>
+        <AutoTranslateProvider config={{
+          enabled: true,
+          interval: 5, // Check every 5 minutes
+          maxTextsPerBatch: 30,
+          enabledLanguages: ['hy', 'ru', 'es', 'fr', 'de', 'zh', 'ja', 'ko', 'ar', 'pt', 'it', 'nl', 'pl', 'tr', 'hi', 'th', 'vi', 'sv', 'da', 'no', 'fi', 'he', 'id', 'ms', 'uk', 'cs', 'sk', 'ro', 'bg', 'hr', 'sr', 'sl', 'et', 'lv', 'lt', 'hu', 'mt', 'ga', 'cy', 'is', 'mk', 'sq', 'eu', 'ca', 'gl', 'sw', 'zu', 'af', 'bn', 'gu', 'kn', 'ml', 'mr', 'pa', 'ta', 'te', 'ur'],
+          enableFullSiteScan: false // Set to true for comprehensive scanning
+        }}>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Home />} />

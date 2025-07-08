@@ -29,7 +29,55 @@ const availableLanguages = [
   { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
   { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
   { code: 'ko', name: 'Korean', flag: '🇰🇷' },
-  { code: 'ar', name: 'Arabic', flag: '🇸🇦' }
+  { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
+  { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
+  { code: 'it', name: 'Italian', flag: '🇮🇹' },
+  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
+  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
+  { code: 'tr', name: 'Turkish', flag: '🇹🇷' },
+  { code: 'hi', name: 'Hindi', flag: '🇮🇳' },
+  { code: 'th', name: 'Thai', flag: '🇹🇭' },
+  { code: 'vi', name: 'Vietnamese', flag: '🇻🇳' },
+  { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
+  { code: 'da', name: 'Danish', flag: '🇩🇰' },
+  { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
+  { code: 'fi', name: 'Finnish', flag: '🇫🇮' },
+  { code: 'he', name: 'Hebrew', flag: '🇮🇱' },
+  { code: 'id', name: 'Indonesian', flag: '🇮🇩' },
+  { code: 'ms', name: 'Malay', flag: '🇲🇾' },
+  { code: 'uk', name: 'Ukrainian', flag: '🇺🇦' },
+  { code: 'cs', name: 'Czech', flag: '🇨🇿' },
+  { code: 'sk', name: 'Slovak', flag: '🇸🇰' },
+  { code: 'ro', name: 'Romanian', flag: '🇷🇴' },
+  { code: 'bg', name: 'Bulgarian', flag: '🇧🇬' },
+  { code: 'hr', name: 'Croatian', flag: '🇭🇷' },
+  { code: 'sr', name: 'Serbian', flag: '🇷🇸' },
+  { code: 'sl', name: 'Slovenian', flag: '🇸🇮' },
+  { code: 'et', name: 'Estonian', flag: '🇪🇪' },
+  { code: 'lv', name: 'Latvian', flag: '🇱🇻' },
+  { code: 'lt', name: 'Lithuanian', flag: '🇱🇹' },
+  { code: 'hu', name: 'Hungarian', flag: '🇭🇺' },
+  { code: 'mt', name: 'Maltese', flag: '🇲🇹' },
+  { code: 'ga', name: 'Irish', flag: '🇮🇪' },
+  { code: 'cy', name: 'Welsh', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
+  { code: 'is', name: 'Icelandic', flag: '🇮🇸' },
+  { code: 'mk', name: 'Macedonian', flag: '🇲🇰' },
+  { code: 'sq', name: 'Albanian', flag: '🇦🇱' },
+  { code: 'eu', name: 'Basque', flag: '🏴󠁥󠁳󠁰󠁶󠁿' },
+  { code: 'ca', name: 'Catalan', flag: '🏴󠁥󠁳󠁣󠁴󠁿' },
+  { code: 'gl', name: 'Galician', flag: '🏴󠁥󠁳󠁧󠁡󠁿' },
+  { code: 'sw', name: 'Swahili', flag: '🇰🇪' },
+  { code: 'zu', name: 'Zulu', flag: '🇿🇦' },
+  { code: 'af', name: 'Afrikaans', flag: '🇿🇦' },
+  { code: 'bn', name: 'Bengali', flag: '🇧🇩' },
+  { code: 'gu', name: 'Gujarati', flag: '🇮🇳' },
+  { code: 'kn', name: 'Kannada', flag: '🇮🇳' },
+  { code: 'ml', name: 'Malayalam', flag: '🇮🇳' },
+  { code: 'mr', name: 'Marathi', flag: '🇮🇳' },
+  { code: 'pa', name: 'Punjabi', flag: '🇮🇳' },
+  { code: 'ta', name: 'Tamil', flag: '🇮🇳' },
+  { code: 'te', name: 'Telugu', flag: '🇮🇳' },
+  { code: 'ur', name: 'Urdu', flag: '🇵🇰' }
 ];
 
 interface TranslationProviderProps {
@@ -60,6 +108,18 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
       // Clear translations when switching to English
       setTranslations({});
     }
+  }, [currentLanguage]);
+
+  // Listen for translation updates from auto-translate system
+  useEffect(() => {
+    const handleTranslationUpdate = () => {
+      if (currentLanguage !== 'en') {
+        loadTranslationsForPage();
+      }
+    };
+
+    window.addEventListener('translations-updated', handleTranslationUpdate);
+    return () => window.removeEventListener('translations-updated', handleTranslationUpdate);
   }, [currentLanguage]);
 
   const loadTranslationsForPage = async () => {
