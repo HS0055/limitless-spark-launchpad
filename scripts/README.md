@@ -1,71 +1,96 @@
-# i18n Automation Setup
+# Translation System Scripts
 
-## Required Package.json Scripts
+This directory contains scripts for managing the intelligent translation system.
 
-Add these scripts to your `package.json`:
+## Scripts
+
+### `validate-i18n.sh`
+Pre-commit hook that validates translation files:
+- Checks for empty strings in JSON files
+- Validates JSON syntax  
+- Reports missing translation keys across languages
+
+**Usage:**
+```bash
+chmod +x scripts/validate-i18n.sh
+./scripts/validate-i18n.sh
+```
+
+### `i18n-scan.js`
+Advanced scanner that analyzes codebase for i18n keys:
+- Extracts keys from translate() calls and <T> components
+- Compares code keys with translation files
+- Reports missing and unused translations
+- Validates translation health
+
+**Usage:**
+```bash
+node scripts/i18n-scan.js
+```
+
+## Git Hook Setup
+
+To automatically validate translations before commits:
+
+```bash
+# Make scripts executable
+chmod +x scripts/validate-i18n.sh
+
+# Add to .git/hooks/pre-commit
+echo "#!/bin/bash\n./scripts/validate-i18n.sh" > .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
+```
+
+## Manual Translation Processing
+
+To manually trigger translation processing:
+
+```bash
+# Scan for new keys
+node scripts/i18n-scan.js
+
+# Process translation queue (via curl)
+curl -X POST "https://mbwieeegglyprxoncckdj.supabase.co/functions/v1/auto-translate-system" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d '{"mode": "continuous-monitor", "maxTextsPerBatch": 20}'
+```
+
+## Translation Health Dashboard
+
+Visit `/translation-health` to monitor:
+- 📊 Pending/completed/failed translations
+- 🌍 Active language coverage  
+- ⚡ Recent AI translations
+- 🔍 System health status
+- 🚀 Manual queue processing
+
+## Best Practices
+
+1. **Static translations first**: Add commonly used keys to `/locales/{lang}/` JSON files
+2. **Auto-translate for new content**: Let AI system handle dynamic content  
+3. **Regular validation**: Run i18n-scan.js before releases
+4. **Monitor health**: Use Translation Health Dashboard (`/translation-health`)
+5. **Git hooks**: Prevent empty translations from being committed
+
+## Package.json Scripts
+
+Add these to your `package.json`:
 
 ```json
 {
   "scripts": {
     "i18n:scan": "node scripts/i18n-scan.js",
-    "i18n:fill": "node scripts/i18n-auto-translate.mjs",
-    "i18n:check": "node scripts/i18n-check.js",
-    "i18n:sync": "npm run i18n:scan && npm run i18n:fill",
-    "i18n:batch": "node scripts/i18n-batch-translate.mjs",
-    "prebuild": "npm run i18n:check",
-    "postbuild": "npm run i18n:batch"
+    "i18n:validate": "./scripts/validate-i18n.sh",
+    "i18n:check": "npm run i18n:scan && npm run i18n:validate",
+    "prebuild": "npm run i18n:check"
   }
 }
 ```
 
-## Usage
-
-1. **Scan for translatable strings:**
-   ```bash
-   npm run i18n:scan
-   ```
-
-2. **Auto-translate missing keys:**
-   ```bash
-   export OPENAI_API_KEY=sk-your-key-here
-   npm run i18n:fill
-   ```
-
-4. **Full synchronization (scan + translate):**
-   ```bash
-   export OPENAI_API_KEY=sk-your-key-here
-   npm run i18n:sync
-   ```
-
-5. **Check completeness:**
-   ```bash
-   npm run i18n:check
-   ```
-
-6. **Process queued missing translations:**
-   ```bash
-   npm run i18n:batch
-   ```
-
-## Real-time Missing Key Handler
-
-The system now includes a real-time missing key detection system:
-
-- **Production**: Missing translations are automatically queued and translated via AI
-- **Development**: Missing keys logged to console for immediate feedback
-- **Batch Processing**: Run `npm run i18n:batch` to process all queued translations
-- **Database**: Queue stored in `translation_queue` table with status tracking
-
-## Features
-
-- Automatically finds all `<T>text</T>` components and `t('key')` calls
-- Creates locale files for en/de/ru  
-- Auto-translates missing keys using OpenAI GPT-4o-mini
-- Real-time missing key detection and queueing in production
-- Validates completeness before build
-- Sorts keys alphabetically for better maintainability
-
 ## CI/CD Integration
 
-The `prebuild` script automatically checks translation completeness. Build will fail if any translations are missing.
-The `postbuild` script processes any missing translations that were queued during runtime.
+- **Pre-commit**: `validate-i18n.sh` prevents broken translations
+- **Pre-build**: `i18n:check` validates translation health
+- **Runtime**: Auto-translate system handles missing keys in real-time
+- **Monitoring**: Translation Health Dashboard provides oversight
