@@ -753,6 +753,42 @@ export type Database = {
         }
         Relationships: []
       }
+      translation_queue: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          fallback_text: string | null
+          id: string
+          original_text: string
+          page_path: string | null
+          status: string
+          target_language: string
+          translated_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          fallback_text?: string | null
+          id?: string
+          original_text: string
+          page_path?: string | null
+          status?: string
+          target_language: string
+          translated_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          fallback_text?: string | null
+          id?: string
+          original_text?: string
+          page_path?: string | null
+          status?: string
+          target_language?: string
+          translated_at?: string | null
+        }
+        Relationships: []
+      }
       translations: {
         Row: {
           created_at: string

@@ -122,8 +122,40 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
       return translations[partialMatch].translated_text;
     }
 
-    // If no translation found, return original text
+    // If no translation found, queue for missing key handler
+    handleMissingKey(cleanText, currentLanguage);
+    
+    // Return original text as fallback
     return text;
+  };
+
+  const handleMissingKey = async (key: string, lng: string) => {
+    // Only queue in production and for non-English languages
+    if (process.env.NODE_ENV !== 'production' || lng === 'en') {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[i18n] Missing translation: ${lng}:${key}`);
+      }
+      return;
+    }
+
+    try {
+      await fetch('https://mbwieeegglyprxoncckdj.supabase.co/functions/v1/queue-missing-translation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1id2llZWdnbHlwcnhvbmNja2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzE3MzQsImV4cCI6MjA2NzM0NzczNH0.mSp5jZo9OgsP7xRYueRqUH9GyXiqoERbnoR2JHWnjPk'
+        },
+        body: JSON.stringify({
+          key,
+          fallback: key,
+          lng,
+          page_path: window.location.pathname
+        })
+      });
+    } catch (error) {
+      // Silent fail - don't block UI for translation queue errors
+      console.debug('Failed to queue missing translation:', error);
+    }
   };
 
   return (

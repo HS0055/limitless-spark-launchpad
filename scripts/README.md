@@ -11,7 +11,9 @@ Add these scripts to your `package.json`:
     "i18n:fill": "node scripts/i18n-auto-translate.mjs",
     "i18n:check": "node scripts/i18n-check.js",
     "i18n:sync": "npm run i18n:scan && npm run i18n:fill",
-    "prebuild": "npm run i18n:check"
+    "i18n:batch": "node scripts/i18n-batch-translate.mjs",
+    "prebuild": "npm run i18n:check",
+    "postbuild": "npm run i18n:batch"
   }
 }
 ```
@@ -29,25 +31,41 @@ Add these scripts to your `package.json`:
    npm run i18n:fill
    ```
 
-3. **Full synchronization (scan + translate):**
+4. **Full synchronization (scan + translate):**
    ```bash
    export OPENAI_API_KEY=sk-your-key-here
    npm run i18n:sync
    ```
 
-4. **Check completeness:**
+5. **Check completeness:**
    ```bash
    npm run i18n:check
    ```
 
+6. **Process queued missing translations:**
+   ```bash
+   npm run i18n:batch
+   ```
+
+## Real-time Missing Key Handler
+
+The system now includes a real-time missing key detection system:
+
+- **Production**: Missing translations are automatically queued and translated via AI
+- **Development**: Missing keys logged to console for immediate feedback
+- **Batch Processing**: Run `npm run i18n:batch` to process all queued translations
+- **Database**: Queue stored in `translation_queue` table with status tracking
+
 ## Features
 
 - Automatically finds all `<T>text</T>` components and `t('key')` calls
-- Creates locale files for en/de/ru
+- Creates locale files for en/de/ru  
 - Auto-translates missing keys using OpenAI GPT-4o-mini
+- Real-time missing key detection and queueing in production
 - Validates completeness before build
 - Sorts keys alphabetically for better maintainability
 
 ## CI/CD Integration
 
 The `prebuild` script automatically checks translation completeness. Build will fail if any translations are missing.
+The `postbuild` script processes any missing translations that were queued during runtime.
