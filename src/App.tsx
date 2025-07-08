@@ -29,6 +29,7 @@ const WebEditor = lazy(() => import("./pages/WebEditor"));
 const AIContentStudio = lazy(() => import("./pages/AIContentStudio"));
 const BugTracker = lazy(() => import("./pages/BugTracker"));
 const ContentDetector = lazy(() => import("./pages/ContentDetector"));
+const WebsiteScraper = lazy(() => import("./pages/WebsiteScraper"));
 const GlobalVisualEditor = lazy(() => import("@/components/visual-editor/VisualEditor").then(module => ({ default: module.VisualEditor })));
 const TranslationHealthDashboard = lazy(() => import("./components/TranslationHealthDashboard").then(module => ({ default: module.TranslationHealthDashboard })));
 
@@ -90,6 +91,7 @@ const AppContent = () => {
               <Route path="/web-editor" element={<WebEditor />} />
               <Route path="/ai-content-studio" element={<AIContentStudio />} />
               <Route path="/content-detector" element={<ContentDetector />} />
+              <Route path="/website-scraper" element={<WebsiteScraper />} />
               <Route path="/translation-health" element={<TranslationHealthDashboard />} />
               <Route path="/bug-tracker" element={<BugTracker />} />
               <Route path="/dashboard" element={<Dashboard />} />
