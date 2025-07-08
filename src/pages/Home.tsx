@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useTranslation } from "@/contexts/TranslationContext";
+import { useTranslation } from "@/contexts/EnhancedTranslationContext";
 import { Button } from "@/components/ui/button";
 import { 
   Trophy, Target, Users, Star, Zap, Clock, Award, CheckCircle, 
