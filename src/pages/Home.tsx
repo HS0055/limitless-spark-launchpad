@@ -85,20 +85,20 @@ const Home = () => {
   const features = [
     {
       icon: Target,
-      title: "Visual Learning Revolution", 
-      description: "Master complex business concepts through stunning visual content designed by learning experts and cognitive scientists.",
+      title: translate("Visual Learning Revolution"), 
+      description: translate("Master complex business concepts through stunning visual content designed by learning experts and cognitive scientists."),
       gradient: "from-primary/20 to-accent/10"
     },
     {
       icon: Zap,
-      title: "Micro-Learning Magic", 
-      description: "Transform your career with bite-sized 5-minute lessons that fit perfectly into your busy professional schedule.",
+      title: translate("Micro-Learning Magic"), 
+      description: translate("Transform your career with bite-sized 5-minute lessons that fit perfectly into your busy professional schedule."),
       gradient: "from-accent-secondary/20 to-accent-tertiary/10"
     },
     {
       icon: Award,
-      title: "Gamified Achievement", 
-      description: "Unlock leagues, earn prestigious certificates, and build an impressive professional portfolio that stands out.",
+      title: translate("Gamified Achievement"), 
+      description: translate("Unlock leagues, earn prestigious certificates, and build an impressive professional portfolio that stands out."),
       gradient: "from-accent-tertiary/20 to-primary/10"
     }
   ];
@@ -106,31 +106,31 @@ const Home = () => {
   const stats = [
     { 
       number: "10,000+", 
-      label: "Success Stories", 
+      label: translate("Success Stories"), 
       icon: Users, 
       color: "text-primary",
-      description: "Professionals transformed"
+      description: translate("Professionals transformed")
     },
     { 
       number: "4.97★", 
-      label: "Expert Rating", 
+      label: translate("Expert Rating"), 
       icon: Star, 
       color: "text-accent-tertiary",
-      description: "Based on 2,847 reviews"
+      description: translate("Based on 2,847 reviews")
     },
     { 
       number: "5 min", 
-      label: "Average Lesson", 
+      label: translate("Average Lesson"), 
       icon: Clock, 
       color: "text-accent-secondary",
-      description: "Perfect for busy schedules"
+      description: translate("Perfect for busy schedules")
     },
     { 
       number: "92%", 
-      label: "Career Growth", 
+      label: translate("Career Growth"), 
       icon: TrendingUp, 
       color: "text-primary",
-      description: "Within 6 months"
+      description: translate("Within 6 months")
     }
   ];
 
@@ -255,12 +255,12 @@ const Home = () => {
               `
             }}
           >
-            Master Business
+            {translate("Master Business")}
             <br />
             <span className="relative">
-              Like a
+              {translate("Like a")}
               <span className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-accent-secondary/20 blur-xl animate-pulse" />
-              <span className="relative"> Pro</span>
+              <span className="relative"> {translate("Pro")}</span>
             </span>
           </h1>
           
@@ -272,9 +272,8 @@ const Home = () => {
               transform: `translateZ(${mousePosition.y * 5}px)`
             }}
           >
-            Join <span className="text-primary font-bold">10,000+ professionals</span> who 
-            mastered business fundamentals through our 
-            <span className="text-accent-secondary font-bold"> revolutionary visual learning system</span>
+            {translate("Join")} <span className="text-primary font-bold">{translate("10,000+ professionals")}</span> {translate("who mastered business fundamentals through our")} 
+            <span className="text-accent-secondary font-bold"> {translate("revolutionary visual learning system")}</span>
           </p>
 
           {/* Benefit Pills */}
@@ -317,7 +316,7 @@ const Home = () => {
               
               <span className="relative z-10 flex items-center gap-4">
                 <Rocket className="w-6 h-6 group-hover:animate-bounce" />
-                Start Your Journey FREE
+                {translate("Start Your Journey FREE")}
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
               </span>
             </Button>
@@ -332,8 +331,8 @@ const Home = () => {
                   <Play className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
                 </div>
                 <div className="text-left">
-                  <div className="text-lg font-bold">Watch Success Stories</div>
-                  <div className="text-sm text-muted-foreground">2 min preview</div>
+                  <div className="text-lg font-bold">{translate("Watch Success Stories")}</div>
+                  <div className="text-sm text-muted-foreground">{translate("2 min preview")}</div>
                 </div>
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -782,16 +781,15 @@ const Home = () => {
                 WebkitTextFillColor: 'transparent'
               }}
             >
-              Ready to Transform
+              {translate("Ready to Transform")}
               <br />
-              Your Career?
+              {translate("Your Career?")} 
             </h2>
             
             <p className="text-2xl text-muted-foreground mb-12 leading-relaxed animate-fade-in" style={{ animationDelay: '0.3s' }}>
-              Join <span className="text-primary font-bold">10,000+ successful professionals</span> who 
-              accelerated their careers with our proven system.
+              {translate("Join")} <span className="text-primary font-bold">{translate("10,000+ successful professionals")}</span> {translate("who accelerated their careers with our proven system.")}
               <br />
-              <span className="text-accent-secondary font-bold">Start your journey today - completely FREE!</span>
+              <span className="text-accent-secondary font-bold">{translate("Start your journey today - completely FREE!")}</span>
             </p>
 
             <div className="flex flex-col items-center gap-8 mb-12">
