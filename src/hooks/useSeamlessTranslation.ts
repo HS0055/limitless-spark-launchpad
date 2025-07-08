@@ -67,46 +67,33 @@ export const useSeamlessTranslation = (): SeamlessTranslationHook => {
 
   // Generate content fingerprint
   const generateFingerprint = useCallback((text: string, context: string): string => {
-    // Use a simple hash instead of btoa to handle Unicode characters
-    const input = text + context;
-    let hash = 0;
-    for (let i = 0; i < input.length; i++) {
-      const char = input.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
-    }
-    return Math.abs(hash).toString(36).substring(0, 16);
+    return btoa(text + context).replace(/[^a-zA-Z0-9]/g, '').substring(0, 16);
   }, []);
 
   // Extract all translatable content
   const extractTranslatableContent = useCallback(() => {
     const contentMap = new Map<string, { element: Element; originalText: string; context: string }>();
     
-    // More comprehensive text content extraction
+    // Text content
     const textNodes = document.createTreeWalker(
       document.body,
       NodeFilter.SHOW_TEXT,
       {
         acceptNode: (node) => {
           const text = node.textContent?.trim() || '';
-          if (text.length < 1) return NodeFilter.FILTER_REJECT;
+          if (text.length < 2) return NodeFilter.FILTER_REJECT;
           
           const parent = node.parentElement;
           if (!parent) return NodeFilter.FILTER_REJECT;
           
-          // Skip script, style, code elements and hidden elements
+          // Skip script, style, code elements
           const tagName = parent.tagName.toLowerCase();
           if (['script', 'style', 'code', 'pre', 'noscript'].includes(tagName)) {
             return NodeFilter.FILTER_REJECT;
           }
           
-          // Skip if parent has data-no-translate
-          if (parent.hasAttribute('data-no-translate') || parent.closest('[data-no-translate]')) {
-            return NodeFilter.FILTER_REJECT;
-          }
-          
-          // Only skip very specific patterns (not general text)
-          if (/^[\s\-_•]+$|^[{}[\]()]+$|^[&<>]+$/.test(text)) {
+          // Skip if text looks like code, IDs, or classes
+          if (/^[a-z-_]+$|^[A-Z_]+$|^\d+$|^#|^\.|^\//.test(text)) {
             return NodeFilter.FILTER_REJECT;
           }
           
@@ -119,10 +106,6 @@ export const useSeamlessTranslation = (): SeamlessTranslationHook => {
     while (node = textNodes.nextNode()) {
       const element = node.parentElement!;
       const text = node.textContent!.trim();
-      
-      // Skip empty or whitespace-only text
-      if (!text || text.length === 0) continue;
-      
       const context = `${element.tagName.toLowerCase()}-${element.className || 'text'}`;
       const fingerprint = generateFingerprint(text, context);
       
