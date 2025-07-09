@@ -1,6 +1,14 @@
 {
-  "programs": "Программы",
-  "visual": "Визуальный", 
+  "home": "Главная",
+  "programs": "Программы", 
   "business": "Бизнес",
+  "memeCoins": "Мем Коины",
+  "visual": "Визуальный",
+  "aiTools": "ИИ Инструменты",
+  "webEditor": "Веб Редактор",
+  "aiStudio": "ИИ Студия", 
+  "pythonTools": "Python Инструменты",
+  "community": "Сообщество",
+  "pricing": "Цены",
   "getStarted": "Начать"
 }

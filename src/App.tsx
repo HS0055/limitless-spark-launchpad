@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
+import { useTranslation } from "react-i18next";
 import { Suspense, lazy } from "react";
 
 // Core pages (loaded immediately)
@@ -63,6 +64,19 @@ const queryClient = new QueryClient({
 // App content with global text editor
 const AppContent = () => {
   const { userRole } = useAuth();
+  const { ready } = useTranslation();
+  
+  // Prevent flash of untranslated keys
+  if (!ready) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-muted-foreground">Loading translations...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="min-h-screen bg-background">
