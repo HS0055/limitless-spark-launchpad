@@ -7,10 +7,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const supabase = createClient(
-  Deno.env.get('SUPABASE_URL') ?? '',
-  Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-);
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Missing required Supabase environment variables');
+}
+
+if (!openaiApiKey) {
+  throw new Error('OPENAI_API_KEY environment variable not set');
+}
+
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 // All supported languages
 const ALL_LANGUAGES = [
@@ -163,10 +172,12 @@ serve(async (req) => {
 });
 
 async function translateWithAI(text: string, targetLanguage: string, pagePath: string): Promise<string> {
+  console.log(`🔄 Translating "${text.substring(0, 50)}..." to ${targetLanguage}`);
+  
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+      'Authorization': `Bearer ${openaiApiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
