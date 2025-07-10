@@ -563,7 +563,7 @@ class TranslationEngine {
     );
 
     let node;
-    while (node = walker.nextNode() && uncachedTexts.length < 30) { // Limit to 30 items max
+    while ((node = walker.nextNode()) && uncachedTexts.length < 30) { // Limit to 30 items max
       const text = node.textContent?.trim();
       if (text && !seenTexts.has(text) && !this.cache[text]?.[targetLang]) {
         // Super strict filtering to reduce API costs
