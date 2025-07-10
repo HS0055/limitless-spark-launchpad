@@ -1,35 +1,27 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import ICU from 'i18next-icu';
+import en from '../../locales/en/common.json';
+import de from '../../locales/de/common.json';
+import ru from '../../locales/ru/common.json';
 
-interface Translation {
-  original_text: string;
-  translated_text: string;
-  target_language: string;
-  page_path: string;
-}
+const localTranslations: Record<string, Record<string, string>> = {
+  en,
+  de,
+  ru
+};
 
 interface TranslationContextType {
   currentLanguage: string;
   setLanguage: (lang: string) => void;
   translate: (text: string) => string;
   availableLanguages: { code: string; name: string; flag: string }[];
-  isLoading: boolean;
 }
 
 const TranslationContext = createContext<TranslationContextType | undefined>(undefined);
 
 const availableLanguages = [
   { code: 'en', name: 'English', flag: '🇺🇸' },
-  { code: 'hy', name: 'Armenian', flag: '🇦🇲' },
-  { code: 'ru', name: 'Russian', flag: '🇷🇺' },
-  { code: 'es', name: 'Spanish', flag: '🇪🇸' },
-  { code: 'fr', name: 'French', flag: '🇫🇷' },
   { code: 'de', name: 'German', flag: '🇩🇪' },
-  { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
-  { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
-  { code: 'ko', name: 'Korean', flag: '🇰🇷' },
-  { code: 'ar', name: 'Arabic', flag: '🇸🇦' }
+  { code: 'ru', name: 'Russian', flag: '🇷🇺' }
 ];
 
 interface TranslationProviderProps {
@@ -38,8 +30,7 @@ interface TranslationProviderProps {
 
 export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const [currentLanguage, setCurrentLanguage] = useState('en');
-  const [translations, setTranslations] = useState<Record<string, Translation>>({});
-  const [isLoading, setIsLoading] = useState(false);
+  const [translations, setTranslations] = useState<Record<string, string>>({});
 
   // Load user's language preference from localStorage
   useEffect(() => {
@@ -51,43 +42,10 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
 
   // Load translations when language changes
   useEffect(() => {
-    if (currentLanguage !== 'en') {
-      loadTranslationsForPage();
-    }
+    const localMap = localTranslations[currentLanguage] || {};
+    setTranslations(localMap);
   }, [currentLanguage]);
 
-  const loadTranslationsForPage = async () => {
-    setIsLoading(true);
-    try {
-      const currentPath = window.location.pathname;
-      
-      const { data, error } = await supabase
-        .from('website_translations')
-        .select('original_text, translated_text, target_language, page_path')
-        .eq('target_language', currentLanguage)
-        .eq('page_path', currentPath)
-        .eq('is_active', true);
-
-      if (error) {
-        console.error('Failed to load translations:', error);
-        return;
-      }
-
-      // Create a lookup map for fast translation
-      const translationMap: Record<string, Translation> = {};
-      if (data) {
-        data.forEach(translation => {
-          translationMap[translation.original_text] = translation;
-        });
-      }
-
-      setTranslations(translationMap);
-    } catch (error) {
-      console.error('Translation loading error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const setLanguage = (lang: string) => {
     setCurrentLanguage(lang);
@@ -108,7 +66,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     
     // Look for exact match first
     if (translations[cleanText]) {
-      return translations[cleanText].translated_text;
+      return translations[cleanText];
     }
 
     // Try to find partial matches for common phrases
@@ -119,7 +77,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     );
 
     if (partialMatch && translations[partialMatch]) {
-      return translations[partialMatch].translated_text;
+      return translations[partialMatch];
     }
 
     // If no translation found, queue for missing key handler
@@ -129,32 +87,9 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
     return text;
   };
 
-  const handleMissingKey = async (key: string, lng: string) => {
-    // Only queue in production and for non-English languages
-    if (process.env.NODE_ENV !== 'production' || lng === 'en') {
-      if (process.env.NODE_ENV === 'development') {
-        console.warn(`[i18n] Missing translation: ${lng}:${key}`);
-      }
-      return;
-    }
-
-    try {
-      await fetch('https://mbwieeegglyprxoncckdj.supabase.co/functions/v1/queue-missing-translation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1id2llZWdnbHlwcnhvbmNja2RqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzE3MzQsImV4cCI6MjA2NzM0NzczNH0.mSp5jZo9OgsP7xRYueRqUH9GyXiqoERbnoR2JHWnjPk'
-        },
-        body: JSON.stringify({
-          key,
-          fallback: key,
-          lng,
-          page_path: window.location.pathname
-        })
-      });
-    } catch (error) {
-      // Silent fail - don't block UI for translation queue errors
-      console.debug('Failed to queue missing translation:', error);
+  const handleMissingKey = (key: string, lng: string) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`[i18n] Missing translation: ${lng}:${key}`);
     }
   };
 
@@ -163,8 +98,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
       currentLanguage,
       setLanguage,
       translate,
-      availableLanguages,
-      isLoading
+      availableLanguages
     }}>
       {children}
     </TranslationContext.Provider>
