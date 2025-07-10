@@ -1,49 +1,35 @@
-import { useAutoTranslateSystem } from '@/hooks/useAutoTranslateSystem';
 import { useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useLocation } from 'react-router-dom';
 
-interface AutoTranslateProviderProps {
-  children: React.ReactNode;
-  config?: {
-    enabled?: boolean;
-    interval?: number;
-    maxTextsPerBatch?: number;
-    enabledLanguages?: string[];
-    enableFullSiteScan?: boolean;
-  };
-}
+export const AutoTranslateProvider = ({ children }: { children: React.ReactNode }) => {
+  const { language } = useLanguage();
+  const location = useLocation();
 
-export const AutoTranslateProvider = ({ children, config = {} }: AutoTranslateProviderProps) => {
-  const autoTranslate = useAutoTranslateSystem(config);
+  console.log('🔄 AutoTranslateProvider initialized for:', location.pathname);
 
-  // Initialize auto-translation system
+  // PERFORMANCE FIX: Only trigger on route changes, language changes handled by useDebouncedLanguageSwitch
   useEffect(() => {
-    console.log('🤖 Auto-translate system initialized');
+    console.log('🌐 Route changed to:', location.pathname);
     
-    // Listen for translation updates
-    const handleTranslationUpdate = () => {
-      console.log('🔄 Translations updated - reloading page translations');
-      // Force reload of current language translations
-      window.location.reload();
-    };
+    // Only translate on route changes if language is not English
+    if (language !== 'en') {
+      const timer = setTimeout(async () => {
+        try {
+          const { translationEngine } = await import('@/lib/translationEngine');
+          console.log('🔄 Re-translating page content for route change...');
+          await translationEngine.translateAll(language);
+        } catch (error) {
+          console.error('Failed to translate on route change:', error);
+        }
+      }, 500); // Reduced delay since language switches are handled separately
 
-    window.addEventListener('translations-updated', handleTranslationUpdate);
-
-    // Optional: Run full site scan on first load (enable in production carefully)
-    if (config.enableFullSiteScan) {
-      const timer = setTimeout(() => {
-        autoTranslate.scanFullSite();
-      }, 10000); // Wait 10 seconds before full scan
-
-      return () => {
-        clearTimeout(timer);
-        window.removeEventListener('translations-updated', handleTranslationUpdate);
-      };
+      return () => clearTimeout(timer);
     }
+  }, [location.pathname]); // REMOVED language dependency to prevent conflicts
 
-    return () => {
-      window.removeEventListener('translations-updated', handleTranslationUpdate);
-    };
-  }, [autoTranslate, config.enableFullSiteScan]);
+  // REMOVED: Language change handling is now done by useDebouncedLanguageSwitch
+  // This prevents multiple simultaneous translation triggers
 
   return <>{children}</>;
 };

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { useTranslation } from '@/contexts/TranslationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Link, useNavigate } from 'react-router-dom';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -20,7 +20,7 @@ interface PublicLayoutProps {
 
 const PublicLayout = ({ children, sectionName, sectionIcon: SectionIcon, sectionColor }: PublicLayoutProps) => {
   const { user, signOut, loading } = useAuth();
-  const { translate } = useTranslation();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const handleAuthAction = () => {

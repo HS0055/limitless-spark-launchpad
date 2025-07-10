@@ -2,41 +2,47 @@ import { Button } from "@/components/ui/button";
 import { Star, Play } from "lucide-react";
 import { OptimizedImage } from "@/components/OptimizedImage";
 import heroImage from "@/assets/business-education-hero.jpg";
-import { useTranslation } from "react-i18next";
+import { T, useTranslation } from "@/contexts/TranslationContext";
 
 const HeroSection = () => {
-  const { t } = useTranslation('hero');
+  const { translate } = useTranslation();
   return (
     <section className="content-section pt-24">
       <div className="content-container">
         <div className="section-header">
           <div className="inline-flex items-center bg-primary/10 backdrop-blur-sm rounded-full px-6 py-3 mb-8 border border-primary/20">
-            <span className="text-sm font-semibold text-primary">🏆 {t('subtitle')}</span>
+            <span className="text-sm font-semibold text-primary">🏆 <T>Business Fundamentals League</T></span>
           </div>
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-display font-bold mb-8 leading-[1.1] tracking-tight">
-            {t('title')}
+            <T>Master business skills with</T>
+            <br />
+            <span className="text-gradient bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent"><T>TopOne Academy</T></span>
           </h1>
           
           <div className="max-w-4xl mx-auto space-y-6 mb-12">
             <p className="text-xl md:text-2xl text-muted-foreground leading-relaxed font-medium">
-              {t('subtitle', { count: 10000 })}
+              <T>Join the Business Fundamentals League and gain confidence through visual learning</T>
+            </p>
+            <p className="text-lg md:text-xl text-muted-foreground leading-relaxed">
+              <T>Transform your business skills with</T>{" "}
+              <span className="text-primary font-semibold"><T>bite-sized visual lessons</T></span> <T>designed to make complex concepts simple and actionable.</T>
             </p>
             <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground/80 pt-4">
               <div className="flex items-center gap-2 bg-card/50 rounded-full px-4 py-2 border border-border">
                 <span className="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
-                <span>{t('features.progress', { ns: 'common' })}</span>
+                <span><T>More leagues unlocking soon</T></span>
               </div>
             </div>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
             <Button className="btn-hero text-lg px-10 py-5 h-auto font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              🚀 {t('cta')}
+              🚀 <T>Join Business League</T>
             </Button>
             <Button variant="outline" size="lg" className="text-muted-foreground border-2 border-muted hover:border-primary hover:text-primary px-8 py-3 h-auto font-medium transition-all duration-300 hover:bg-primary/5">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 bg-primary rounded-full"></div>
-                {t('watchStories')}
+                <T>Watch Preview</T>
               </div>
             </Button>
           </div>
@@ -49,22 +55,22 @@ const HeroSection = () => {
                   <div key={i} className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent border-2 border-background shadow-sm" />
                 ))}
               </div>
-              <span className="font-medium">{t('features.progress', { ns: 'common' })}</span>
+              <span className="font-medium"><T>650+ professionals</T></span>
             </div>
             <div className="w-px h-6 bg-border hidden sm:block"></div>
             <div className="flex items-center gap-2 bg-card/30 backdrop-blur-sm rounded-full px-6 py-3 border border-border">
               <span className="text-lg">⚡</span>
-              <span className="font-medium">{t('features.quickLessons')}</span>
+              <span className="font-medium"><T>5-minute lessons</T></span>
             </div>
             <div className="w-px h-6 bg-border hidden sm:block"></div>
             <div className="flex items-center gap-2 bg-card/30 backdrop-blur-sm rounded-full px-6 py-3 border border-border">
               <span className="text-lg">📊</span>
-              <span className="font-medium">{t('features.visualLearning')}</span>
+              <span className="font-medium"><T>100% visual</T></span>
             </div>
             <div className="w-px h-6 bg-border hidden sm:block"></div>
             <div className="flex items-center gap-2 bg-card/30 backdrop-blur-sm rounded-full px-6 py-3 border border-border">
               <span className="text-lg">🎯</span>
-              <span className="font-medium">{t('features.gamified')}</span>
+              <span className="font-medium"><T>No boring theory</T></span>
             </div>
           </div>
         </div>
@@ -74,7 +80,7 @@ const HeroSection = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent z-10"></div>
             <OptimizedImage
               src={heroImage} 
-              alt="Professional business education workspace" 
+              alt={translate("Professional business education workspace")} 
               className="w-full h-auto aspect-video object-cover"
               enableLazyLoading={false}
               enableWebP={true}
@@ -88,13 +94,13 @@ const HeroSection = () => {
             <div className="absolute top-6 right-6 bg-background/90 backdrop-blur-md rounded-xl px-4 py-3 text-sm font-semibold border border-border shadow-lg">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                📈 {t('features.progress', { ns: 'common' })}
+                📈 <T>Business Growth</T>
               </div>
             </div>
             <div className="absolute bottom-6 left-6 bg-background/90 backdrop-blur-md rounded-xl px-4 py-3 text-sm font-semibold border border-border shadow-lg">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                🎯 {t('features.visualLearning')}
+                🎯 <T>Visual Learning</T>
               </div>
             </div>
           </div>
@@ -109,12 +115,12 @@ const HeroSection = () => {
               ))}
             </div>
             <p className="text-3xl font-bold text-primary mb-2">4.97</p>
-            <p className="text-sm text-muted-foreground font-medium">{t('features.community', { ns: 'common' })}</p>
+            <p className="text-sm text-muted-foreground font-medium"><T>Average rating from 233 reviews</T></p>
           </div>
           
           <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border border-border shadow-lg hover:shadow-xl transition-all duration-300">
-            <p className="text-4xl font-bold text-primary mb-3">10,000+</p>
-            <p className="text-sm text-muted-foreground font-medium mb-4">{t('features.progress', { ns: 'common' })}</p>
+            <p className="text-4xl font-bold text-primary mb-3">650+</p>
+            <p className="text-sm text-muted-foreground font-medium mb-4"><T>Creative professionals transformed</T></p>
             <div className="flex justify-center -space-x-3">
               {[...Array(5)].map((_, i) => (
                 <div 
@@ -127,8 +133,8 @@ const HeroSection = () => {
           
           <div className="text-center p-8 rounded-2xl bg-gradient-to-br from-card/80 to-card/40 backdrop-blur-sm border border-border shadow-lg hover:shadow-xl transition-all duration-300">
             <p className="text-4xl font-bold text-primary mb-3">5 min</p>
-            <p className="text-sm text-muted-foreground font-medium">{t('features.quickLessons')}</p>
-            <p className="text-xs text-muted-foreground mt-2 opacity-80">{t('features.lifetime')}</p>
+            <p className="text-sm text-muted-foreground font-medium"><T>Average lesson length</T></p>
+            <p className="text-xs text-muted-foreground mt-2 opacity-80"><T>Perfect for busy schedules</T></p>
           </div>
         </div>
       </div>

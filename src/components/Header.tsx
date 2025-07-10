@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Icon, { IconName } from "@/components/Icon";
 import NavItem from "@/components/NavItem";
@@ -11,23 +11,23 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const { user, userRole, signOut } = useAuth();
-  const { t } = useTranslation('nav');
+  const { t } = useLanguage();
 
   const mainNavItems = [
-    { name: 'home', href: "/", icon: "Home" as IconName },
-    { name: 'programs', href: "/league", icon: "Trophy" as IconName },
-    { name: 'business', href: "/business-fundamentals", icon: "Target" as IconName },
-    { name: 'memeCoins', href: "/meme-coins", icon: "TrendingUp" as IconName },
-    { name: 'visual', href: "/visual-business", icon: "Image" as IconName },
-    { name: 'aiTools', href: "/ai-tools", icon: "BookOpen" as IconName },
-    { name: "webEditor", href: "/web-editor", icon: "Code" as IconName },
-    { name: "aiStudio", href: "/ai-content-studio", icon: "Sparkles" as IconName },
-    { name: "pythonTools", href: "/python-tools", icon: "Calculator" as IconName },
+    { name: 'nav.home', href: "/", icon: "Home" as IconName },
+    { name: 'nav.programs', href: "/league", icon: "Trophy" as IconName },
+    { name: 'nav.business', href: "/business-fundamentals", icon: "Target" as IconName },
+    { name: 'nav.memeCoins', href: "/meme-coins", icon: "TrendingUp" as IconName },
+    { name: 'nav.visual', href: "/visual-business", icon: "Image" as IconName },
+    { name: 'nav.aiTools', href: "/ai-tools", icon: "BookOpen" as IconName },
+    { name: "Web Editor", href: "/web-editor", icon: "Code" as IconName },
+    { name: "AI Studio", href: "/ai-content-studio", icon: "Sparkles" as IconName },
+    { name: "Python Tools", href: "/python-tools", icon: "Calculator" as IconName },
   ];
 
   const secondaryNavItems = [
-    { name: 'community', href: "#testimonials", icon: "Users" as IconName },
-    { name: 'pricing', href: "#pricing", icon: "DollarSign" as IconName },
+    { name: 'nav.community', href: "#testimonials", icon: "Users" as IconName },
+    { name: 'nav.pricing', href: "#pricing", icon: "DollarSign" as IconName },
   ];
 
   return (
@@ -57,9 +57,9 @@ const Header = () => {
             {/* Main Navigation */}
             <div className="flex items-center space-x-1 mr-6">
               {mainNavItems.map((item) => (
-                 <NavItem
-                   key={item.name}
-                   label={t(item.name)}
+                <NavItem
+                  key={item.name}
+                  label={item.name}
                   href={item.href}
                   icon={item.icon}
                 />
@@ -69,9 +69,9 @@ const Header = () => {
             {/* Secondary Navigation */}
             <div className="flex items-center space-x-1 border-l border-border pl-6">
               {secondaryNavItems.map((item) => (
-                 <NavItem
-                   key={item.name}
-                   label={t(item.name)}
+                <NavItem
+                  key={item.name}
+                  label={item.name}
                   href={item.href}
                   icon={item.icon}
                   isExternal={item.href.startsWith('#')}
@@ -111,16 +111,16 @@ const Header = () => {
                     <Icon name="Settings" className={`w-4 h-4 transition-colors ${
                       location.pathname === '/settings' ? 'text-primary' : 'group-hover:text-primary'
                     }`} />
-                  <span className="font-medium">{t('settings', { ns: 'common' })}</span>
+                  <span className="font-medium">{t('nav.settings')}</span>
                 </Link>
                 <Button variant="outline" onClick={signOut} className="font-medium">
-                {t('signOut', { ns: 'common' })}
+                  {t('nav.signOut')}
                 </Button>
               </>
             ) : (
               <Button className="btn-hero font-semibold px-6" asChild>
                 <Link to="/dashboard">
-                  {t('getStarted', { ns: 'common' })}
+                  {t('nav.getStarted')}
                 </Link>
               </Button>
             )}
@@ -157,7 +157,7 @@ const Header = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <Icon name={item.icon} className={`w-5 h-5 ${isActive ? 'text-primary' : ''}`} />
-                       <span className="font-medium">{t(item.name)}</span>
+                      <span className="font-medium">{item.name}</span>
                     </Link>
                   );
                 })}
@@ -178,7 +178,7 @@ const Header = () => {
                         onClick={() => setIsMenuOpen(false)}
                       >
                         <Icon name={item.icon} className="w-5 h-5" />
-                         <span className="font-medium">{t(item.name)}</span>
+                        <span className="font-medium">{item.name}</span>
                       </a>
                     );
                   }
@@ -191,7 +191,7 @@ const Header = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <Icon name={item.icon} className="w-5 h-5" />
-                      <span className="font-medium">{t(item.name)}</span>
+                      <span className="font-medium">{item.name}</span>
                     </Link>
                   );
                 })}
@@ -205,7 +205,7 @@ const Header = () => {
                 {!user ? (
                   <Button className="w-full btn-hero font-semibold py-3" asChild>
                     <Link to="/dashboard">
-                      {t('getStarted', { ns: 'common' })}
+                      {t('nav.getStarted')}
                     </Link>
                   </Button>
                  ) : (
@@ -234,7 +234,7 @@ const Header = () => {
                       onClick={() => setIsMenuOpen(false)}
                     >
                       <Icon name="Settings" className={`w-5 h-5 ${location.pathname === '/settings' ? 'text-primary' : ''}`} />
-                      <span className="font-medium">{t('settings', { ns: 'common' })}</span>
+                      <span className="font-medium">{t('nav.settings')}</span>
                     </Link>
                     <Button 
                       variant="outline" 
@@ -244,7 +244,7 @@ const Header = () => {
                         setIsMenuOpen(false);
                       }}
                     >
-                      {t('signOut', { ns: 'common' })}
+                      {t('nav.signOut')}
                     </Button>
                   </>
                 )}

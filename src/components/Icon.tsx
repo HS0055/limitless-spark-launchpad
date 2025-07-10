@@ -1,6 +1,6 @@
 import * as Icons from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useTranslation } from '@/contexts/TranslationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import React from 'react';
 
 export type IconName = keyof typeof Icons;
@@ -14,7 +14,7 @@ interface IconProps extends React.SVGProps<SVGSVGElement> {
 }
 
 const Icon = ({ name, className, size = 24, color = 'currentColor', strokeWidth = 2, ...rest }: IconProps) => {
-  const context = useTranslation(); // Triggers re-render on language switch
+  const context = useLanguage(); // Triggers re-render on language switch
   
   const LucideIcon = Icons[name] as any;
   

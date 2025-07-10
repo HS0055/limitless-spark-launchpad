@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useTranslation } from "@/contexts/TranslationContext";
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from "@/components/ui/button";
 import { 
   Trophy, Target, Users, Star, Zap, Clock, Award, CheckCircle, 
@@ -19,7 +19,7 @@ import { AIVisualGenerator } from '@/components/AIVisualGenerator';
 
 const Home = () => {
   const { user, loading } = useAuth();
-  const { translate } = useTranslation();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [scrollY, setScrollY] = useState(0);
@@ -85,20 +85,20 @@ const Home = () => {
   const features = [
     {
       icon: Target,
-      title: translate("Visual Learning Revolution"), 
-      description: translate("Master complex business concepts through stunning visual content designed by learning experts and cognitive scientists."),
+      title: "Visual Learning Revolution", 
+      description: "Master complex business concepts through stunning visual content designed by learning experts and cognitive scientists.",
       gradient: "from-primary/20 to-accent/10"
     },
     {
       icon: Zap,
-      title: translate("Micro-Learning Magic"), 
-      description: translate("Transform your career with bite-sized 5-minute lessons that fit perfectly into your busy professional schedule."),
+      title: "Micro-Learning Magic", 
+      description: "Transform your career with bite-sized 5-minute lessons that fit perfectly into your busy professional schedule.",
       gradient: "from-accent-secondary/20 to-accent-tertiary/10"
     },
     {
       icon: Award,
-      title: translate("Gamified Achievement"), 
-      description: translate("Unlock leagues, earn prestigious certificates, and build an impressive professional portfolio that stands out."),
+      title: "Gamified Achievement", 
+      description: "Unlock leagues, earn prestigious certificates, and build an impressive professional portfolio that stands out.",
       gradient: "from-accent-tertiary/20 to-primary/10"
     }
   ];
@@ -106,31 +106,31 @@ const Home = () => {
   const stats = [
     { 
       number: "10,000+", 
-      label: translate("Success Stories"), 
+      label: "Success Stories", 
       icon: Users, 
       color: "text-primary",
-      description: translate("Professionals transformed")
+      description: "Professionals transformed"
     },
     { 
       number: "4.97★", 
-      label: translate("Expert Rating"), 
+      label: "Expert Rating", 
       icon: Star, 
       color: "text-accent-tertiary",
-      description: translate("Based on 2,847 reviews")
+      description: "Based on 2,847 reviews"
     },
     { 
       number: "5 min", 
-      label: translate("Average Lesson"), 
+      label: "Average Lesson", 
       icon: Clock, 
       color: "text-accent-secondary",
-      description: translate("Perfect for busy schedules")
+      description: "Perfect for busy schedules"
     },
     { 
       number: "92%", 
-      label: translate("Career Growth"), 
+      label: "Career Growth", 
       icon: TrendingUp, 
       color: "text-primary",
-      description: translate("Within 6 months")
+      description: "Within 6 months"
     }
   ];
 
@@ -255,12 +255,12 @@ const Home = () => {
               `
             }}
           >
-            {translate("Master Business")}
+            Master Business
             <br />
             <span className="relative">
-              {translate("Like a")}
+              Like a
               <span className="absolute -inset-4 bg-gradient-to-r from-primary/20 to-accent-secondary/20 blur-xl animate-pulse" />
-              <span className="relative"> {translate("Pro")}</span>
+              <span className="relative"> Pro</span>
             </span>
           </h1>
           
@@ -272,8 +272,9 @@ const Home = () => {
               transform: `translateZ(${mousePosition.y * 5}px)`
             }}
           >
-            {translate("Join")} <span className="text-primary font-bold">{translate("10,000+ professionals")}</span> {translate("who mastered business fundamentals through our")} 
-            <span className="text-accent-secondary font-bold"> {translate("revolutionary visual learning system")}</span>
+            Join <span className="text-primary font-bold">10,000+ professionals</span> who 
+            mastered business fundamentals through our 
+            <span className="text-accent-secondary font-bold"> revolutionary visual learning system</span>
           </p>
 
           {/* Benefit Pills */}
@@ -316,7 +317,7 @@ const Home = () => {
               
               <span className="relative z-10 flex items-center gap-4">
                 <Rocket className="w-6 h-6 group-hover:animate-bounce" />
-                {translate("Start Your Journey FREE")}
+                Start Your Journey FREE
                 <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
               </span>
             </Button>
@@ -331,8 +332,8 @@ const Home = () => {
                   <Play className="w-6 h-6 text-primary group-hover:scale-110 transition-transform" />
                 </div>
                 <div className="text-left">
-                  <div className="text-lg font-bold">{translate("Watch Success Stories")}</div>
-                  <div className="text-sm text-muted-foreground">{translate("2 min preview")}</div>
+                  <div className="text-lg font-bold">Watch Success Stories</div>
+                  <div className="text-sm text-muted-foreground">2 min preview</div>
                 </div>
                 <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </div>
@@ -386,10 +387,10 @@ const Home = () => {
         <div className="content-container relative z-10">
           <div className="section-header">
             <h2 className="section-title animate-slide-up">
-              {translate("Why")} <span className="text-gradient">{translate("10,000+ Professionals")}</span> {translate("Choose Us")}
+              Why <span className="text-gradient">10,000+ Professionals</span> Choose Us
             </h2>
             <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              {translate("Experience the future of business education with our revolutionary visual learning platform")}
+              Experience the future of business education with our revolutionary visual learning platform
             </p>
           </div>
 
@@ -414,10 +415,10 @@ const Home = () => {
         <div className="content-container relative">
           <div className="section-header">
             <h2 className="section-title animate-slide-up">
-              {translate("Visualize Your")} <span className="text-gradient">{translate("Success")}</span>
+              Visualize Your <span className="text-gradient">Success</span>
             </h2>
             <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              {translate("AI-powered visual learning that transforms complex concepts into memorable experiences")}
+              AI-powered visual learning that transforms complex concepts into memorable experiences
             </p>
           </div>
 
@@ -473,17 +474,18 @@ const Home = () => {
             <div className="space-y-6">
               <div className="inline-flex items-center bg-red-500/10 text-red-600 px-6 py-3 rounded-full border border-red-500/20">
                 <Clock className="w-5 h-5 mr-2" />
-                <span className="font-bold">{translate("Limited Time Opportunity")}</span>
+                <span className="font-bold">Limited Time Opportunity</span>
               </div>
               
               <h2 className="text-4xl md:text-6xl font-display font-bold leading-tight">
-                {translate("Your Competition is")}
+                Your Competition is
                 <br />
-                <span className="text-gradient">{translate("Learning Right Now")}</span>
+                <span className="text-gradient">Learning Right Now</span>
               </h2>
               
               <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-                {translate("While you're thinking about it, thousands of professionals are already advancing their careers. Don't let this moment pass—your future self will thank you.")}
+                While you're thinking about it, thousands of professionals are already advancing their careers. 
+                Don't let this moment pass—your future self will thank you.
               </p>
             </div>
 
@@ -491,20 +493,20 @@ const Home = () => {
               {[
                 { 
                   number: "2,847", 
-                  text: translate("Students enrolled this week"), 
-                  subtext: translate("Join them before spots fill up"),
+                  text: "Students enrolled this week", 
+                  subtext: "Join them before spots fill up",
                   color: "text-green-500"
                 },
                 { 
                   number: "94%", 
-                  text: translate("Got promoted within 6 months"), 
-                  subtext: translate("Real results, real careers"),
+                  text: "Got promoted within 6 months", 
+                  subtext: "Real results, real careers",
                   color: "text-blue-500"
                 },
                 { 
                   number: "48hrs", 
-                  text: translate("Left to claim your FREE access"), 
-                  subtext: translate("After that, it's $97/month"),
+                  text: "Left to claim your FREE access", 
+                  subtext: "After that, it's $97/month",
                   color: "text-red-500"
                 }
               ].map((stat, index) => (
@@ -543,10 +545,10 @@ const Home = () => {
         <div className="content-container">
           <div className="section-header">
             <h2 className="section-title animate-slide-up">
-              {translate("Trusted by")} <span className="text-gradient">{translate("Industry Leaders")}</span>
+              Trusted by <span className="text-gradient">Industry Leaders</span>
             </h2>
             <p className="section-subtitle animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              {translate("Join professionals from Fortune 500 companies who've transformed their careers")}
+              Join professionals from Fortune 500 companies who've transformed their careers
             </p>
           </div>
 
@@ -780,15 +782,16 @@ const Home = () => {
                 WebkitTextFillColor: 'transparent'
               }}
             >
-              {translate("Ready to Transform")}
+              Ready to Transform
               <br />
-              {translate("Your Career?")} 
+              Your Career?
             </h2>
             
             <p className="text-2xl text-muted-foreground mb-12 leading-relaxed animate-fade-in" style={{ animationDelay: '0.3s' }}>
-              {translate("Join")} <span className="text-primary font-bold">{translate("10,000+ successful professionals")}</span> {translate("who accelerated their careers with our proven system.")}
+              Join <span className="text-primary font-bold">10,000+ successful professionals</span> who 
+              accelerated their careers with our proven system.
               <br />
-              <span className="text-accent-secondary font-bold">{translate("Start your journey today - completely FREE!")}</span>
+              <span className="text-accent-secondary font-bold">Start your journey today - completely FREE!</span>
             </p>
 
             <div className="flex flex-col items-center gap-8 mb-12">

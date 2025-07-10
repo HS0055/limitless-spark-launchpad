@@ -29,55 +29,7 @@ const availableLanguages = [
   { code: 'zh', name: 'Chinese', flag: '🇨🇳' },
   { code: 'ja', name: 'Japanese', flag: '🇯🇵' },
   { code: 'ko', name: 'Korean', flag: '🇰🇷' },
-  { code: 'ar', name: 'Arabic', flag: '🇸🇦' },
-  { code: 'pt', name: 'Portuguese', flag: '🇵🇹' },
-  { code: 'it', name: 'Italian', flag: '🇮🇹' },
-  { code: 'nl', name: 'Dutch', flag: '🇳🇱' },
-  { code: 'pl', name: 'Polish', flag: '🇵🇱' },
-  { code: 'tr', name: 'Turkish', flag: '🇹🇷' },
-  { code: 'hi', name: 'Hindi', flag: '🇮🇳' },
-  { code: 'th', name: 'Thai', flag: '🇹🇭' },
-  { code: 'vi', name: 'Vietnamese', flag: '🇻🇳' },
-  { code: 'sv', name: 'Swedish', flag: '🇸🇪' },
-  { code: 'da', name: 'Danish', flag: '🇩🇰' },
-  { code: 'no', name: 'Norwegian', flag: '🇳🇴' },
-  { code: 'fi', name: 'Finnish', flag: '🇫🇮' },
-  { code: 'he', name: 'Hebrew', flag: '🇮🇱' },
-  { code: 'id', name: 'Indonesian', flag: '🇮🇩' },
-  { code: 'ms', name: 'Malay', flag: '🇲🇾' },
-  { code: 'uk', name: 'Ukrainian', flag: '🇺🇦' },
-  { code: 'cs', name: 'Czech', flag: '🇨🇿' },
-  { code: 'sk', name: 'Slovak', flag: '🇸🇰' },
-  { code: 'ro', name: 'Romanian', flag: '🇷🇴' },
-  { code: 'bg', name: 'Bulgarian', flag: '🇧🇬' },
-  { code: 'hr', name: 'Croatian', flag: '🇭🇷' },
-  { code: 'sr', name: 'Serbian', flag: '🇷🇸' },
-  { code: 'sl', name: 'Slovenian', flag: '🇸🇮' },
-  { code: 'et', name: 'Estonian', flag: '🇪🇪' },
-  { code: 'lv', name: 'Latvian', flag: '🇱🇻' },
-  { code: 'lt', name: 'Lithuanian', flag: '🇱🇹' },
-  { code: 'hu', name: 'Hungarian', flag: '🇭🇺' },
-  { code: 'mt', name: 'Maltese', flag: '🇲🇹' },
-  { code: 'ga', name: 'Irish', flag: '🇮🇪' },
-  { code: 'cy', name: 'Welsh', flag: '🏴󠁧󠁢󠁷󠁬󠁳󠁿' },
-  { code: 'is', name: 'Icelandic', flag: '🇮🇸' },
-  { code: 'mk', name: 'Macedonian', flag: '🇲🇰' },
-  { code: 'sq', name: 'Albanian', flag: '🇦🇱' },
-  { code: 'eu', name: 'Basque', flag: '🏴󠁥󠁳󠁰󠁶󠁿' },
-  { code: 'ca', name: 'Catalan', flag: '🏴󠁥󠁳󠁣󠁴󠁿' },
-  { code: 'gl', name: 'Galician', flag: '🏴󠁥󠁳󠁧󠁡󠁿' },
-  { code: 'sw', name: 'Swahili', flag: '🇰🇪' },
-  { code: 'zu', name: 'Zulu', flag: '🇿🇦' },
-  { code: 'af', name: 'Afrikaans', flag: '🇿🇦' },
-  { code: 'bn', name: 'Bengali', flag: '🇧🇩' },
-  { code: 'gu', name: 'Gujarati', flag: '🇮🇳' },
-  { code: 'kn', name: 'Kannada', flag: '🇮🇳' },
-  { code: 'ml', name: 'Malayalam', flag: '🇮🇳' },
-  { code: 'mr', name: 'Marathi', flag: '🇮🇳' },
-  { code: 'pa', name: 'Punjabi', flag: '🇮🇳' },
-  { code: 'ta', name: 'Tamil', flag: '🇮🇳' },
-  { code: 'te', name: 'Telugu', flag: '🇮🇳' },
-  { code: 'ur', name: 'Urdu', flag: '🇵🇰' }
+  { code: 'ar', name: 'Arabic', flag: '🇸🇦' }
 ];
 
 interface TranslationProviderProps {
@@ -89,14 +41,11 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const [translations, setTranslations] = useState<Record<string, Translation>>({});
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load user's language preference from localStorage and DOM
+  // Load user's language preference from localStorage
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('preferred-language') || 
-                          document.documentElement.lang ||
-                          'en';
+    const savedLanguage = localStorage.getItem('preferred-language');
     if (savedLanguage && availableLanguages.find(l => l.code === savedLanguage)) {
       setCurrentLanguage(savedLanguage);
-      document.documentElement.lang = savedLanguage;
     }
   }, []);
 
@@ -104,22 +53,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   useEffect(() => {
     if (currentLanguage !== 'en') {
       loadTranslationsForPage();
-    } else {
-      // Clear translations when switching to English
-      setTranslations({});
     }
-  }, [currentLanguage]);
-
-  // Listen for translation updates from auto-translate system
-  useEffect(() => {
-    const handleTranslationUpdate = () => {
-      if (currentLanguage !== 'en') {
-        loadTranslationsForPage();
-      }
-    };
-
-    window.addEventListener('translations-updated', handleTranslationUpdate);
-    return () => window.removeEventListener('translations-updated', handleTranslationUpdate);
   }, [currentLanguage]);
 
   const loadTranslationsForPage = async () => {
@@ -131,6 +65,7 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
         .from('website_translations')
         .select('original_text, translated_text, target_language, page_path')
         .eq('target_language', currentLanguage)
+        .eq('page_path', currentPath)
         .eq('is_active', true);
 
       if (error) {
@@ -157,9 +92,6 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   const setLanguage = (lang: string) => {
     setCurrentLanguage(lang);
     localStorage.setItem('preferred-language', lang);
-    
-    // Force DOM update to persist language across route changes
-    document.documentElement.lang = lang;
     
     // OPTIMISTIC UPDATE: Immediately update UI, no page reload
     // Background translation will happen via AutoTranslateProvider
@@ -198,17 +130,13 @@ export const TranslationProvider = ({ children }: TranslationProviderProps) => {
   };
 
   const handleMissingKey = async (key: string, lng: string) => {
-    // Skip for English language
-    if (lng === 'en') {
+    // Only queue in production and for non-English languages
+    if (process.env.NODE_ENV !== 'production' || lng === 'en') {
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(`[i18n] Missing translation: ${lng}:${key}`);
+      }
       return;
     }
-
-    // Always log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.warn(`[i18n] Missing translation: ${lng}:${key}`);
-    }
-
-    // Queue for translation in both development and production
 
     try {
       await fetch('https://mbwieeegglyprxoncckdj.supabase.co/functions/v1/queue-missing-translation', {

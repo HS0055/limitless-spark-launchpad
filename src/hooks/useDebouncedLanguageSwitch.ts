@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState, useEffect } from 'react';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { useTranslation } from '@/contexts/TranslationContext';
 
 interface DebouncedLanguageSwitch {
@@ -11,11 +12,12 @@ interface DebouncedLanguageSwitch {
 const DEBOUNCE_DELAY = 300; // ms
 
 export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
+  const languageContext = useLanguage();
   const translationContext = useTranslation();
   
   const [isTranslating, setIsTranslating] = useState(false);
   const [currentLanguage, setCurrentLanguage] = useState(
-    translationContext.currentLanguage
+    translationContext.currentLanguage || languageContext.language
   );
   
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -49,7 +51,8 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
           return;
         }
         
-        // Use only TranslationContext to avoid conflicts
+        // Use seamless translation instead of hiding body
+        languageContext.setLanguage(newLang as any);
         translationContext.setLanguage(newLang);
         
         // Trigger seamless translation for dynamic content
@@ -76,7 +79,7 @@ export const useDebouncedLanguageSwitch = (): DebouncedLanguageSwitch => {
       }
     }, DEBOUNCE_DELAY);
     
-  }, [translationContext]);
+  }, [languageContext, translationContext]);
 
   // Cleanup on unmount
   useEffect(() => {

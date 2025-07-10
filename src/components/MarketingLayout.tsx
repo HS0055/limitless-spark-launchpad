@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useTranslation } from '@/contexts/TranslationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -11,7 +11,7 @@ interface MarketingLayoutProps {
 }
 
 const MarketingLayout = ({ children }: MarketingLayoutProps) => {
-  const { translate } = useTranslation();
+  const { t } = useLanguage();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-muted/20">
@@ -34,10 +34,10 @@ const MarketingLayout = ({ children }: MarketingLayoutProps) => {
               <LanguageSwitcher />
               <nav className="hidden md:flex items-center space-x-4 mr-4">
                 <Link to="/league" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                  {translate('nav.programs')}
+                  {t('nav.programs')}
                 </Link>
                 <Link to="/visual-business" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                  {translate('nav.visual')}
+                  {t('nav.visual')}
                 </Link>
                 <Link to="/meme-coins" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
                   Meme Coins
@@ -46,11 +46,11 @@ const MarketingLayout = ({ children }: MarketingLayoutProps) => {
                   AI Tools
                 </Link>
                 <Link to="/business-fundamentals" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
-                  {translate('nav.business')}
+                  {t('nav.business')}
                 </Link>
               </nav>
               <Button className="btn-hero font-semibold px-6" asChild>
-                <Link to="/dashboard">{translate('nav.getStarted')}</Link>
+                <Link to="/dashboard">{t('nav.getStarted')}</Link>
               </Button>
             </div>
           </div>

@@ -38,31 +38,19 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Store missing key for batch processing - check if already exists first
-    const { data: existing } = await supabase
-      .from('translation_queue')
-      .select('id')
-      .eq('target_language', lng)
-      .eq('original_text', key)
-      .eq('status', 'pending')
-      .single();
-
-    if (existing) {
-      console.log(`Key already queued: ${lng}:${key}`);
-      return new Response('Already queued', { 
-        status: 200,
-        headers: corsHeaders 
-      });
-    }
-
+    // Store missing key for batch processing
     const { error: insertError } = await supabase
       .from('translation_queue')
-      .insert({
+      .upsert({
         target_language: lng,
         original_text: key,
         fallback_text: fallback,
         page_path: page_path || '/',
-        status: 'pending'
+        status: 'pending',
+        created_at: new Date().toISOString()
+      }, {
+        onConflict: 'target_language,original_text',
+        ignoreDuplicates: true
       });
 
     if (insertError) {
@@ -75,7 +63,7 @@ serve(async (req) => {
 
     // If this is a high-priority key (short text), translate immediately
     if (fallback.length <= 50) {
-      await translateImmediately(key, fallback, lng, page_path || '/', supabase);
+      await translateImmediately(key, fallback, lng, supabase);
     }
 
     return new Response('Queued for translation', { 
@@ -96,7 +84,6 @@ async function translateImmediately(
   key: string, 
   fallback: string, 
   lng: string, 
-  page_path: string,
   supabase: any
 ) {
   try {
@@ -105,6 +92,15 @@ async function translateImmediately(
       console.warn('No OpenAI API key available for immediate translation');
       return;
     }
+
+    const languageNames = {
+      de: 'German',
+      ru: 'Russian',
+      es: 'Spanish',
+      fr: 'French'
+    };
+
+    const targetLanguage = languageNames[lng as keyof typeof languageNames] || lng;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -117,7 +113,7 @@ async function translateImmediately(
         messages: [
           {
             role: 'system',
-            content: `You are a professional translator. Translate the given text to language code "${lng}". Return only the translation, no quotes or explanations. Maintain the same tone and style.`
+            content: `You are a professional translator. Translate the given text to ${targetLanguage}. Return only the translation, no quotes or explanations. Maintain the same tone and style.`
           },
           {
             role: 'user',
@@ -146,10 +142,10 @@ async function translateImmediately(
         translated_text: translation,
         target_language: lng,
         source_language: 'en',
-        page_path: page_path,
+        page_path: '/',
         is_active: true
       }, {
-        onConflict: 'original_text,target_language,page_path'
+        onConflict: 'original_text,target_language'
       });
 
     if (error) {

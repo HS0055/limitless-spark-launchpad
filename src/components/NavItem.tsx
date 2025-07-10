@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import Icon, { IconName } from '@/components/Icon';
-import { useTranslation } from '@/contexts/TranslationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NavItemProps {
   label: string;
@@ -11,7 +11,7 @@ interface NavItemProps {
 
 const NavItem = ({ label, href, icon, isExternal = false }: NavItemProps) => {
   const location = useLocation();
-  const { translate } = useTranslation();
+  const { t } = useLanguage();
   const isActive = location.pathname === href;
 
   const className = `px-4 py-2 rounded-lg transition-all duration-200 flex items-center space-x-2 group relative ${
@@ -29,7 +29,7 @@ const NavItem = ({ label, href, icon, isExternal = false }: NavItemProps) => {
             isActive ? 'text-primary' : 'group-hover:text-primary'
           }`} 
         />
-        <span className="font-medium" data-i18n={label}>{translate(label)}</span>
+        <span className="font-medium" data-i18n={label}>{t(label)}</span>
       </a>
     );
   }
@@ -42,7 +42,7 @@ const NavItem = ({ label, href, icon, isExternal = false }: NavItemProps) => {
           isActive ? 'text-primary' : 'group-hover:text-primary'
         }`} 
       />
-      <span className="font-medium" data-i18n={label}>{translate(label)}</span>
+      <span className="font-medium" data-i18n={label}>{t(label)}</span>
     </Link>
   );
 };

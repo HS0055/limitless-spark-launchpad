@@ -5,9 +5,9 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/components/auth/AuthProvider";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
-import { useTranslation } from "react-i18next";
 import { Suspense, lazy } from "react";
 
 // Core pages (loaded immediately)
@@ -30,9 +30,7 @@ const WebEditor = lazy(() => import("./pages/WebEditor"));
 const AIContentStudio = lazy(() => import("./pages/AIContentStudio"));
 const BugTracker = lazy(() => import("./pages/BugTracker"));
 const ContentDetector = lazy(() => import("./pages/ContentDetector"));
-const WebsiteScraper = lazy(() => import("./pages/WebsiteScraper"));
 const GlobalVisualEditor = lazy(() => import("@/components/visual-editor/VisualEditor").then(module => ({ default: module.VisualEditor })));
-const TranslationHealthDashboard = lazy(() => import("./components/TranslationHealthDashboard").then(module => ({ default: module.TranslationHealthDashboard })));
 
 // Loading fallback component
 const PageLoader = () => (
@@ -64,19 +62,6 @@ const queryClient = new QueryClient({
 // App content with global text editor
 const AppContent = () => {
   const { userRole } = useAuth();
-  const { ready } = useTranslation();
-  
-  // Prevent flash of untranslated keys
-  if (!ready) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-muted-foreground">Loading translations...</p>
-        </div>
-      </div>
-    );
-  }
   
   return (
     <div className="min-h-screen bg-background">
@@ -85,13 +70,7 @@ const AppContent = () => {
       {/* PerformanceMonitor disabled by default for production performance */}
       {process.env.NODE_ENV === 'development' && <PerformanceMonitor />}
       <BrowserRouter>
-        <AutoTranslateProvider config={{
-          enabled: true,
-          interval: 5, // Check every 5 minutes
-          maxTextsPerBatch: 30,
-          enabledLanguages: ['hy', 'ru', 'es', 'fr', 'de', 'zh', 'ja', 'ko', 'ar', 'pt', 'it', 'nl', 'pl', 'tr', 'hi', 'th', 'vi', 'sv', 'da', 'no', 'fi', 'he', 'id', 'ms', 'uk', 'cs', 'sk', 'ro', 'bg', 'hr', 'sr', 'sl', 'et', 'lv', 'lt', 'hu', 'mt', 'ga', 'cy', 'is', 'mk', 'sq', 'eu', 'ca', 'gl', 'sw', 'zu', 'af', 'bn', 'gu', 'kn', 'ml', 'mr', 'pa', 'ta', 'te', 'ur'],
-          enableFullSiteScan: false // Set to true for comprehensive scanning
-        }}>
+        <AutoTranslateProvider>
           <Suspense fallback={<PageLoader />}>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -105,8 +84,6 @@ const AppContent = () => {
               <Route path="/web-editor" element={<WebEditor />} />
               <Route path="/ai-content-studio" element={<AIContentStudio />} />
               <Route path="/content-detector" element={<ContentDetector />} />
-              <Route path="/website-scraper" element={<WebsiteScraper />} />
-              <Route path="/translation-health" element={<TranslationHealthDashboard />} />
               <Route path="/bug-tracker" element={<BugTracker />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/admin" element={<AdminPanel />} />
@@ -133,9 +110,11 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <TranslationProvider>
-          <AppContent />
-        </TranslationProvider>
+        <LanguageProvider>
+          <TranslationProvider>
+            <AppContent />
+          </TranslationProvider>
+        </LanguageProvider>
       </AuthProvider>
     </QueryClientProvider>
   </ErrorBoundary>

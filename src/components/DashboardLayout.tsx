@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { useTranslation } from '@/contexts/TranslationContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Link, useLocation } from 'react-router-dom';
 import LanguageSwitcher from '@/components/LanguageSwitcher';
@@ -22,15 +22,15 @@ interface DashboardLayoutProps {
 
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { user, signOut } = useAuth();
-  const { translate } = useTranslation();
+  const { t } = useLanguage();
   const location = useLocation();
 
   const dashboardNavItems = [
-    { name: translate('nav.home'), href: "/dashboard", icon: Home },
-    { name: translate('nav.programs'), href: "/league", icon: Trophy },
-    { name: translate('nav.visual'), href: "/visual-business", icon: Image },
-    { name: translate('nav.business'), href: "/business-fundamentals", icon: BookOpen },
-    { name: translate('nav.translator'), href: "/translator", icon: Languages },
+    { name: t('nav.home'), href: "/dashboard", icon: Home },
+    { name: t('nav.programs'), href: "/league", icon: Trophy },
+    { name: t('nav.visual'), href: "/visual-business", icon: Image },
+    { name: t('nav.business'), href: "/business-fundamentals", icon: BookOpen },
+    { name: t('nav.translator'), href: "/translator", icon: Languages },
   ];
 
   return (
