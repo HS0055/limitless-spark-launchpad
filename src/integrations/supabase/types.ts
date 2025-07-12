@@ -729,6 +729,81 @@ export type Database = {
           },
         ]
       }
+      scraped_content: {
+        Row: {
+          content: string
+          content_hash: string | null
+          id: string
+          is_active: boolean | null
+          last_updated: string
+          metadata: Json | null
+          page_type: string | null
+          scraped_at: string
+          title: string | null
+          url: string
+        }
+        Insert: {
+          content: string
+          content_hash?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string
+          metadata?: Json | null
+          page_type?: string | null
+          scraped_at?: string
+          title?: string | null
+          url: string
+        }
+        Update: {
+          content?: string
+          content_hash?: string | null
+          id?: string
+          is_active?: boolean | null
+          last_updated?: string
+          metadata?: Json | null
+          page_type?: string | null
+          scraped_at?: string
+          title?: string | null
+          url?: string
+        }
+        Relationships: []
+      }
+      scraping_jobs: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          pages_found: number | null
+          pages_scraped: number | null
+          status: string
+          url: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          pages_found?: number | null
+          pages_scraped?: number | null
+          status?: string
+          url: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          pages_found?: number | null
+          pages_scraped?: number | null
+          status?: string
+          url?: string
+        }
+        Relationships: []
+      }
       translation_cache: {
         Row: {
           id: number
@@ -786,6 +861,45 @@ export type Database = {
           status?: string
           target_language?: string
           translated_at?: string | null
+        }
+        Relationships: []
+      }
+      translation_reports: {
+        Row: {
+          created_at: string
+          current_translation: string
+          id: string
+          original_text: string
+          page_path: string
+          status: string
+          suggested_translation: string | null
+          target_language: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_translation: string
+          id?: string
+          original_text: string
+          page_path: string
+          status?: string
+          suggested_translation?: string | null
+          target_language: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_translation?: string
+          id?: string
+          original_text?: string
+          page_path?: string
+          status?: string
+          suggested_translation?: string | null
+          target_language?: string
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }

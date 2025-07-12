@@ -9,6 +9,7 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { TranslationProvider } from "@/contexts/TranslationContext";
 import { AutoTranslateProvider } from "@/components/AutoTranslateProvider";
 import { Suspense, lazy } from "react";
+import { useTranslation } from "react-i18next";
 
 // Core pages (loaded immediately)
 import Home from "./pages/Home";
@@ -62,6 +63,9 @@ const queryClient = new QueryClient({
 // App content with global text editor
 const AppContent = () => {
   const { userRole } = useAuth();
+  const { ready } = useTranslation();
+  
+  if (!ready) return <PageLoader />;
   
   return (
     <div className="min-h-screen bg-background">
